@@ -1,0 +1,11 @@
+# Checks done directly by the lead session, 5 Oct 2026 (from the owner's computer in Israel, via browser)
+- adsb.lol /v2/point/32.0/34.9/250 : 63 aircraft, median seen_pos 0.022 s, p90 26.7 s, nic present on 63/63, 3 with nic<7, 3 military flag. Response time 632 ms.
+- adsb.fi /api/v3/lat/32.0/lon/34.9/dist/250 : 66 aircraft, median seen_pos 0.54 s.
+- airplanes.live same query returned: {"error": "Please contact us at contact@airplanes.live. Your email MUST include any links, a description of the project..."}
+- adsb.lol openapi re-read: ODbL, "You can use the API for free", "In the future, you will require an API key which you can get by feeding to adsb.lol", "If you want to use the API for production purposes, please contact me", max radius 250 nm.
+- oref.org.il Alerts.json and AlertsHistory.json: HTTP 200 from Israel (empty body, no active alerts). Research agent got 403 from abroad.
+- IODA API v2 outages/alerts answered without a key; response carries: "This data is Copyright (c) 2021-2025 Georgia Tech Research Corporation. All Rights Reserved."
+- Flightradar24 live blog 28 Feb 2026 re-read: 06:45 UTC Israel says it launched strikes; Iran and Israel closed airspace (announced 06:45); 07:05 UTC "Flights are exiting Iraqi airspace or holding prior to entry", "no official NOTAM has been posted yet"; 07:15 UTC "airspace in Iran, Iraq, Jordan, and Israel is mostly empty".
+- Copernicus quotas page re-read: 10 000 PU and 10 000 requests per month.
+- CelesTrak re-read: "only checks for new GP data once every 2 hours".
+- Hetzner price page did not render prices in the browser; exact price not confirmed today.
