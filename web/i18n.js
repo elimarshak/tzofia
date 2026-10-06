@@ -2,7 +2,7 @@ const n = (x) => Number(x).toLocaleString('en-US');
 
 export const STR = {
   he: {
-    dir: 'rtl', brand: 'צופיה', otherLang: 'English',
+    dir: 'rtl', brand: 'OPENEYE', otherLang: 'English',
     layers: 'שכבות', optAircraft: 'מטוסים', optLabels: 'אותות קריאה', mapLook: 'מראה המפה',
     themeDark: 'כהה', themeLight: 'בהיר',
     legend: 'גובה הטיסה', low: 'נמוך', high: 'גבוה',
@@ -43,7 +43,7 @@ export const STR = {
     credit: ['נתוני המטוסים: ', ['adsb.lol', 'https://adsb.lol'], ', ברישיון ODbL. המפה: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '.'],
   },
   en: {
-    dir: 'ltr', brand: 'Tzofia', otherLang: 'עברית',
+    dir: 'ltr', brand: 'OPENEYE', otherLang: 'עברית',
     layers: 'Layers', optAircraft: 'Aircraft', optLabels: 'Callsigns', mapLook: 'Map appearance',
     themeDark: 'Dark', themeLight: 'Light',
     legend: 'Altitude', low: 'low', high: 'high',
@@ -67,7 +67,7 @@ export const STR = {
     emerg: 'Emergencies',
     emergNone: 'No aircraft is broadcasting an emergency code right now.',
     emergSome: (c) => c === 1 ? 'One aircraft is broadcasting an emergency code right now.' : `${c} aircraft are broadcasting an emergency code right now.`,
-    emergNote: 'Tzofia checks worldwide for the three emergency codes an aircraft can transmit: 7500 for hijacking, 7600 for radio failure, 7700 for a general emergency.',
+    emergNote: 'OPENEYE checks worldwide for the three emergency codes an aircraft can transmit: 7500 for hijacking, 7600 for radio failure, 7700 for a general emergency.',
     sq: { 7500: 'Hijacking', 7600: 'Radio failure', 7700: 'General emergency' },
     sky: 'The sky around Israel',
     skyCount: (c) => c === 0 ? 'No aircraft are airborne around Israel right now.' : c === 1 ? 'One aircraft is airborne around Israel.' : `${c} aircraft are airborne around Israel.`,
