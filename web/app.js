@@ -173,16 +173,29 @@ function ringImage(color) {
   return x.getImageData(0, 0, 76, 76);
 }
 
+// The basemap comes as three files (GitHub refuses single files over 100 MB): the world at a basic
+// level, the Middle East and Mediterranean at a medium level, Israel and its neighbours at the finest.
+// Each finer file is drawn on top of the coarser one, starting at the zoom where the coarser one ends.
+const BASEMAPS = window.TZ_BASEMAPS || [{ id: 'world', file: 'basemap-world.pmtiles', maxzoom: 6 }];
+
 function mapStyle() {
   const base = new URL('.', location.href).href;
   const c = T();
   const flavor = { ...basemaps.namedFlavor(S.theme), background: c.sea, earth: c.land, water: c.sea };
+  const sources = {}, layers = [];
+  BASEMAPS.forEach((b, i) => {
+    sources[b.id] = { type: 'vector', url: 'pmtiles://' + base + b.file };
+    const from = i === 0 ? 0 : BASEMAPS[i - 1].maxzoom + 1;
+    for (const l of basemaps.layers(b.id, flavor, { lang: S.lang })) {
+      if (i > 0 && l.type === 'background') continue;
+      layers.push(i === 0 ? l : { ...l, id: b.id + '-' + l.id, minzoom: Math.max(l.minzoom || 0, from) });
+    }
+  });
   return {
     version: 8,
     glyphs: base + 'assets/fonts/{fontstack}/{range}.pbf',
     sprite: base + 'assets/sprites/v4/' + S.theme,
-    sources: { protomaps: { type: 'vector', url: 'pmtiles://' + base + 'basemap.pmtiles' } },
-    layers: basemaps.layers('protomaps', flavor, { lang: S.lang }),
+    sources, layers,
   };
 }
 
@@ -273,7 +286,7 @@ function initMap() {
   maplibregl.setRTLTextPlugin(new URL('vendor/mapbox-gl-rtl-text.js', location.href).href, true);
   const m = new maplibregl.Map({
     container: 'map', style: mapStyle(), center: CFG.center, zoom: CFG.zoom,
-    minZoom: 3, maxZoom: 12, maxBounds: CFG.bounds, attributionControl: false,
+    minZoom: 2, maxZoom: 13, maxBounds: CFG.bounds, attributionControl: false,
     dragRotate: false, pitchWithRotate: false, touchPitch: false,
   });
   m.touchZoomRotate.disableRotation();

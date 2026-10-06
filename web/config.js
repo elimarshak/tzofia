@@ -5,7 +5,7 @@ export const CFG = {
   key: 'sb_publishable_iz4Bq-MFx4C0gY38cDtGYw_PPRumPqT',
   center: [34.9, 31.7],
   zoom: 6.1,
-  bounds: [[-18, 12], [64, 43]],   // must match the basemap extract in the build workflow
+  bounds: [[-32, -40], [180, 75]],  // the world file in the build workflow: everything except the Americas
   pollMs: 15000,
   maxAgeSec: 180,                 // aircraft whose last position is older are not drawn
   staleSec: 180,                  // source considered silent after this

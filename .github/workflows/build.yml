@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-env:
-  BBOX: "-18,12,64,43"    # Morocco to Iran, Yemen to Greece. Must match CFG.bounds in web/config.js
-  MAXZOOM: "9"            # falls back to 8 if the file would be too large for the repository
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,9 +42,9 @@ jobs:
         id: bm
         uses: actions/cache@v4
         with:
-          path: basemap.pmtiles
-          key: basemap-wide-m18-12-64-43-z${{ env.MAXZOOM }}-v1
-      - name: Basemap extract (OpenStreetMap via Protomaps daily build)
+          path: maps
+          key: basemaps-three-files-v1
+      - name: Basemap extracts (OpenStreetMap via Protomaps daily build)
         if: steps.bm.outputs.cache-hit != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -62,12 +59,31 @@ jobs:
           done
           test -n "$src" || { echo "no recent Protomaps build found"; exit 1; }
           echo "source: $src"
-          /tmp/pmtiles extract "$src" basemap.pmtiles --bbox="$BBOX" --maxzoom="$MAXZOOM"
-          if [ "$(stat -c %s basemap.pmtiles)" -ge 95000000 ]; then
-            echo "zoom $MAXZOOM gives $(stat -c %s basemap.pmtiles) bytes, too large; using one level less"
-            /tmp/pmtiles extract "$src" basemap.pmtiles --bbox="$BBOX" --maxzoom="$((MAXZOOM-1))"
-          fi
-      - run: cp basemap.pmtiles dist/basemap.pmtiles && du -sh dist dist/basemap.pmtiles && stat -c %s dist/basemap.pmtiles > dist/basemap-size.txt
+          mkdir -p maps
+          # GitHub refuses single files of 100 MB or more, so the map is split into three files.
+          # Each one is cut at the highest zoom that keeps it under 95 MB (tries the first zoom, then lower ones).
+          cut() {  # name  bbox  first-zoom  lowest-zoom
+            local z=$3
+            while [ "$z" -ge "$4" ]; do
+              /tmp/pmtiles extract "$src" "maps/$1.pmtiles" --bbox="$2" --maxzoom="$z"
+              local size; size=$(stat -c %s "maps/$1.pmtiles")
+              echo "$1: zoom $z -> $size bytes"
+              if [ "$size" -lt 95000000 ]; then echo "$z" > "maps/$1.zoom"; return 0; fi
+              z=$((z-1))
+            done
+            echo "$1 does not fit"; return 1
+          }
+          cut world  "-32,-40,180,75" 7 5     # the whole world except the Americas
+          cut region "-18,12,64,43"   8 7     # Middle East, North Africa, Mediterranean
+          cut detail "26,25,42,38"   11 10    # Israel and its neighbours
+      - name: Add the maps to the site
+        run: |
+          set -euo pipefail
+          cp maps/world.pmtiles dist/basemap-world.pmtiles
+          cp maps/region.pmtiles dist/basemap-region.pmtiles
+          cp maps/detail.pmtiles dist/basemap-detail.pmtiles
+          echo "window.TZ_BASEMAPS=[{id:'world',file:'basemap-world.pmtiles',maxzoom:$(cat maps/world.zoom)},{id:'region',file:'basemap-region.pmtiles',maxzoom:$(cat maps/region.zoom)},{id:'detail',file:'basemap-detail.pmtiles',maxzoom:$(cat maps/detail.zoom)}];" > dist/basemap-info.js
+          cat dist/basemap-info.js; du -sh dist dist/*.pmtiles
       - uses: actions/upload-artifact@v4
         with:
           name: site
@@ -76,7 +92,7 @@ jobs:
       - name: Publish the built site to the site-build branch (inside this repo only)
         run: |
           set -euo pipefail
-          test "$(stat -c %s dist/basemap.pmtiles)" -lt 95000000 || { echo "basemap too large for git"; exit 1; }
+          for f in dist/*.pmtiles; do test "$(stat -c %s "$f")" -lt 95000000 || { echo "$f too large for git"; exit 1; }; done
           cd dist
           git init -q -b site-build
           git add -A
