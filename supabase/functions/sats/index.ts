@@ -1,15 +1,16 @@
 // Tzofia: which satellites are over the map area now and in the next few minutes.
-// Runs every 5 minutes (pg_cron). Keeps our own copy of the public catalogue (CelesTrak, at most
-// one download per 130 minutes, per their usage policy) and publishes only the satellites whose
-// ground point is about to be inside the map area, so phones propagate a few hundred objects, not 17,000.
+// Runs every 5 minutes (pg_cron). The public catalogue (CelesTrak "active" group) is downloaded by our
+// scheduled GitHub workflow onto the data branch; this function reads that copy, at most once an hour,
+// and publishes only the satellites whose ground point is about to be inside the map area,
+// so phones propagate a few hundred objects, not 16,000.
 import postgres from "npm:postgres@3.4.5";
 import * as satellite from "npm:satellite.js@7.1.0";
 
 const BBOX = { w: 26, s: 25, e: 42, n: 38 }; // same box as the basemap
 const MARGIN_DEG = 4;
 const LOOKAHEAD_MIN = 10;
-const REFETCH_MIN = 130;
-const SRC = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=csv";
+const REFETCH_MIN = 60;
+const SRC = "https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_active.csv";
 const NUM = ["MEAN_MOTION", "ECCENTRICITY", "INCLINATION", "RA_OF_ASC_NODE", "ARG_OF_PERICENTER", "MEAN_ANOMALY",
   "EPHEMERIS_TYPE", "NORAD_CAT_ID", "ELEMENT_SET_NO", "REV_AT_EPOCH", "BSTAR", "MEAN_MOTION_DOT", "MEAN_MOTION_DDOT"];
 
@@ -28,7 +29,7 @@ function splitCsvLine(line: string): string[] {
 
 async function setStatus(ok: boolean, count: number | null, error: string | null) {
   await sql`insert into public.source_status (source, last_ok, last_count, last_error, last_try)
-            values ('celestrak/active', ${ok ? sql`now()` : null}, ${count}, ${error}, now())
+            values ('satellites', ${ok ? sql`now()` : null}, ${count}, ${error}, now())
             on conflict (source) do update set
               last_ok = coalesce(excluded.last_ok, public.source_status.last_ok),
               last_count = coalesce(excluded.last_count, public.source_status.last_count),
@@ -42,22 +43,16 @@ Deno.serve(async () => {
     if (last && Date.now() - new Date(last.computed_at).getTime() < 4 * 60 * 1000) return reply({ skipped: "fresh" });
 
     let [blob] = await sql`select body, fetched_at from ingest.blobs where key = 'celestrak_active'`;
-    const [st] = await sql`select last_error, last_try from public.source_status where source = 'celestrak/active'`;
     const ageMin = blob ? (Date.now() - new Date(blob.fetched_at).getTime()) / 60000 : Infinity;
-    // Their policy: stop on any non-200 answer until a human has looked. We wait a full day.
-    const blocked = st?.last_error && Date.now() - new Date(st.last_try).getTime() < 24 * 3600 * 1000;
     let fetched = "no";
-    if (ageMin > REFETCH_MIN && !blocked) {
-      const r = await fetch(SRC, { headers: { "User-Agent": "tzofia/0.1 (+https://github.com/elimarshak/tzofia)" } });
+    if (ageMin > REFETCH_MIN) {
+      const r = await fetch(SRC, { cache: "no-store" });
       const body = await r.text();
       if (r.status === 200 && body.startsWith("OBJECT_NAME")) {
         await sql`insert into ingest.blobs (key, body, fetched_at) values ('celestrak_active', ${body}, now())
                   on conflict (key) do update set body = excluded.body, fetched_at = excluded.fetched_at`;
         blob = { body, fetched_at: new Date() };
         fetched = "yes";
-      } else if (r.status === 200 && /has not updated/i.test(body) && blob) {
-        await sql`update ingest.blobs set fetched_at = now() where key = 'celestrak_active'`;
-        fetched = "unchanged";
       } else {
         await setStatus(false, null, `HTTP ${r.status}: ${body.slice(0, 120)}`);
         fetched = "error";

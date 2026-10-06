@@ -95,6 +95,7 @@ function band(a) {
 const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || (a.emergency && a.emergency !== 'none');
 const lowAcc = (a) => !a.on_ground && a.nic != null && a.nic < 7;
 const callsign = (a) => { const c = (a.flight || '').trim(); return /^[A-Z0-9-]{2,8}$/i.test(c) ? c : ''; };   // transponders sometimes send filler such as @@@@@@@@
+const emName = (e) => (e.flight || '').trim() || e.reg || e.hex.toUpperCase();
 const airborne = () => S.ac.filter((a) => !a.on_ground);
 
 /* ---------- map ---------- */
@@ -281,7 +282,9 @@ function viewHome() {
   const low = S.ac.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
   return [header(L.title),
     row(low || zones ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
-    row(em ? c.warn : c.alt[2], L.emerg, em ? L.emergSome(em) : L.emergNone, () => go({ name: 'emerg' })),
+    row(em ? c.warn : c.alt[2], L.emerg,
+      em === 1 ? [L.emergOne, ' ', h('b', { class: 'cs', style: 'color:var(--accent)' }, emName(S.em[0]))] : em ? L.emergSome(em) : L.emergNone,
+      () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
 function viewGnss() {
@@ -299,7 +302,7 @@ function viewEmerg() {
   const rows = S.em.map((e) => {
     const live = S.ac.find((a) => a.hex === e.hex);
     const what = L.sq[e.squawk] || e.emergency || '';
-    return row(c.warn, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, (e.flight || '').trim() || e.reg || e.hex),
+    return row(c.warn, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, emName(e)),
       [what, e.squawk, e.ac_type].filter(Boolean).join(' · '),
       () => { go({ name: 'ac', hex: e.hex, from: S.view }); flyTo(live || e, 7); });
   });
@@ -324,6 +327,7 @@ function viewAircraft(hex) {
   add(L.fType, [a.ac_type, a.descr].filter(Boolean).join(' · ') ? ltr([a.ac_type, a.descr].filter(Boolean).join(' · ')) : null);
   if (a.operator) add(L.fOp, ltr(a.operator));
   add(L.fAlt, a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null);
+  add(L.fPos, a.lat != null && a.lon != null ? ltr(`${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}`) : null);
   if ('gs' in a) {
     add(L.fSpeed, a.gs != null ? L.speed(a.gs) : null);
     add(L.fTrack, a.track != null ? L.deg(a.track) : null);
