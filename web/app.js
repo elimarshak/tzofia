@@ -66,7 +66,11 @@ async function refresh() {
     ]);
     const g = drv.find((d) => d.key === 'gnss_grid');
     S.gnss = g && Date.now() - Date.parse(g.computed_at) < 10 * 60 * 1000 ? g.data : null;
-    S.ac = ac; S.em = em; S.src = src[0] || null; S.netErr = false; S.loaded = true;
+    // An emergency is shown only when it is backed up: a 7500/7600/7700 code, or the emergency flag
+    // received more than once, at least a minute apart, from an aircraft with a known position.
+    const confirmed = (e) => ['7500', '7600', '7700'].includes(e.squawk)
+      || (e.lat != null && e.lon != null && Date.parse(e.last_seen) - Date.parse(e.first_seen) >= 60000);
+    S.ac = ac; S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
   } catch {
     S.netErr = true;
   }
@@ -92,7 +96,7 @@ function band(a) {
   if (x == null) return 'u';
   return x < 5000 ? '0' : x < 15000 ? '1' : x < 30000 ? '2' : '3';
 }
-const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || (a.emergency && a.emergency !== 'none');
+const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || S.em.some((e) => e.hex === a.hex);
 const lowAcc = (a) => !a.on_ground && a.nic != null && a.nic < 7;
 const callsign = (a) => { const c = (a.flight || '').trim(); return /^[A-Z0-9-]{2,8}$/i.test(c) ? c : ''; };   // transponders sometimes send filler such as @@@@@@@@
 const emName = (e) => (e.flight || '').trim() || e.reg || e.hex.toUpperCase();
