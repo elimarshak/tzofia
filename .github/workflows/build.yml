@@ -5,7 +5,7 @@ on:
     paths: ['web/**', '.github/workflows/build.yml']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 env:
   BBOX: "26,25,42,38"     # must match CFG.bounds in web/config.js
   MAXZOOM: "10"
@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: basemap.pmtiles
-          key: basemap-${{ env.BBOX }}-z${{ env.MAXZOOM }}-v1
+          key: basemap-26-25-42-38-z${{ env.MAXZOOM }}-v1
       - name: Basemap extract (OpenStreetMap via Protomaps daily build)
         if: steps.bm.outputs.cache-hit != 'true'
         env:
@@ -65,3 +65,12 @@ jobs:
           name: site
           path: dist
           retention-days: 14
+      - name: Publish the built site to the site-build branch (inside this repo only)
+        run: |
+          set -euo pipefail
+          test "$(stat -c %s dist/basemap.pmtiles)" -lt 95000000 || { echo "basemap too large for git"; exit 1; }
+          cd dist
+          git init -q -b site-build
+          git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "site build of ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" site-build
