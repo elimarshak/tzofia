@@ -447,7 +447,7 @@ function viewQuake(id) {
   if (!e) return [head(L.quakes), h('p', { class: 'note' }, L.gone)];
   const facts = [];
   const add = (k, v) => facts.push(h('dt', null, k), h('dd', null, v == null || v === '' ? L.unknown : v));
-  add(L.qMag, e.mag.toFixed(1) + (e.magtype ? ' (' + e.magtype + ')' : ''));
+  add(L.qMag, h('span', { class: 'cs' }, e.mag.toFixed(1) + (e.magtype ? ' (' + e.magtype + ')' : '')));
   add(L.qTime, L.ago(secAgo(e.time)));
   add(L.qDepth, e.depth != null ? L.km(Math.round(e.depth)) : null);
   add(L.qRegion, e.region ? h('span', { class: 'cs' }, e.region) : null);
