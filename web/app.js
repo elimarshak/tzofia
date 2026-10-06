@@ -11,7 +11,8 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, img: 'off',
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true,
+  ships: [], fires: [], img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
@@ -84,12 +85,15 @@ async function refresh() {
 const QUAKE_MIN_MAG = 2.5;
 async function refreshSlow() {
   try {
-    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes)');
+    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires)');
     const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
     const q = rows.find((r) => r.key === 'quakes');
     S.quakes = fresh(q, 30) ? q.data.events.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG) : [];
+    const f = rows.find((r) => r.key === 'fires');
+    // each spot: [lat, lon, power in megawatts, confidence n|h, minutes since epoch, D|N]
+    S.fires = fresh(f, 120) ? f.data.spots.map((x, i) => ({ id: 'f' + i, lat: x[0], lon: x[1], frp: x[2], conf: x[3], time: new Date(x[4] * 60000).toISOString(), dn: x[5] })) : [];
   } catch { /* keep what we have */ }
-  drawQuakes(); tickSats(); render();
+  drawQuakes(); drawFires(); tickSats(); render();
 }
 
 // Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
@@ -161,6 +165,36 @@ function tickSats() {
   m.getSource('sats').setData({ type: 'FeatureCollection', features: out.map((o) => (
     { type: 'Feature', properties: { id: o.id }, geometry: { type: 'Point', coordinates: [o.lon, o.lat] } })) });
   if (S.view.name === 'sat') { const f = document.querySelector('#sheet-body dl.facts'); if (f) f.replaceWith(satFacts(S.view.id)); }
+}
+
+// Ships: the latest position of every ship our listener heard in the last 20 minutes.
+async function refreshShips() {
+  if (!S.showShips || document.hidden) return;
+  try {
+    const since = new Date(Date.now() - 20 * 60 * 1000).toISOString();
+    S.ships = await api(`/ships_live?select=mmsi,name,lat,lon,sog,cog,heading,nav,kind,dest,callsign,t&t=gte.${since}&lat=not.is.null&limit=8000`);
+  } catch { /* keep what we have */ }
+  drawShips();
+  if (S.view.name === 'ship') render();
+}
+function drawShips() {
+  const m = S.map; if (!m || !m.getSource('ships')) return;
+  m.getSource('ships').setData({ type: 'FeatureCollection', features: S.ships.map((x) => (
+    { type: 'Feature', properties: { id: String(x.mmsi), dir: x.heading ?? x.cog ?? 0, still: (x.sog ?? 0) < 0.5 ? 1 : 0 },
+      geometry: { type: 'Point', coordinates: [x.lon, x.lat] } })) });
+}
+function drawFires() {
+  const m = S.map; if (!m || !m.getSource('fires')) return;
+  m.getSource('fires').setData({ type: 'FeatureCollection', features: S.fires.map((x) => (
+    { type: 'Feature', properties: { id: x.id, frp: x.frp }, geometry: { type: 'Point', coordinates: [x.lon, x.lat] } })) });
+}
+function shipImage(fill, halo, moving) {
+  const c = document.createElement('canvas'); c.width = c.height = 40;
+  const x = c.getContext('2d');
+  x.translate(20, 20); x.lineJoin = 'round'; x.lineWidth = 3; x.strokeStyle = halo; x.fillStyle = fill;
+  const p = new Path2D(moving ? 'M0,-13 L7,-3 L7,12 L-7,12 L-7,-3 Z' : 'M0,-7 L7,0 L0,7 L-7,0 Z');
+  x.stroke(p); x.fill(p);
+  return x.getImageData(0, 0, 40, 40);
 }
 
 function drawQuakes() {
@@ -273,6 +307,7 @@ function addOverlay() {
   img('plane-u', planeImage(c.unk, c.halo));
   img('plane-e', planeImage(c.warn, c.halo));
   img('ring', ringImage(c.warn));
+  img('ship-1', shipImage(c.ship, c.halo, true)); img('ship-0', shipImage(c.ship, c.halo, false));
 
   m.addSource('gnss', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'gnss', type: 'fill', source: 'gnss',
@@ -284,6 +319,18 @@ function addOverlay() {
       'circle-color': c.accent, 'circle-opacity': 0.14, 'circle-stroke-color': c.accent, 'circle-stroke-width': 1.6 } });
   m.addLayer({ id: 'quake-sel', type: 'circle', source: 'quakes', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'mag'], 2.5, 9, 4, 15, 6, 28], 'circle-color': c.accent, 'circle-opacity': 0, 'circle-stroke-color': c.ink, 'circle-stroke-width': 2 } });
+  m.addSource('fires', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'fires', type: 'circle', source: 'fires',
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'frp'], 0, 2.4, 20, 4, 200, 7], 'circle-color': c.fire, 'circle-opacity': 0.85,
+      'circle-stroke-color': c.halo, 'circle-stroke-width': 0.8 } });
+  m.addLayer({ id: 'fire-sel', type: 'circle', source: 'fires', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 11, 'circle-color': c.fire, 'circle-opacity': 0, 'circle-stroke-color': c.ink, 'circle-stroke-width': 2 } });
+  m.addSource('ships', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'ship-sel', type: 'circle', source: 'ships', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 14, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
+  m.addLayer({ id: 'ships', type: 'symbol', source: 'ships',
+    layout: { 'icon-image': ['case', ['==', ['get', 'still'], 1], 'ship-0', 'ship-1'], 'icon-rotate': ['get', 'dir'], 'icon-rotation-alignment': 'map',
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 8, 0.9, 11, 1.1], 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
   m.addSource('sats', { type: 'geojson', data: empty });
   m.addLayer({ id: 'sat-sel', type: 'circle', source: 'sats', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 11, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
@@ -306,7 +353,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); tickSats();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawShips(); tickSats();
 }
 
 function applyLayerOptions() {
@@ -319,6 +366,10 @@ function applyLayerOptions() {
   for (const id of ['quakes', 'quake-sel']) m.setLayoutProperty(id, 'visibility', S.showQuakes ? 'visible' : 'none');
   m.setFilter('sat-sel', ['==', ['get', 'id'], S.view.name === 'sat' ? S.view.id : '']);
   m.setFilter('quake-sel', ['==', ['get', 'id'], S.view.name === 'quake' ? S.view.id : '']);
+  for (const id of ['ships', 'ship-sel']) m.setLayoutProperty(id, 'visibility', S.showShips ? 'visible' : 'none');
+  for (const id of ['fires', 'fire-sel']) m.setLayoutProperty(id, 'visibility', S.showFires ? 'visible' : 'none');
+  m.setFilter('ship-sel', ['==', ['get', 'id'], S.view.name === 'ship' ? S.view.id : '']);
+  m.setFilter('fire-sel', ['==', ['get', 'id'], S.view.name === 'fire' ? S.view.id : '']);
   applyImagery();
 }
 
@@ -382,6 +433,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -404,15 +456,20 @@ function initMap() {
         const q = m.project(f.geometry.coordinates); const d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
         if (d < bd) { bd = d; best = f; }
       }
-      go({ name: 'ac', hex: best.properties.hex, from: ['ac', 'sat', 'quake'].includes(S.view.name) ? S.view.from : S.view });
+      go({ name: 'ac', hex: best.properties.hex, from: DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view });
     } else {
       const box = [[p.x - 10, p.y - 10], [p.x + 10, p.y + 10]];
-      const from = ['ac', 'sat', 'quake'].includes(S.view.name) ? S.view.from : S.view;
-      const sat = m.getLayer('sats') ? m.queryRenderedFeatures(box, { layers: ['sats'] })[0] : null;
-      const qk = !sat && m.getLayer('quakes') ? m.queryRenderedFeatures(ev.point, { layers: ['quakes'] })[0] : null;
-      if (sat) go({ name: 'sat', id: sat.properties.id, from });
+      const from = DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view;
+      const pick = (layer, area) => (m.getLayer(layer) ? m.queryRenderedFeatures(area, { layers: [layer] })[0] : null);
+      const ship = pick('ships', box);
+      const sat = !ship ? pick('sats', box) : null;
+      const qk = !ship && !sat ? pick('quakes', ev.point) : null;
+      const fire = !ship && !sat && !qk ? pick('fires', box) : null;
+      if (ship) go({ name: 'ship', id: ship.properties.id, from });
+      else if (sat) go({ name: 'sat', id: sat.properties.id, from });
       else if (qk) go({ name: 'quake', id: qk.properties.id, from });
-      else if (['ac', 'sat', 'quake'].includes(S.view.name)) go(S.view.from || { name: 'home' });
+      else if (fire) go({ name: 'fire', id: fire.properties.id, from });
+      else if (DETAIL_VIEWS.includes(S.view.name)) go(S.view.from || { name: 'home' });
     }
     closeLayers();
   });
@@ -602,13 +659,54 @@ function viewSat(id) {
   h('p', { class: 'note' }, here ? L.satNote : L.satLeft), satFacts(id)];
 }
 
+function detailHead(title, tag) {
+  const back = S.view.from || { name: 'home' };
+  return h('div', { class: 'head' }, h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), t().back),
+    h('h2', null, title, tag ? h('i', { class: 'tag', style: 'font-style:normal' }, tag) : null));
+}
+function shipKind(code) {
+  const L = t().shipKinds;
+  if (code == null) return null;
+  if (code === 30) return L.fishing; if (code === 35) return L.military; if (code === 36 || code === 37) return L.pleasure;
+  if (code === 31 || code === 32 || code === 52) return L.tug; if (code === 51) return L.rescue; if (code === 55) return L.law;
+  if (code >= 60 && code <= 69) return L.passenger; if (code >= 70 && code <= 79) return L.cargo; if (code >= 80 && code <= 89) return L.tanker;
+  return L.other;
+}
+function viewShip(id) {
+  const L = t(), x = S.ships.find((v) => String(v.mmsi) === id);
+  if (!x) return [detailHead(L.ship), h('p', { class: 'note' }, L.shipGone)];
+  const ltr = (v) => h('span', { class: 'cs' }, v);
+  const facts = [];
+  const add = (k, v) => facts.push(h('dt', null, k), h('dd', null, v == null || v === '' ? L.none : v));
+  add(L.shName, x.name ? ltr(x.name) : null);
+  add(L.shType, shipKind(x.kind));
+  add(L.fTo, x.dest ? ltr(x.dest) : null);
+  add(L.fSpeed, x.sog != null ? L.knots(x.sog) : null);
+  add(L.fTrack, x.cog != null ? L.deg(x.cog) : null);
+  add(L.fPos, ltr(`${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  add(L.fSeen, L.ago(secAgo(x.t)));
+  add(L.fFlight, x.callsign ? ltr(x.callsign) : null);
+  add(L.shMmsi, ltr(String(x.mmsi)));
+  return [detailHead(h('span', { class: 'cs' }, x.name || String(x.mmsi)), L.ship), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.shipNote)];
+}
+function viewFire(id) {
+  const L = t(), x = S.fires.find((v) => v.id === id);
+  if (!x) return [detailHead(L.fire), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (k, v) => facts.push(h('dt', null, k), h('dd', null, v));
+  add(L.qTime, L.ago(secAgo(x.time)));
+  add(L.fiPower, L.megawatt(x.frp));
+  add(L.fiConf, x.conf === 'h' ? L.fiHigh : L.fiNormal);
+  add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  return [detailHead(L.fire), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.fireNote)];
+}
 function render() {
   const body = $('#sheet-body');
   const keep = body.scrollTop;
   const v = S.view;
   const nodes = v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
-    : v.name === 'sat' ? viewSat(v.id) : viewHome();
+    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -650,6 +748,8 @@ function wire() {
   $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
   $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); scanSats(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
+  $('#opt-ships').addEventListener('change', (e) => { S.showShips = e.target.checked; applyLayerOptions(); refreshShips(); });
+  $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
   document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
   setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
@@ -670,6 +770,7 @@ refreshSlow();
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
 setInterval(tickSats, 1000);
 loadCatalogue(); setInterval(loadCatalogue, 3 * 3600 * 1000);
+refreshShips(); setInterval(refreshShips, 60 * 1000);
 setInterval(scanSats, 10000);
 let timer = setInterval(refresh, CFG.pollMs);
 document.addEventListener('visibilitychange', () => {
