@@ -7,8 +7,8 @@ on:
 permissions:
   contents: write
 env:
-  BBOX: "26,25,42,38"     # must match CFG.bounds in web/config.js
-  MAXZOOM: "10"
+  BBOX: "-18,12,64,43"    # Morocco to Iran, Yemen to Greece. Must match CFG.bounds in web/config.js
+  MAXZOOM: "9"            # falls back to 8 if the file would be too large for the repository
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: basemap.pmtiles
-          key: basemap-26-25-42-38-z${{ env.MAXZOOM }}-v1
+          key: basemap-wide-m18-12-64-43-z${{ env.MAXZOOM }}-v1
       - name: Basemap extract (OpenStreetMap via Protomaps daily build)
         if: steps.bm.outputs.cache-hit != 'true'
         env:
@@ -63,7 +63,11 @@ jobs:
           test -n "$src" || { echo "no recent Protomaps build found"; exit 1; }
           echo "source: $src"
           /tmp/pmtiles extract "$src" basemap.pmtiles --bbox="$BBOX" --maxzoom="$MAXZOOM"
-      - run: cp basemap.pmtiles dist/basemap.pmtiles && du -sh dist dist/basemap.pmtiles
+          if [ "$(stat -c %s basemap.pmtiles)" -ge 95000000 ]; then
+            echo "zoom $MAXZOOM gives $(stat -c %s basemap.pmtiles) bytes, too large; using one level less"
+            /tmp/pmtiles extract "$src" basemap.pmtiles --bbox="$BBOX" --maxzoom="$((MAXZOOM-1))"
+          fi
+      - run: cp basemap.pmtiles dist/basemap.pmtiles && du -sh dist dist/basemap.pmtiles && stat -c %s dist/basemap.pmtiles > dist/basemap-size.txt
       - uses: actions/upload-artifact@v4
         with:
           name: site

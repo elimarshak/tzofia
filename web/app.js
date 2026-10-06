@@ -273,7 +273,7 @@ function initMap() {
   maplibregl.setRTLTextPlugin(new URL('vendor/mapbox-gl-rtl-text.js', location.href).href, true);
   const m = new maplibregl.Map({
     container: 'map', style: mapStyle(), center: CFG.center, zoom: CFG.zoom,
-    minZoom: 4.5, maxZoom: 13, maxBounds: CFG.bounds, attributionControl: false,
+    minZoom: 3, maxZoom: 12, maxBounds: CFG.bounds, attributionControl: false,
     dragRotate: false, pitchWithRotate: false, touchPitch: false,
   });
   m.touchZoomRotate.disableRotation();

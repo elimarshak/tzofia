@@ -2,7 +2,7 @@
 // Runs every 5 minutes (pg_cron) and overwrites one small JSON document that browsers read.
 import postgres from "npm:postgres@3.4.5";
 
-const BBOX = { w: 26, s: 25, e: 42, n: 38 }; // same box as the basemap
+const BBOX = { w: -18, s: 12, e: 64, n: 43 }; // same box as the basemap
 const HOURS = 48;
 const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, { prepare: false, max: 1 });
 const reply = (o: unknown, status = 200) =>
@@ -22,7 +22,7 @@ Deno.serve(async () => {
     const [last] = await sql`select computed_at from public.derived where key = 'quakes'`;
     if (last && Date.now() - new Date(last.computed_at).getTime() < 4 * 60 * 1000) return reply({ skipped: "fresh" });
     const start = new Date(Date.now() - HOURS * 3600 * 1000).toISOString().slice(0, 19);
-    const url = "https://www.seismicportal.eu/fdsnws/event/1/query?format=json&limit=300&orderby=time" +
+    const url = "https://www.seismicportal.eu/fdsnws/event/1/query?format=json&limit=500&minmag=2.5&orderby=time" +
       `&start=${start}&minlat=${BBOX.s}&maxlat=${BBOX.n}&minlon=${BBOX.w}&maxlon=${BBOX.e}`;
     const r = await fetch(url, { headers: { "User-Agent": "tzofia/0.1 (+https://github.com/elimarshak/tzofia)" } });
     if (r.status === 204) {            // the service answers 204 when there are no events
