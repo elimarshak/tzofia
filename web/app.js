@@ -11,8 +11,8 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true,
-  ships: [], fires: [], img: 'off',
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true,
+  ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
@@ -85,15 +85,19 @@ async function refresh() {
 const QUAKE_MIN_MAG = 2.5;
 async function refreshSlow() {
   try {
-    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires)');
+    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires,outages)');
     const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
     const q = rows.find((r) => r.key === 'quakes');
     S.quakes = fresh(q, 30) ? q.data.events.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG) : [];
     const f = rows.find((r) => r.key === 'fires');
     // each spot: [lat, lon, power in megawatts, confidence n|h, minutes since epoch, D|N]
     S.fires = fresh(f, 120) ? f.data.spots.map((x, i) => ({ id: 'f' + i, lat: x[0], lon: x[1], frp: x[2], conf: x[3], time: new Date(x[4] * 60000).toISOString(), dn: x[5] })) : [];
+    const o = rows.find((r) => r.key === 'outages');
+    S.outagesOk = !!fresh(o, 90);
+    S.outages = S.outagesOk ? o.data.events.slice().sort((a, b) => Date.parse(b.start) - Date.parse(a.start)) : [];
+    if (S.outages.length && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
   } catch { /* keep what we have */ }
-  drawQuakes(); drawFires(); tickSats(); render();
+  drawQuakes(); drawFires(); drawOutages(); tickSats(); render();
 }
 
 // Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
@@ -197,6 +201,20 @@ function shipImage(fill, halo, moving) {
   return x.getImageData(0, 0, 40, 40);
 }
 
+// One mark per country an outage touched, placed at the country's label point (not a border statement).
+function outagePoints() {
+  const out = [];
+  for (const e of S.outages) for (const code of e.countries) {
+    const at = S.countries && S.countries[code];
+    if (at) out.push({ id: e.id, code, lon: at[0], lat: at[1], open: e.end ? 0 : 1 });
+  }
+  return out;
+}
+function drawOutages() {
+  const m = S.map; if (!m || !m.getSource('outages')) return;
+  m.getSource('outages').setData({ type: 'FeatureCollection', features: outagePoints().map((x) => (
+    { type: 'Feature', properties: { id: x.id, open: x.open }, geometry: { type: 'Point', coordinates: [x.lon, x.lat] } })) });
+}
 function drawQuakes() {
   const m = S.map; if (!m || !m.getSource('quakes')) return;
   m.getSource('quakes').setData({ type: 'FeatureCollection', features: S.quakes.map((e) => (
@@ -319,6 +337,15 @@ function addOverlay() {
       'circle-color': c.accent, 'circle-opacity': 0.14, 'circle-stroke-color': c.accent, 'circle-stroke-width': 1.6 } });
   m.addLayer({ id: 'quake-sel', type: 'circle', source: 'quakes', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'mag'], 2.5, 9, 4, 15, 6, 28], 'circle-color': c.accent, 'circle-opacity': 0, 'circle-stroke-color': c.ink, 'circle-stroke-width': 2 } });
+  m.addSource('outages', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'outages', type: 'circle', source: 'outages',
+    paint: { 'circle-radius': 10, 'circle-color': c.ink, 'circle-opacity': ['case', ['==', ['get', 'open'], 1], 0.55, 0.12],
+      'circle-stroke-color': c.ink, 'circle-stroke-width': 2.2, 'circle-translate': [0, 24] } });
+  m.addLayer({ id: 'outage-x', type: 'symbol', source: 'outages',
+    layout: { 'text-field': '×', 'text-font': ['Noto Sans Regular'], 'text-size': 15, 'text-allow-overlap': true, 'text-ignore-placement': true, 'text-offset': [0, -0.05] },
+    paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1, 'text-translate': [0, 24] } });
+  m.addLayer({ id: 'outage-sel', type: 'circle', source: 'outages', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 16, 'circle-color': c.accent, 'circle-opacity': 0.2, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2, 'circle-translate': [0, 24] } });
   m.addSource('fires', { type: 'geojson', data: empty });
   m.addLayer({ id: 'fires', type: 'circle', source: 'fires',
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'frp'], 0, 2.4, 20, 4, 200, 7], 'circle-color': c.fire, 'circle-opacity': 0.85,
@@ -353,7 +380,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawShips(); tickSats();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawShips(); tickSats();
 }
 
 function applyLayerOptions() {
@@ -368,6 +395,8 @@ function applyLayerOptions() {
   m.setFilter('quake-sel', ['==', ['get', 'id'], S.view.name === 'quake' ? S.view.id : '']);
   for (const id of ['ships', 'ship-sel']) m.setLayoutProperty(id, 'visibility', S.showShips ? 'visible' : 'none');
   for (const id of ['fires', 'fire-sel']) m.setLayoutProperty(id, 'visibility', S.showFires ? 'visible' : 'none');
+  for (const id of ['outages', 'outage-x', 'outage-sel']) m.setLayoutProperty(id, 'visibility', S.showOutages ? 'visible' : 'none');
+  m.setFilter('outage-sel', ['==', ['get', 'id'], S.view.name === 'outage' ? S.view.id : '']);
   m.setFilter('ship-sel', ['==', ['get', 'id'], S.view.name === 'ship' ? S.view.id : '']);
   m.setFilter('fire-sel', ['==', ['get', 'id'], S.view.name === 'fire' ? S.view.id : '']);
   applyImagery();
@@ -433,7 +462,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
-const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire'];
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -465,10 +494,12 @@ function initMap() {
       const sat = !ship ? pick('sats', box) : null;
       const qk = !ship && !sat ? pick('quakes', ev.point) : null;
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
+      const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
       if (ship) go({ name: 'ship', id: ship.properties.id, from });
       else if (sat) go({ name: 'sat', id: sat.properties.id, from });
       else if (qk) go({ name: 'quake', id: qk.properties.id, from });
       else if (fire) go({ name: 'fire', id: fire.properties.id, from });
+      else if (cut) go({ name: 'outage', id: cut.properties.id, from });
       else if (DETAIL_VIEWS.includes(S.view.name)) go(S.view.from || { name: 'home' });
     }
     closeLayers();
@@ -539,6 +570,7 @@ function viewHome() {
       em === 1 ? [L.emergOne, ' ', h('b', { class: 'cs', style: 'color:var(--accent)' }, emName(S.em[0]))] : em ? L.emergSome(em) : L.emergNone,
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
     row(S.quakes.length ? c.accent : c.alt[2], L.quakes, quakeSummary(), () => go({ name: 'quakes' })),
+    row(S.outages.some((e) => !e.end) ? c.warn : c.alt[2], L.outages, outageSummary(), () => go({ name: 'outages' })),
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
 function viewGnss() {
@@ -637,6 +669,41 @@ function viewQuake(id) {
   add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(3)}, ${e.lon.toFixed(3)}`));
   return [head(L.quakeTitle(e.mag.toFixed(1))), h('dl', { class: 'facts' }, facts)];
 }
+function countryName(code) {
+  try { return new Intl.DisplayNames([S.lang === 'he' ? 'he' : 'en'], { type: 'region' }).of(code) || code; } catch { return code; }
+}
+const outagePlace = (e) => (e.countries.length ? e.countries.map(countryName).join(', ') : t().unknown);
+const when = (iso) => new Date(iso).toLocaleString(S.lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+function outageSummary() {
+  const L = t(), n = S.outages.length;
+  if (!S.outagesOk) return L.outagesStale;
+  return n ? L.outagesSome(n, S.outages.filter((e) => !e.end).length) : L.outagesNone;
+}
+function showOutage(e) {
+  go({ name: 'outage', id: e.id, from: S.view });
+  const at = S.countries && S.countries[e.countries[0]];
+  if (at) S.map.easeTo({ center: at, zoom: 4, padding: { bottom: $('#sheet').offsetHeight, top: 70, left: 0, right: 0 }, duration: 600 });
+}
+function viewOutages() {
+  const L = t(), c = T();
+  const rows = S.outages.map((e) => row(e.end ? c.unk : c.warn, outagePlace(e),
+    [L.outKinds[e.kind] || L.oKindNone, ', ', L.outCauses[e.cause] || L.oCauseNone, '. ', e.end ? L.oEnded(when(e.end)) : L.oOngoing], () => showOutage(e)));
+  return [header(L.outages, { name: 'home' }), h('p', { class: 'note' }, outageSummary() + ' ' + L.outagesNote), rows];
+}
+function viewOutage(id) {
+  const L = t(), e = S.outages.find((x) => x.id === id);
+  if (!e) return [detailHead(L.outages), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (k, v) => facts.push(h('dt', null, k), h('dd', null, v == null || v === '' ? L.unknown : v));
+  add(L.oKind, L.outKinds[e.kind] || L.oKindNone);
+  add(L.oCause, L.outCauses[e.cause] || L.oCauseNone);
+  add(L.oStart, when(e.start));
+  add(L.oEnd, e.end ? when(e.end) : L.oOngoing);
+  if (e.networks.length) add(L.oNetworks, h('span', { class: 'cs' }, e.networks.map((n) => n.name || 'AS' + n.asn).join(', ')));
+  if (e.text) add(L.oText, h('span', { class: 'cs' }, e.text));
+  if (e.link) add(L.oLink, h('a', { href: e.link, target: '_blank', rel: 'noopener noreferrer', style: 'color:var(--accent)' }, L.oLinkText));
+  return [detailHead(outagePlace(e), L.outage), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.outageNote)];
+}
 function satFacts(id) {
   const L = t(), o = S.satNow.find((x) => x.id === id);
   const facts = [];
@@ -706,7 +773,7 @@ function render() {
   const v = S.view;
   const nodes = v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
-    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : viewHome();
+    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -749,6 +816,7 @@ function wire() {
   $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); scanSats(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
   $('#opt-ships').addEventListener('change', (e) => { S.showShips = e.target.checked; applyLayerOptions(); refreshShips(); });
+  $('#opt-outages').addEventListener('change', (e) => { S.showOutages = e.target.checked; applyLayerOptions(); });
   $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
   document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
   setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture

@@ -40,6 +40,8 @@ jobs:
           touch dist/.nojekyll
           git clone --depth 1 https://github.com/vradarserver/standing-data /tmp/standing-data
           python3 tools/build_ref.py /tmp/standing-data dist/ref
+          curl -fsSL -o /tmp/ne50.geojson https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_0_countries.geojson
+          python3 tools/build_countries.py /tmp/ne50.geojson dist/ref/countries.json
       - name: Basemap cache
         id: bm
         uses: actions/cache@v4
