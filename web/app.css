@@ -56,3 +56,5 @@ dl.facts dd{font-weight:500}
 .maplibregl-canvas{outline:none}
 @media (min-width:900px){.sheet{margin:0 16px;border-radius:18px;margin-bottom:16px;max-width:400px}.legend{margin-inline:16px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.note.key{display:flex;align-items:flex-start;gap:10px;padding:0 0 8px}
+.swatch{flex:none;width:18px;height:18px;border-radius:4px;border:1px solid var(--warn);margin-top:1px}

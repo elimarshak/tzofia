@@ -11,8 +11,8 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true,
-  ac: [], em: [], src: null, loaded: false, netErr: false,
+  showAc: true, showLabels: true, showGnss: true,
+  ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
   map: null,
 };
@@ -58,17 +58,31 @@ async function api(path) {
 async function refresh() {
   const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
   try {
-    const [ac, em, src] = await Promise.all([
+    const [ac, em, src, drv] = await Promise.all([
       api(`/aircraft_live?select=${LIVE_COLS}&in_region=eq.true&pos_time=gte.${since}&lat=not.is.null&limit=2000`),
       api('/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,first_seen,last_seen,lat,lon,alt_baro&active=eq.true&order=first_seen.desc&limit=200'),
       api('/source_status?select=source,last_ok,last_error&source=eq.adsb.lol%2Fpoint'),
+      api('/derived?select=key,data,computed_at&key=in.(gnss_grid)'),
     ]);
+    const g = drv.find((d) => d.key === 'gnss_grid');
+    S.gnss = g && Date.now() - Date.parse(g.computed_at) < 10 * 60 * 1000 ? g.data : null;
     S.ac = ac; S.em = em; S.src = src[0] || null; S.netErr = false; S.loaded = true;
   } catch {
     S.netErr = true;
   }
-  drawAircraft();
+  drawAircraft(); drawGnss();
   render();
+}
+
+// Share of aircraft with low position accuracy per map cell, last hour (gpsjam.org formula).
+function gnssZones() {
+  const g = S.gnss; if (!g) return [];
+  const out = [];
+  for (const [gy, gx, good, bad] of g.cells) {
+    const pct = 100 * (bad - 1) / (good + bad);
+    if (pct >= 2) out.push({ gy, gx, pct, level: pct > 10 ? 2 : 1 });
+  }
+  return out;
 }
 
 const altOf = (a) => a.alt_baro ?? a.alt_geom;
@@ -124,6 +138,9 @@ function addOverlay() {
   img('plane-e', planeImage(c.warn, c.halo));
   img('ring', ringImage(c.warn));
 
+  m.addSource('gnss', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  m.addLayer({ id: 'gnss', type: 'fill', source: 'gnss',
+    paint: { 'fill-color': c.warn, 'fill-opacity': ['case', ['==', ['get', 'level'], 2], 0.42, 0.17], 'fill-outline-color': c.warn } });
   m.addSource('ac', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'ac-ring', type: 'symbol', source: 'ac', filter: ['==', ['get', 'low'], 1],
     layout: { 'icon-image': 'ring', 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
@@ -141,13 +158,14 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft();
+  drawAircraft(); drawGnss();
 }
 
 function applyLayerOptions() {
   const m = S.map; if (!m || !m.getLayer('ac')) return;
   for (const id of ['ac', 'ac-ring', 'ac-sel']) m.setLayoutProperty(id, 'visibility', S.showAc ? 'visible' : 'none');
   m.setLayoutProperty('ac', 'text-field', S.showLabels ? ['get', 'label'] : '');
+  m.setLayoutProperty('gnss', 'visibility', S.showGnss ? 'visible' : 'none');
   m.setFilter('ac-sel', ['==', ['get', 'hex'], S.view.name === 'ac' ? S.view.hex : '']);
 }
 
@@ -164,6 +182,17 @@ function drawAircraft() {
   for (const a of S.ac) push(a, isEmerg(a));
   for (const e of S.em) push(e, true);   // emergencies anywhere in the world
   m.getSource('ac').setData({ type: 'FeatureCollection', features: feats });
+}
+
+function drawGnss() {
+  const m = S.map; if (!m || !m.getSource('gnss')) return;
+  const g = S.gnss, dy = g ? g.dlat : 0, dx = g ? g.dlon : 0;
+  const feats = gnssZones().map((z) => {
+    const y = z.gy * dy, x = z.gx * dx;
+    return { type: 'Feature', properties: { level: z.level },
+      geometry: { type: 'Polygon', coordinates: [[[x, y], [x + dx, y], [x + dx, y + dy], [x, y + dy], [x, y]]] } };
+  });
+  m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
 function initMap() {
@@ -249,15 +278,21 @@ function header(title, backTo) {
 
 function viewHome() {
   const L = t(), c = T();
-  const low = S.ac.filter(lowAcc).length, em = S.em.length, sky = airborne().length;
+  const low = S.ac.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
   return [header(L.title),
-    row(low ? c.warn : c.alt[2], L.gnss, low ? L.gnssSome(low) : L.gnssNone, () => go({ name: 'gnss' })),
+    row(low || zones ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
     row(em ? c.warn : c.alt[2], L.emerg, em ? L.emergSome(em) : L.emergNone, () => go({ name: 'emerg' })),
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
 function viewGnss() {
   const L = t(); const list = S.ac.filter(lowAcc);
-  return [header(L.gnss, { name: 'home' }), h('p', { class: 'note' }, (list.length ? L.gnssSome(list.length) : L.gnssNone) + ' ' + L.gnssNote), list.map(acRow)];
+  const zones = gnssZones().length, c = T();
+  const key = (op, text) => h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${c.warn};opacity:${op}` }), text);
+  return [header(L.gnss, { name: 'home' }),
+    h('p', { class: 'note' }, S.gnss ? (zones ? L.gnssZones(zones) : L.gnssZonesNone) : L.gnssZonesNoData),
+    key(0.42, L.gnssKeyHigh), key(0.17, L.gnssKeyMid),
+    h('p', { class: 'note' }, L.gnssMethod),
+    h('p', { class: 'note' }, (list.length ? L.gnssSome(list.length) : L.gnssNone) + ' ' + L.gnssNote), list.map(acRow)];
 }
 function viewEmerg() {
   const L = t(), c = T();
@@ -350,6 +385,7 @@ function wire() {
   });
   $('#opt-ac').addEventListener('change', (e) => { S.showAc = e.target.checked; applyLayerOptions(); });
   $('#opt-labels').addEventListener('change', (e) => { S.showLabels = e.target.checked; applyLayerOptions(); });
+  $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
     S.theme = r.value; store.set('theme', S.theme);
