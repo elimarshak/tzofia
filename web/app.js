@@ -94,7 +94,7 @@ function band(a) {
 }
 const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || (a.emergency && a.emergency !== 'none');
 const lowAcc = (a) => !a.on_ground && a.nic != null && a.nic < 7;
-const callsign = (a) => (a.flight || '').trim();
+const callsign = (a) => { const c = (a.flight || '').trim(); return /^[A-Z0-9-]{2,8}$/i.test(c) ? c : ''; };   // transponders sometimes send filler such as @@@@@@@@
 const airborne = () => S.ac.filter((a) => !a.on_ground);
 
 /* ---------- map ---------- */

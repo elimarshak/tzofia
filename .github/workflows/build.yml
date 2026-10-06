@@ -38,6 +38,7 @@ jobs:
           mkdir -p dist/assets/sprites && cp -r /tmp/assets/sprites/v4 dist/assets/sprites/v4
           cp web/package-lock.json dist/package-lock.json
           touch dist/.nojekyll
+          echo "openeye.co.il" > dist/CNAME
       - name: Basemap cache
         id: bm
         uses: actions/cache@v4
