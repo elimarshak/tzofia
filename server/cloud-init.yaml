@@ -1,0 +1,60 @@
+#cloud-config
+# First boot of the OPENEYE server. It only does three things: makes a read-only key for the
+# code repository, shows that key (and a short log) on port 8080, and starts a timer that pulls
+# the repository every minute and runs server/update.sh from it. Everything else lives in the repository.
+package_update: true
+packages: [git, ca-certificates, curl]
+write_files:
+  - path: /usr/local/bin/openeye-sync
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -u
+      export GIT_SSH_COMMAND="ssh -i /root/.ssh/openeye_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+      LOG=/var/www/boot/boot.log
+      {
+        echo "--- $(date -u +%FT%TZ)"
+        if [ ! -d /opt/openeye/.git ]; then
+          git clone --depth 1 -b main git@github.com:elimarshak/tzofia.git /opt/openeye 2>&1 | tail -2
+        else
+          git -C /opt/openeye fetch --depth 1 origin main 2>&1 | tail -1
+          git -C /opt/openeye reset -q --hard origin/main 2>&1 | tail -1
+        fi
+        if [ -x /opt/openeye/server/update.sh ]; then /opt/openeye/server/update.sh 2>&1 | tail -40; fi
+      } > "$LOG.new" 2>&1
+      mv "$LOG.new" "$LOG"
+  - path: /etc/systemd/system/openeye-sync.service
+    content: |
+      [Unit]
+      Description=OPENEYE repository sync
+      After=network-online.target
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/openeye-sync
+      TimeoutStartSec=900
+  - path: /etc/systemd/system/openeye-sync.timer
+    content: |
+      [Unit]
+      Description=OPENEYE repository sync every minute
+      [Timer]
+      OnBootSec=60
+      OnUnitActiveSec=60
+      [Install]
+      WantedBy=timers.target
+  - path: /etc/systemd/system/openeye-boot-http.service
+    content: |
+      [Unit]
+      Description=OPENEYE first-boot status page
+      After=network-online.target
+      [Service]
+      ExecStart=/usr/bin/python3 -m http.server 8080 --directory /var/www/boot
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - mkdir -p /var/www/boot /root/.ssh
+  - ssh-keygen -t ed25519 -N "" -C openeye-server -f /root/.ssh/openeye_deploy
+  - cp /root/.ssh/openeye_deploy.pub /var/www/boot/deploy_key.pub
+  - echo started > /var/www/boot/boot.log
+  - systemctl daemon-reload
+  - systemctl enable --now openeye-boot-http.service openeye-sync.timer
