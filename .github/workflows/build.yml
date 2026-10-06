@@ -37,6 +37,7 @@ jobs:
           cp -r /tmp/assets/fonts dist/assets/fonts
           mkdir -p dist/assets/sprites && cp -r /tmp/assets/sprites/v4 dist/assets/sprites/v4
           cp web/package-lock.json dist/package-lock.json
+          touch dist/.nojekyll
       - name: Basemap cache
         id: bm
         uses: actions/cache@v4
