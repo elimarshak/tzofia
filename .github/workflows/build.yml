@@ -43,7 +43,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: maps
-          key: basemaps-three-files-v1
+          key: basemaps-three-files-v2
       - name: Basemap extracts (OpenStreetMap via Protomaps daily build)
         if: steps.bm.outputs.cache-hit != 'true'
         env:
@@ -73,9 +73,9 @@ jobs:
             done
             echo "$1 does not fit"; return 1
           }
-          cut world  "-32,-40,180,75" 7 5     # the whole world except the Americas
+          cut world  "-180,-65,180,80" 7 5    # the whole world
           cut region "-18,12,64,43"   8 7     # Middle East, North Africa, Mediterranean
-          cut detail "26,25,42,38"   11 10    # Israel and its neighbours
+          cut detail "26,24,44,39"   11 10    # about 800 km around Israel
       - name: Add the maps to the site
         run: |
           set -euo pipefail
