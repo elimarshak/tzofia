@@ -502,7 +502,7 @@ function initMap() {
         const q = m.project(f.geometry.coordinates); const d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
         if (d < bd) { bd = d; best = f; }
       }
-      go({ name: 'ac', hex: best.properties.hex, from: DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view });
+      go({ name: 'ac', hex: best.properties.hex, brief: true, from: DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view });
     } else {
       const box = [[p.x - 10, p.y - 10], [p.x + 10, p.y + 10]];
       const from = DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view;
@@ -512,12 +512,16 @@ function initMap() {
       const qk = !ship && !sat ? pick('quakes', ev.point) : null;
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
       const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
-      if (ship) go({ name: 'ship', id: ship.properties.id, from });
-      else if (sat) go({ name: 'sat', id: sat.properties.id, from });
-      else if (qk) go({ name: 'quake', id: qk.properties.id, from });
-      else if (fire) go({ name: 'fire', id: fire.properties.id, from });
-      else if (cut) go({ name: 'outage', id: cut.properties.id, from });
-      else if (DETAIL_VIEWS.includes(S.view.name)) go(S.view.from || { name: 'home' });
+      if (ship) go({ name: 'ship', id: ship.properties.id, brief: true, from });
+      else if (sat) go({ name: 'sat', id: sat.properties.id, brief: true, from });
+      else if (qk) go({ name: 'quake', id: qk.properties.id, brief: true, from });
+      else if (fire) go({ name: 'fire', id: fire.properties.id, brief: true, from });
+      else if (cut) go({ name: 'outage', id: cut.properties.id, brief: true, from });
+      else if (DETAIL_VIEWS.includes(S.view.name)) {
+        const to = (S.view.brief ? S.view.from : null) || S.view.from || { name: 'home' };
+        go(to);
+        if (to.name === 'home') $('#sheet').classList.add('closed');   // a tap on empty map puts the card away and leaves the map clear
+      }
     }
     closeLayers();
   });
@@ -690,7 +694,7 @@ function countryName(code) {
   try { return new Intl.DisplayNames([S.lang === 'he' ? 'he' : 'en'], { type: 'region' }).of(code) || code; } catch { return code; }
 }
 const outagePlace = (e) => (e.countries.length ? e.countries.map(countryName).join(', ') : t().unknown);
-const when = (iso) => new Date(iso).toLocaleString(S.lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+const when = (iso) => new Date(iso).toLocaleString(S.lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: S.lang === 'he' ? 'numeric' : 'short', hour: '2-digit', minute: '2-digit' });
 function outageSummary() {
   const L = t(), n = S.outages.length;
   if (!S.outagesOk) return L.outagesStale;
@@ -788,11 +792,63 @@ function render() {
   const body = $('#sheet-body');
   const keep = body.scrollTop;
   const v = S.view;
-  const nodes = v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
+  const short = v.brief ? viewBrief(v) : null;
+  $('#sheet').classList.toggle('brief', !!short);
+  const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
     : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
+}
+
+// The short card shown when something is tapped on the map: a name and the few facts that matter most.
+// It leaves the map visible; "all details" opens the full list.
+function viewBrief(v) {
+  const L = t(), ltr = (x) => h('span', { class: 'cs' }, x), tag = (x, warn) => h('i', { class: 'tag' + (warn ? ' warn' : ''), style: 'font-style:normal' }, x);
+  let title = null; const lines = [];
+  if (v.name === 'ac') {
+    const a = S.ac.find((x) => x.hex === v.hex) || S.em.find((x) => x.hex === v.hex);
+    if (!a) return null;
+    const cs = callsign(a), airline = cs ? airlineOf(cs) : null, rt = cs ? routeOf(cs) : null;
+    title = [ltr(cs || a.reg || a.hex.toUpperCase()), a.mil ? tag(L.mil) : null, isEmerg(a) || !('gs' in a) ? tag(L.sq[a.squawk] || L.emerg, true) : null];
+    if (airline) lines.push(ltr(airline));
+    const alt = a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null;
+    const fly = [alt ? `${L.fAlt} ${alt}.` : null, a.gs != null ? `${L.fSpeed} ${L.speed(a.gs)}.` : null].filter(Boolean).join(' ');
+    if (fly) lines.push(fly);
+    if (rt && rt.length > 1) lines.push([L.fTo + ': ', ltr(placeName(rt[rt.length - 1]))]);
+  } else if (v.name === 'ship') {
+    const x = S.ships.find((s) => String(s.mmsi) === v.id);
+    if (!x) return null;
+    title = [ltr(x.name || String(x.mmsi)), tag(L.ship)];
+    const kind = shipKind(x.kind);
+    const what = [kind ? `${L.shType}: ${kind}` : null, x.sog != null ? `${L.fSpeed} ${L.knots(x.sog)}` : null].filter(Boolean).join('. ');
+    if (what) lines.push(what + '.');
+    if (x.dest) lines.push([L.fTo + ': ', ltr(x.dest)]);
+  } else if (v.name === 'sat') {
+    const st = S.sats.find((x) => x.id === v.id), o = S.satNow.find((x) => x.id === v.id);
+    title = [ltr(st ? st.name : v.id), tag(L.sat)];
+    if (o) lines.push([`${L.fAlt} ${L.km(Math.round(o.km))}.`, o.kms != null ? ` ${L.fSpeed} ${L.kmh(Math.round(o.kms * 3600))}.` : ''].join(''));
+  } else if (v.name === 'quake') {
+    const e = S.quakes.find((x) => x.id === v.id);
+    if (!e) return null;
+    title = [L.quakeTitle(e.mag.toFixed(1))];
+    lines.push(L.ago(secAgo(e.time)) + '.');
+    if (e.region) lines.push(ltr(e.region));
+  } else if (v.name === 'fire') {
+    const x = S.fires.find((f) => f.id === v.id);
+    if (!x) return null;
+    title = [L.fire];
+    lines.push(`${L.ago(secAgo(x.time))}. ${L.fiPower} ${L.megawatt(x.frp)}.`);
+  } else if (v.name === 'outage') {
+    const e = S.outages.find((x) => x.id === v.id);
+    if (!e) return null;
+    title = [outagePlace(e), tag(L.outage)];
+    lines.push(`${L.oKind}: ${L.outKinds[e.kind] || L.oKindNone}. ${L.oCause}: ${L.outCauses[e.cause] || L.oCauseNone}.`);
+    lines.push((e.end ? L.oEnded(when(e.end)) : L.oOngoing) + '.');
+  } else return null;
+  return [h('div', { class: 'head' }, h('h2', null, ...title.filter(Boolean))),
+    ...lines.map((x) => h('p', { class: 'brief-line' }, ...[].concat(x))),
+    h('button', { class: 'back more', type: 'button', on: { click: () => go({ ...v, brief: false, from: v }) } }, L.allDetails)];
 }
 
 /* ---------- chrome: language, theme, layers ---------- */
