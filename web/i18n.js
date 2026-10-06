@@ -1,4 +1,5 @@
 const n = (x) => Number(x).toLocaleString('en-US');
+const YEAR = new Date().getFullYear();
 
 export const STR = {
   he: {
@@ -37,7 +38,7 @@ export const STR = {
     fTrack: 'כיוון', fVert: 'שינוי גובה', fSquawk: 'קוד משדר', fAcc: 'דיוק מיקום', fSeen: 'עדכון אחרון', fPos: 'מיקום', fAirline: 'חברת תעופה', fFrom: 'מוצא', fVia: 'דרך', fTo: 'יעד',
     toPlace: (p) => `אל ${p}`,
     routeNote: 'שם חברת התעופה והמסלול לקוחים ממאגר פתוח, לפי אות הקריאה של המטוס. זה המסלול שרשום לאות הקריאה, ולא בהכרח המסלול של הטיסה הנוכחית.',
-    imgTitle: 'תמונה מהחלל', imgOff: 'בלי תמונה', imgClouds: 'עננים, מהשעה האחרונה',
+    imgTitle: 'תמונה מהחלל', imgOff: 'בלי תמונה', imgClouds: 'עננים, מהשעה האחרונה', imgSharp: 'צילום מפורט, מעשרת הימים האחרונים (רק במזרח התיכון, מופיע כשמתקרבים)',
     imgDay: (d, today) => today ? `צילום יומי, היום ${d} (מתמלא במהלך היום)` : `צילום יומי, אתמול ${d}`, fHex: 'מזהה משדר',
     none: 'לא משודר', accOk: 'תקין', accLow: 'נמוך', tagLow: 'דיוק מיקום נמוך',
     alt: (ft) => `${n(ft)} רגל (${n(Math.round(ft * 0.3048 / 10) * 10)} מטר)`,
@@ -76,7 +77,7 @@ export const STR = {
     mag: (m) => `עוצמה ${m}`, quakeTitle: (m) => `רעידת אדמה בעוצמה ${m}`,
     qMag: 'עוצמה', qTime: 'מתי', qDepth: 'עומק', qRegion: 'אזור', unknown: 'לא ידוע', gone: 'האירוע כבר לא ברשימה.',
     km: (k) => `${n(k)} ק״מ`, kmh: (k) => `${n(k)} קמ״ש`,
-    credit: ['מטוסים: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). רעידות אדמה: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). לוויינים: ', ['CelesTrak', 'https://celestrak.org'], '. ספינות: ', ['aisstream.io', 'https://aisstream.io'], '. מוקדי חום: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. נפילות אינטרנט: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). עננים: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. צילום יומי: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. חברות תעופה ומסלולים: ', ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0). מפה: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '.'],
+    credit: ['מטוסים: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). רעידות אדמה: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). לוויינים: ', ['CelesTrak', 'https://celestrak.org'], '. ספינות: ', ['aisstream.io', 'https://aisstream.io'], '. מוקדי חום: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. נפילות אינטרנט: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). עננים: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. צילום יומי: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. צילום מפורט: מכיל נתוני ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` משנת ${YEAR}, שעברו עיבוד. חברות תעופה ומסלולים: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0). מפה: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '.'],
   },
   en: {
     dir: 'ltr', brand: 'OPENEYE', otherLang: 'עברית',
@@ -114,7 +115,7 @@ export const STR = {
     fTrack: 'Track', fVert: 'Vertical rate', fSquawk: 'Squawk', fAcc: 'Position accuracy', fSeen: 'Last update', fPos: 'Position', fAirline: 'Airline', fFrom: 'From', fVia: 'Via', fTo: 'To',
     toPlace: (p) => `to ${p}`,
     routeNote: 'The airline and route come from an open database, matched by callsign. This is the route registered for the callsign, not a confirmation of the current flight.',
-    imgTitle: 'Picture from space', imgOff: 'No image', imgClouds: 'Clouds, from the past hour',
+    imgTitle: 'Picture from space', imgOff: 'No image', imgClouds: 'Clouds, from the past hour', imgSharp: 'Detailed photo, from the past ten days (Middle East only, zoom in to see it)',
     imgDay: (d, today) => today ? `Daily photo, today ${d} (fills in during the day)` : `Daily photo, yesterday ${d}`, fHex: 'Transponder ID',
     none: 'Not broadcast', accOk: 'Normal', accLow: 'Low', tagLow: 'Low position accuracy',
     alt: (ft) => `${n(ft)} ft (${n(Math.round(ft * 0.3048 / 10) * 10)} m)`,
@@ -153,6 +154,6 @@ export const STR = {
     mag: (m) => `Magnitude ${m}`, quakeTitle: (m) => `Magnitude ${m} earthquake`,
     qMag: 'Magnitude', qTime: 'When', qDepth: 'Depth', qRegion: 'Region', unknown: 'Unknown', gone: 'This event is no longer listed.',
     km: (k) => `${n(k)} km`, kmh: (k) => `${n(k)} km/h`,
-    credit: ['Aircraft: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). Earthquakes: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). Satellites: ', ['CelesTrak', 'https://celestrak.org'], '. Ships: ', ['aisstream.io', 'https://aisstream.io'], '. Thermal hotspots: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. Internet outages: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). Clouds: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. Daily photo: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. Airlines and routes: ', ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0). Map: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '.'],
+    credit: ['Aircraft: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). Earthquakes: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). Satellites: ', ['CelesTrak', 'https://celestrak.org'], '. Ships: ', ['aisstream.io', 'https://aisstream.io'], '. Thermal hotspots: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. Internet outages: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). Clouds: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. Daily photo: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. Detailed photo: contains modified ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` data ${YEAR}. Airlines and routes: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0). Map: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '.'],
   },
 };

@@ -425,7 +425,16 @@ function drawAircraft() {
 //  'd1','d0' - NASA's daily photo of the whole Earth (GIBS service, VIIRS on NOAA-20), about 250 m per pixel.
 const imgDate = (daysAgo) => new Date(Date.now() - daysAgo * 864e5).toISOString().slice(0, 10);
 const lastHour = () => { const d = new Date(Date.now() - 40 * 60 * 1000); d.setUTCMinutes(0, 0, 0); return d.toISOString().replace('.000Z', 'Z'); };
+let sharpShown = false;
+// Sharp picture (Sentinel-2, 10 metres per pixel): served by our own function, only from this zoom and inside this area.
+const SHARP = { minzoom: 9, maxzoom: 13, bounds: [24, 12, 64, 43] };
+function sharpHere() {
+  const m = S.map, c = m.getCenter(), b = SHARP.bounds;
+  return m.getZoom() >= SHARP.minzoom && c.lng > b[0] && c.lng < b[2] && c.lat > b[1] && c.lat < b[3];
+}
 function imgSource() {
+  if (S.img === 'sharp') return { key: 'sharp', type: 'raster', tileSize: 512, minzoom: SHARP.minzoom, maxzoom: SHARP.maxzoom, bounds: SHARP.bounds,
+    tiles: [CFG.api.replace('/rest/v1', '/functions/v1/sat10') + '/{z}/{x}/{y}'] };
   if (S.img === 'clouds') return { key: 'clouds-' + lastHour(), type: 'raster', tileSize: 512, maxzoom: 7,
     tiles: ['https://view.eumetsat.int/geoserver/ows?service=WMS&version=1.3.0&request=GetMap&layers=mtg_fd:rgb_geocolour&styles='
       + '&format=image/jpeg&crs=EPSG:3857&bbox={bbox-epsg-3857}&width=512&height=512&time=' + lastHour()] };
@@ -444,11 +453,14 @@ function applyImagery() {
     const { key, ...def } = src; imgKey = key;
     m.addSource('img', def);
     const first = layers.find((l) => l.type !== 'background');
-    m.addLayer({ id: 'img', type: 'raster', source: 'img' }, first ? first.id : undefined);
+    m.addLayer({ id: 'img', type: 'raster', source: 'img', ...(def.minzoom ? { minzoom: def.minzoom } : {}) }, first ? first.id : undefined);
   }
   // the drawn land and sea would cover the picture, so they step aside while it is shown; borders, roads and names stay
+  // (the sharp picture exists only close up and inside its area, so there the drawn map stays until we are in it)
+  sharpShown = S.img === 'sharp' && sharpHere();
+  const hide = on && (S.img !== 'sharp' || sharpShown);
   const ids = new Set(BASEMAPS.map((b) => b.id));
-  for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', on ? 'none' : 'visible');
+  for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', hide ? 'none' : 'visible');
 }
 
 function drawGnss() {
@@ -475,7 +487,7 @@ function initMap() {
   m.touchZoomRotate.disableRotation();
   S.map = m;
   m.on('style.load', addOverlay);
-  m.on('moveend', () => scanSats());
+  m.on('moveend', () => { scanSats(); if (S.img === 'sharp' && sharpHere() !== sharpShown) applyImagery(); });
   m.on('click', (ev) => {
     const p = ev.point, r = 14;
     const hits = m.getLayer('ac') ? m.queryRenderedFeatures([[p.x - r, p.y - r], [p.x + r, p.y + r]], { layers: ['ac'] }) : [];
