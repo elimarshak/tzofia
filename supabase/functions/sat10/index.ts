@@ -1,5 +1,6 @@
 // Tzofia: sharp satellite picture (Sentinel-2, 10 metres per pixel) served as map tiles.
 // URL: /functions/v1/sat10/{z}/{x}/{y}
+// The picture is the least cloudy pass of the last WINDOW_DAYS days.
 // A tile is taken from our own store when we have a copy younger than KEEP_DAYS; otherwise it is requested from
 // the Copernicus Data Space (Sentinel Hub Process API), stored, and returned. The free Copernicus account allows
 // 10,000 requests a month, so new requests are capped per day; past the cap we return the old copy or an empty tile.
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
     const box = tileBox(z, x, y);
     if (lon(box[2]) < AREA.west || lon(box[0]) > AREA.east || lat(box[3]) < AREA.south || lat(box[1]) > AREA.north) return empty("area");
 
-    const name = `${z}/${x}/${y}.jpg`;
+    const name = `v2/${z}/${x}/${y}.jpg`;   // v2: least-cloudy pass of the window (v1 took the latest pass, clouds included)
     const stored = () => fetch(`${BASE}/storage/v1/object/public/${BUCKET}/${name}`);
     const [have] = await sql`select updated_at from storage.objects where bucket_id = ${BUCKET} and name = ${name}`;
     const fresh = have && Date.now() - new Date(have.updated_at).getTime() < KEEP_DAYS * 86400e3;
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         input: {
           bounds: { bbox: box, properties: { crs: "http://www.opengis.net/def/crs/EPSG/0/3857" } },
-          data: [{ type: "sentinel-2-l2a", dataFilter: { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: MAX_CLOUD, mosaickingOrder: "mostRecent" } }],
+          data: [{ type: "sentinel-2-l2a", dataFilter: { timeRange: { from: from.toISOString(), to: to.toISOString() }, maxCloudCoverage: MAX_CLOUD, mosaickingOrder: "leastCC" } }],
         },
         output: { width: 512, height: 512, responses: [{ identifier: "default", format: { type: "image/jpeg", quality: 85 } }] },
         evalscript: EVALSCRIPT,
