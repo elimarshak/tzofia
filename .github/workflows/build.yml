@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/vendor dist/assets
-          cp web/index.html web/app.css web/app.js web/config.js web/i18n.js web/icon.svg web/manifest.webmanifest dist/
+          cp web/index.html web/app.css web/app.js web/config.js web/i18n.js web/regions.js web/icon.svg web/manifest.webmanifest dist/
           cp -r web/fonts dist/fonts
           nm=web/node_modules
           cp $nm/maplibre-gl/dist/maplibre-gl.js $nm/maplibre-gl/dist/maplibre-gl.css dist/vendor/

@@ -1,5 +1,6 @@
 import { CFG, THEMES } from './config.js';
 import { STR } from './i18n.js';
+import { regionHe } from './regions.js';
 
 /* global maplibregl, pmtiles, basemaps */
 
@@ -663,6 +664,12 @@ function viewAircraft(hex) {
   airline || (rt && rt.length > 1) ? h('p', { class: 'note' }, L.routeNote) : null];
 }
 
+// The region name as the seismological centre sends it, in Hebrew when we can translate every part of it.
+function regionNode(region) {
+  if (!region) return null;
+  const he = S.lang === 'he' ? regionHe(region) : null;
+  return he || h('span', { class: 'cs' }, region);
+}
 const secAgo = (iso) => Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
 function quakeSummary() {
   const L = t(), q = S.quakes;
@@ -673,7 +680,7 @@ function quakeSummary() {
 function viewQuakes() {
   const L = t(), c = T();
   const rows = S.quakes.slice().sort((a, b) => Date.parse(b.time) - Date.parse(a.time)).map((e) =>
-    row(c.accent, L.mag(e.mag.toFixed(1)), [L.ago(secAgo(e.time)), e.region ? h('i', { class: 'cs', style: 'font-style:normal' }, ' · ' + e.region) : null],
+    row(c.accent, L.mag(e.mag.toFixed(1)), [L.ago(secAgo(e.time)), e.region ? ', ' : null, regionNode(e.region)],
       () => { go({ name: 'quake', id: e.id, from: S.view }); flyTo(e, 7); }));
   return [header(L.quakes, { name: 'home' }), h('p', { class: 'note' }, quakeSummary() + ' ' + L.quakesNote), rows];
 }
@@ -686,7 +693,7 @@ function viewQuake(id) {
   add(L.qMag, h('span', { class: 'cs' }, e.mag.toFixed(1) + (e.magtype ? ' (' + e.magtype + ')' : '')));
   add(L.qTime, L.ago(secAgo(e.time)));
   add(L.qDepth, e.depth != null ? L.km(Math.round(e.depth)) : null);
-  add(L.qRegion, e.region ? h('span', { class: 'cs' }, e.region) : null);
+  add(L.qRegion, regionNode(e.region));
   add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(3)}, ${e.lon.toFixed(3)}`));
   return [head(L.quakeTitle(e.mag.toFixed(1))), h('dl', { class: 'facts' }, facts)];
 }
@@ -833,7 +840,7 @@ function viewBrief(v) {
     if (!e) return null;
     title = [L.quakeTitle(e.mag.toFixed(1))];
     lines.push(L.ago(secAgo(e.time)) + '.');
-    if (e.region) lines.push(ltr(e.region));
+    if (e.region) lines.push(regionNode(e.region));
   } else if (v.name === 'fire') {
     const x = S.fires.find((f) => f.id === v.id);
     if (!x) return null;
