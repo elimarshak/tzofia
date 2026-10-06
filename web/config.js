@@ -4,7 +4,7 @@ export const CFG = {
   api: 'https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1',
   key: 'sb_publishable_iz4Bq-MFx4C0gY38cDtGYw_PPRumPqT',
   center: [34.9, 31.7],
-  zoom: 6.1,
+  zoom: 4.7,
   bounds: [[-180, -65], [180, 80]], // the world file in the build workflow
   pollMs: 15000,
   maxAgeSec: 180,                 // aircraft whose last position is older are not drawn

@@ -486,6 +486,11 @@ function initMap() {
   });
   m.touchZoomRotate.disableRotation();
   S.map = m;
+  // On a phone the sheet covers the lower part of the map, so the opening view is centred in the part that is left visible.
+  m.once('load', () => {
+    if (innerWidth >= 900) return;
+    m.jumpTo({ center: CFG.center, zoom: CFG.zoom, padding: { top: 70, bottom: Math.min($('#sheet').offsetHeight, innerHeight * 0.62), left: 0, right: 0 } });
+  });
   m.on('style.load', addOverlay);
   m.on('moveend', () => { scanSats(); if (S.img === 'sharp' && sharpHere() !== sharpShown) applyImagery(); });
   m.on('click', (ev) => {
