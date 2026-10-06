@@ -20,6 +20,7 @@ jobs:
         working-directory: web
         run: |
           if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
+          npm install --no-save --ignore-scripts satellite.js@7.1.0
           npm ls --depth=0
       - name: Assemble site
         run: |
@@ -30,6 +31,8 @@ jobs:
           nm=web/node_modules
           cp $nm/maplibre-gl/dist/maplibre-gl.js $nm/maplibre-gl/dist/maplibre-gl.css dist/vendor/
           cp $nm/pmtiles/dist/pmtiles.js dist/vendor/
+          cp -r $nm/satellite.js/dist dist/vendor/satellite
+          find dist/vendor/satellite -name "*.map" -delete -o -name "*.d.ts" -delete
           cp $nm/@protomaps/basemaps/dist/basemaps.js dist/vendor/
           cp "$(find $nm/@mapbox/mapbox-gl-rtl-text -name 'mapbox-gl-rtl-text.js' | head -1)" dist/vendor/mapbox-gl-rtl-text.js
           ls -la $nm/pmtiles/dist $nm/@protomaps/basemaps/dist
