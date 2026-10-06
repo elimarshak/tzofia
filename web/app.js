@@ -11,7 +11,8 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true,
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showImg: false, imgDay: 1,
+  ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satNow: [], satLib: null, quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
@@ -150,6 +151,33 @@ function band(a) {
 const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || S.em.some((e) => e.hex === a.hex);
 const lowAcc = (a) => !a.on_ground && a.nic != null && a.nic < 7;
 const callsign = (a) => { const c = (a.flight || '').trim(); return /^[A-Z0-9-]{2,8}$/i.test(c) ? c : ''; };   // transponders sometimes send filler such as @@@@@@@@
+/* ---------- airlines and routes: an open public-domain table keyed by callsign ---------- */
+const refUrl = (f) => new URL('ref/' + f, location.href).href;
+async function refJson(f) { const r = await fetch(refUrl(f)); if (!r.ok) throw new Error(f); return r.json(); }
+const csKey = (cs) => { const m = /^([A-Z]{3})0*(\d.*)$/.exec(cs); return m ? m[1] + m[2] : cs; };
+const csPrefix = (cs) => (/^[A-Z]{3}\d/.test(cs) ? cs.slice(0, 3) : null);
+const airlineOf = (cs) => { const p = csPrefix(cs); return p && S.ref.airlines ? S.ref.airlines[p] || null : null; };
+// Route registered for this callsign, as airport records [{code, name, city, cc}], or null. undefined = still loading.
+function routeOf(cs) {
+  const p = csPrefix(cs); if (!p) return null;
+  const table = S.ref.routes.get(p);
+  if (table === undefined) { loadRoutes([p]); return undefined; }
+  if (!table || !S.ref.airports) return S.ref.airports === null ? undefined : null;
+  const codes = table[csKey(cs)]; if (!codes) return null;
+  return codes.split('-').map((code) => { const a = S.ref.airports[code]; return { code, name: a ? a[0] : code, city: a ? a[1] : '', cc: a ? a[2] : '' }; });
+}
+let refBusy = false;
+async function loadRoutes(prefixes) {
+  const need = prefixes.filter((p) => !S.ref.routes.has(p));
+  if (!need.length && S.ref.airports) return;
+  need.forEach((p) => S.ref.routes.set(p, false));   // false = requested
+  try {
+    if (!S.ref.airports && !refBusy) { refBusy = true; S.ref.airports = await refJson('airports.json').catch(() => ({})); }
+    await Promise.all(need.map(async (p) => S.ref.routes.set(p, await refJson('routes/' + p + '.json').catch(() => ({})))));
+  } finally { render(); }
+}
+const placeName = (a) => [a.city || a.name, a.cc].filter(Boolean).join(', ');
+
 const emName = (e) => (e.flight || '').trim() || e.reg || e.hex.toUpperCase();
 const airborne = () => S.ac.filter((a) => !a.on_ground);
 
@@ -252,6 +280,7 @@ function applyLayerOptions() {
   for (const id of ['quakes', 'quake-sel']) m.setLayoutProperty(id, 'visibility', S.showQuakes ? 'visible' : 'none');
   m.setFilter('sat-sel', ['==', ['get', 'id'], S.view.name === 'sat' ? S.view.id : '']);
   m.setFilter('quake-sel', ['==', ['get', 'id'], S.view.name === 'quake' ? S.view.id : '']);
+  applyImagery();
 }
 
 function drawAircraft() {
@@ -267,6 +296,25 @@ function drawAircraft() {
   for (const a of S.ac) push(a, isEmerg(a));
   for (const e of S.em) push(e, true);   // emergencies anywhere in the world
   m.getSource('ac').setData({ type: 'FeatureCollection', features: feats });
+}
+
+// Daily satellite photo of the whole Earth from NASA (GIBS service, VIIRS instrument on the NOAA-20 satellite).
+// About 250 metres per pixel: clouds, smoke, dust and large fires are visible; buildings are not.
+const imgDate = (daysAgo) => new Date(Date.now() - daysAgo * 864e5).toISOString().slice(0, 10);
+const imgTiles = () => ['https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/'
+  + imgDate(S.imgDay) + '/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg'];
+function applyImagery() {
+  const m = S.map; if (!m || !m.getLayer('ac')) return;
+  const layers = m.getStyle().layers;
+  if (S.showImg && !m.getSource('img')) {
+    m.addSource('img', { type: 'raster', tiles: imgTiles(), tileSize: 256, maxzoom: 9 });
+    const first = layers.find((l) => l.type !== 'background');
+    m.addLayer({ id: 'img', type: 'raster', source: 'img' }, first ? first.id : undefined);
+  }
+  if (m.getLayer('img')) m.setLayoutProperty('img', 'visibility', S.showImg ? 'visible' : 'none');
+  // the drawn land and sea would cover the photo, so they step aside while it is shown; borders, roads and names stay
+  const ids = new Set(BASEMAPS.map((b) => b.id));
+  for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', S.showImg ? 'none' : 'visible');
 }
 
 function drawGnss() {
@@ -286,7 +334,7 @@ function initMap() {
   maplibregl.setRTLTextPlugin(new URL('vendor/mapbox-gl-rtl-text.js', location.href).href, true);
   const m = new maplibregl.Map({
     container: 'map', style: mapStyle(), center: CFG.center, zoom: CFG.zoom,
-    minZoom: 2, maxZoom: 13, maxBounds: CFG.bounds, attributionControl: false,
+    minZoom: 2, maxZoom: 13, attributionControl: false,
     dragRotate: false, pitchWithRotate: false, touchPitch: false,
   });
   m.touchZoomRotate.disableRotation();
@@ -355,7 +403,8 @@ function acRow(a) {
   const b = band(a);
   const col = isEmerg(a) ? c.warn : b === 'u' ? c.unk : c.alt[+b];
   const alt = a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : L.none;
-  const kind = [a.ac_type, a.operator].filter(Boolean).join(' · ');
+  const rt = cs ? routeOf(cs) : null;
+  const kind = [a.ac_type, cs ? airlineOf(cs) : null, rt && rt.length > 1 ? L.toPlace(placeName(rt[rt.length - 1])) : null].filter(Boolean).join(' · ');
   return row(col, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, cs || L.noCallsign),
     [alt, kind].filter(Boolean).join(' · '),
     () => { go({ name: 'ac', hex: a.hex, from: S.view }); flyTo(a, 8); },
@@ -403,6 +452,7 @@ function viewEmerg() {
 }
 function viewSky() {
   const L = t();
+  loadRoutes([...new Set(airborne().map((a) => csPrefix(callsign(a))).filter(Boolean))]);
   const list = airborne().slice().sort((a, b) => (callsign(a) || '~').localeCompare(callsign(b) || '~'));
   return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satNow.length) : '')), list.map(acRow)];
 }
@@ -418,7 +468,14 @@ function viewAircraft(hex) {
   add(L.fFlight, cs ? ltr(cs) : null);
   add(L.fReg, a.reg ? ltr(a.reg) : null);
   add(L.fType, [a.ac_type, a.descr].filter(Boolean).join(' · ') ? ltr([a.ac_type, a.descr].filter(Boolean).join(' · ')) : null);
-  if (a.operator) add(L.fOp, ltr(a.operator));
+  const airline = cs ? airlineOf(cs) : null, rt = cs ? routeOf(cs) : null;
+  if (airline) add(L.fAirline, ltr(airline));
+  if (rt && rt.length > 1) {
+    const full = (x) => ltr(`${x.name} (${[x.city, x.cc].filter(Boolean).join(', ')})`);
+    add(L.fFrom, full(rt[0]));
+    if (rt.length > 2) add(L.fVia, ltr(rt.slice(1, -1).map(placeName).join(' · ')));
+    add(L.fTo, full(rt[rt.length - 1]));
+  }
   add(L.fAlt, a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null);
   add(L.fPos, a.lat != null && a.lon != null ? ltr(`${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}`) : null);
   if ('gs' in a) {
@@ -437,7 +494,8 @@ function viewAircraft(hex) {
     isEmerg(a) || !('gs' in a) ? h('i', { class: 'tag warn', style: 'font-style:normal' }, L.sq[a.squawk] || L.emerg) : null);
   return [h('div', { class: 'head' },
     h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), L.back), title, freshLine()),
-  h('dl', { class: 'facts' }, facts)];
+  h('dl', { class: 'facts' }, facts),
+  airline || (rt && rt.length > 1) ? h('p', { class: 'note' }, L.routeNote) : null];
 }
 
 const secAgo = (iso) => Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
@@ -513,6 +571,8 @@ function applyLang() {
   document.title = L.brand;
   $('#brand-name').textContent = L.brand;
   $('#btn-lang').textContent = L.otherLang;
+  const dm = (n) => { const d = imgDate(n).split('-'); return `${+d[2]}.${+d[1]}`; };
+  $('#imgday-1').textContent = L.imgDay(dm(1), false); $('#imgday-0').textContent = L.imgDay(dm(0), true);
   $('#btn-lang').setAttribute('lang', S.lang === 'he' ? 'en' : 'he');
   $('#grip').setAttribute('aria-label', L.toggleSheet);
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
@@ -535,6 +595,12 @@ function wire() {
   $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
   $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
+  $('#opt-img').addEventListener('change', (e) => { S.showImg = e.target.checked; applyImagery(); });
+  document.querySelectorAll('input[name=imgday]').forEach((r) => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    S.imgDay = +r.value;
+    const src = S.map.getSource('img'); if (src) src.setTiles(imgTiles());
+  }));
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
     S.theme = r.value; store.set('theme', S.theme);
@@ -547,6 +613,7 @@ function wire() {
 /* ---------- start ---------- */
 applyTheme(); applyLang(); render();
 initMap(); wire();
+refJson('airlines.json').then((j) => { S.ref.airlines = j; render(); }).catch(() => { S.ref.airlines = {}; });
 refresh();
 refreshSlow();
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);

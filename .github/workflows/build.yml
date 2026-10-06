@@ -2,7 +2,7 @@ name: build-site
 on:
   push:
     branches: [main]
-    paths: ['web/**', '.github/workflows/build.yml']
+    paths: ['web/**', 'tools/**', '.github/workflows/build.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -38,6 +38,8 @@ jobs:
           mkdir -p dist/assets/sprites && cp -r /tmp/assets/sprites/v4 dist/assets/sprites/v4
           cp web/package-lock.json dist/package-lock.json
           touch dist/.nojekyll
+          git clone --depth 1 https://github.com/vradarserver/standing-data /tmp/standing-data
+          python3 tools/build_ref.py /tmp/standing-data dist/ref
       - name: Basemap cache
         id: bm
         uses: actions/cache@v4
