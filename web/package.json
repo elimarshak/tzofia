@@ -1,0 +1,11 @@
+{
+  "name": "tzofia-web",
+  "private": true,
+  "description": "Libraries the build copies into the site. No bundler: the site is plain files.",
+  "dependencies": {
+    "maplibre-gl": "^5.0.0",
+    "pmtiles": "^4.0.0",
+    "@protomaps/basemaps": "^5.0.0",
+    "@mapbox/mapbox-gl-rtl-text": "0.3.0"
+  }
+}

@@ -1,0 +1,67 @@
+name: build-site
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/build.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  BBOX: "26,25,42,38"     # must match CFG.bounds in web/config.js
+  MAXZOOM: "10"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Libraries
+        working-directory: web
+        run: |
+          if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
+          npm ls --depth=0
+      - name: Assemble site
+        run: |
+          set -euo pipefail
+          mkdir -p dist/vendor dist/assets
+          cp web/index.html web/app.css web/app.js web/config.js web/i18n.js web/icon.svg web/manifest.webmanifest dist/
+          cp -r web/fonts dist/fonts
+          nm=web/node_modules
+          cp $nm/maplibre-gl/dist/maplibre-gl.js $nm/maplibre-gl/dist/maplibre-gl.css dist/vendor/
+          cp $nm/pmtiles/dist/pmtiles.js dist/vendor/
+          cp $nm/@protomaps/basemaps/dist/basemaps.js dist/vendor/
+          cp "$(find $nm/@mapbox/mapbox-gl-rtl-text -name 'mapbox-gl-rtl-text.js' | head -1)" dist/vendor/mapbox-gl-rtl-text.js
+          ls -la $nm/pmtiles/dist $nm/@protomaps/basemaps/dist
+          git clone --depth 1 https://github.com/protomaps/basemaps-assets /tmp/assets
+          cp -r /tmp/assets/fonts dist/assets/fonts
+          mkdir -p dist/assets/sprites && cp -r /tmp/assets/sprites/v4 dist/assets/sprites/v4
+          cp web/package-lock.json dist/package-lock.json
+      - name: Basemap cache
+        id: bm
+        uses: actions/cache@v4
+        with:
+          path: basemap.pmtiles
+          key: basemap-${{ env.BBOX }}-z${{ env.MAXZOOM }}-v1
+      - name: Basemap extract (OpenStreetMap via Protomaps daily build)
+        if: steps.bm.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download -R protomaps/go-pmtiles -p '*Linux_x86_64.tar.gz' -O /tmp/pmtiles.tgz
+          tar -xzf /tmp/pmtiles.tgz -C /tmp pmtiles
+          src=""
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            d=$(date -u -d "-$i day" +%Y%m%d)
+            if curl -sfI "https://build.protomaps.com/$d.pmtiles" >/dev/null; then src="https://build.protomaps.com/$d.pmtiles"; break; fi
+          done
+          test -n "$src" || { echo "no recent Protomaps build found"; exit 1; }
+          echo "source: $src"
+          /tmp/pmtiles extract "$src" basemap.pmtiles --bbox="$BBOX" --maxzoom="$MAXZOOM"
+      - run: cp basemap.pmtiles dist/basemap.pmtiles && du -sh dist dist/basemap.pmtiles
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist
+          retention-days: 14
