@@ -44,7 +44,8 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 [dir=ltr] .back .chev{transform:none}
 .note{font-size:14px;line-height:1.45;color:var(--sub);padding:4px 0 10px}
 .cs{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
-dl.facts{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding-bottom:8px}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:0;padding-bottom:8px}
+dl.facts dt{padding-inline-end:20px!important}
 dl.facts dt,dl.facts dd{padding:8px 0;border-top:1px solid var(--line);font-size:14.5px}
 dl.facts dt{color:var(--sub)}
 dl.facts dd{font-weight:500}

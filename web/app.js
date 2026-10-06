@@ -237,7 +237,7 @@ function acRow(a) {
   return row(col, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, cs || L.noCallsign),
     [alt, kind].filter(Boolean).join(' · '),
     () => { go({ name: 'ac', hex: a.hex, from: S.view }); flyTo(a, 8); },
-    [a.mil ? h('i', { class: 'tag', style: 'font-style:normal' }, L.mil) : null, lowAcc(a) ? h('i', { class: 'tag warn', style: 'font-style:normal' }, L.accLow) : null]);
+    [a.mil ? h('i', { class: 'tag', style: 'font-style:normal' }, L.mil) : null, lowAcc(a) ? h('i', { class: 'tag warn', style: 'font-style:normal' }, L.tagLow) : null]);
 }
 
 function header(title, backTo) {
@@ -287,7 +287,7 @@ function viewAircraft(hex) {
   add(L.fFlight, cs ? ltr(cs) : null);
   add(L.fReg, a.reg ? ltr(a.reg) : null);
   add(L.fType, [a.ac_type, a.descr].filter(Boolean).join(' · ') ? ltr([a.ac_type, a.descr].filter(Boolean).join(' · ')) : null);
-  if ('operator' in a) add(L.fOp, a.operator ? ltr(a.operator) : null);
+  if (a.operator) add(L.fOp, ltr(a.operator));
   add(L.fAlt, a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null);
   if ('gs' in a) {
     add(L.fSpeed, a.gs != null ? L.speed(a.gs) : null);
