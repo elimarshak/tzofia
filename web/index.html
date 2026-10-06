@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://gibs.earthdata.nasa.gov; font-src 'self'; connect-src 'self' https://wpnbzpulkyogdeuuqffh.supabase.co https://gibs.earthdata.nasa.gov; worker-src 'self' blob:; child-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://gibs.earthdata.nasa.gov https://view.eumetsat.int; font-src 'self'; connect-src 'self' https://wpnbzpulkyogdeuuqffh.supabase.co https://gibs.earthdata.nasa.gov https://view.eumetsat.int https://raw.githubusercontent.com; worker-src 'self' blob:; child-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0D1822">
 <title>OPENEYE</title>
@@ -34,9 +34,10 @@
   <label class="opt"><input type="checkbox" id="opt-sats" checked><span data-t="sats"></span></label>
   <label class="opt"><input type="checkbox" id="opt-quakes" checked><span data-t="quakes"></span></label>
   <h3 data-t="imgTitle"></h3>
-  <label class="opt"><input type="checkbox" id="opt-img"><span data-t="optImg"></span></label>
-  <label class="opt"><input type="radio" name="imgday" value="1" checked><span id="imgday-1"></span></label>
-  <label class="opt"><input type="radio" name="imgday" value="0"><span id="imgday-0"></span></label>
+  <label class="opt"><input type="radio" name="img" value="off" checked><span data-t="imgOff"></span></label>
+  <label class="opt"><input type="radio" name="img" value="clouds"><span data-t="imgClouds"></span></label>
+  <label class="opt"><input type="radio" name="img" value="d1"><span id="img-d1"></span></label>
+  <label class="opt"><input type="radio" name="img" value="d0"><span id="img-d0"></span></label>
   <h3 data-t="mapLook"></h3>
   <label class="opt"><input type="radio" name="theme" value="dark"><span data-t="themeDark"></span></label>
   <label class="opt"><input type="radio" name="theme" value="light"><span data-t="themeLight"></span></label>

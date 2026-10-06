@@ -11,9 +11,9 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showImg: false, imgDay: 1,
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
-  sats: [], satNow: [], satLib: null, quakes: [],
+  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
   map: null,
@@ -84,39 +84,78 @@ async function refresh() {
 const QUAKE_MIN_MAG = 2.5;
 async function refreshSlow() {
   try {
-    const rows = await api('/derived?select=key,data,computed_at&key=in.(sats_region,quakes)');
+    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes)');
     const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
     const q = rows.find((r) => r.key === 'quakes');
     S.quakes = fresh(q, 30) ? q.data.events.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG) : [];
-    const st = rows.find((r) => r.key === 'sats_region');
-    if (fresh(st, 20)) {
-      if (!S.satLib) { try { S.satLib = await import('./vendor/satellite/index.js'); } catch { S.satLib = null; } }
-      const lib = S.satLib;
-      S.sats = lib ? st.data.sats.map((o) => {
-        try { const rec = lib.json2satrec(o); return rec && !rec.error ? { id: String(o.NORAD_CAT_ID), name: o.OBJECT_NAME, incl: o.INCLINATION, epoch: o.EPOCH, rec } : null; } catch { return null; }
-      }).filter(Boolean) : [];
-    } else S.sats = [];
   } catch { /* keep what we have */ }
   drawQuakes(); tickSats(); render();
 }
 
-// Where every listed satellite is right now, computed on the device from its orbit elements.
+// Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
+// on the device. Every 10 seconds we work out which satellites are over the part of the map on screen,
+// and every second we move just those. A phone therefore never animates more than SAT_MAX objects.
+const SAT_SRC = 'https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_active.csv';
+const SAT_MAX = 2500;
+const pause = () => new Promise((r) => setTimeout(r, 0));
+async function loadCatalogue() {
+  try {
+    if (!S.satLib) S.satLib = await import('./vendor/satellite/index.js');
+    const lib = S.satLib;
+    const text = await (await fetch(SAT_SRC, { cache: 'no-cache' })).text();
+    const lines = text.split(/\r?\n/).filter(Boolean), head = lines[0].split(',');
+    if (head[0] !== 'OBJECT_NAME') return;
+    const NUM = new Set(['MEAN_MOTION', 'ECCENTRICITY', 'INCLINATION', 'RA_OF_ASC_NODE', 'ARG_OF_PERICENTER', 'MEAN_ANOMALY',
+      'EPHEMERIS_TYPE', 'NORAD_CAT_ID', 'ELEMENT_SET_NO', 'REV_AT_EPOCH', 'BSTAR', 'MEAN_MOTION_DOT', 'MEAN_MOTION_DDOT']);
+    const all = [];
+    for (let n = 1; n < lines.length; n++) {
+      const cells = lines[n].split(','); if (cells.length < head.length) continue;
+      const o = {}; head.forEach((k, i) => { o[k] = NUM.has(k) ? Number(cells[i]) : cells[i]; });
+      try { const rec = lib.json2satrec(o); if (rec && !rec.error) all.push({ id: String(o.NORAD_CAT_ID), name: o.OBJECT_NAME, incl: o.INCLINATION, epoch: o.EPOCH, rec }); } catch { /* skip */ }
+      if (n % 1500 === 0) await pause();
+    }
+    S.sats = all;
+    scanSats();
+  } catch { /* keep what we have */ }
+}
+function satPos(st, now, gmst) {
+  const lib = S.satLib, pv = lib.propagate(st.rec, now);
+  const pos = pv && pv.position, vel = pv && pv.velocity;
+  if (!pos || typeof pos !== 'object') return null;
+  const g = lib.eciToGeodetic(pos, gmst);
+  return { id: st.id, name: st.name, incl: st.incl, lat: lib.degreesLat(g.latitude), lon: lib.degreesLong(g.longitude), km: g.height,
+    kms: vel && typeof vel === 'object' ? Math.hypot(vel.x, vel.y, vel.z) : null };
+}
+let scanning = false;
+async function scanSats() {
+  const m = S.map, lib = S.satLib;
+  if (!m || !lib || scanning || !S.showSats || document.hidden || !S.sats.length) return;
+  scanning = true;
+  try {
+    const b = m.getBounds(), padX = (b.getEast() - b.getWest()) * 0.15, padY = (b.getNorth() - b.getSouth()) * 0.15;
+    const w = b.getWest() - padX, e = b.getEast() + padX, s0 = b.getSouth() - padY, n0 = b.getNorth() + padY;
+    const whole = e - w >= 360;
+    const now = new Date(), gmst = lib.gstime(now), inView = [];
+    for (let i = 0; i < S.sats.length; i++) {
+      const o = satPos(S.sats[i], now, gmst);
+      if (o && o.lat >= s0 && o.lat <= n0 && (whole || [o.lon, o.lon - 360, o.lon + 360].some((x) => x >= w && x <= e))) inView.push(S.sats[i]);
+      if (i % 2000 === 1999) await pause();
+    }
+    S.satInView = inView.length;
+    const step = Math.ceil(inView.length / SAT_MAX);
+    let view = step > 1 ? inView.filter((_, i) => i % step === 0) : inView;
+    if (S.view.name === 'sat' && !view.some((x) => x.id === S.view.id)) { const sel = S.sats.find((x) => x.id === S.view.id); if (sel) view = view.concat(sel); }
+    S.satView = view;
+  } finally { scanning = false; }
+  tickSats();
+}
 function tickSats() {
   const m = S.map, lib = S.satLib;
   if (!m || !m.getSource('sats')) return;
   const out = [];
   if (lib && S.showSats && !document.hidden) {
-    const now = new Date(), gmst = lib.gstime(now), b = CFG.bounds;
-    for (const st of S.sats) {
-      const pv = lib.propagate(st.rec, now);
-      const pos = pv && pv.position, vel = pv && pv.velocity;
-      if (!pos || typeof pos !== 'object') continue;
-      const g = lib.eciToGeodetic(pos, gmst);
-      const lat = lib.degreesLat(g.latitude), lon = lib.degreesLong(g.longitude);
-      if (lon < b[0][0] || lon > b[1][0] || lat < b[0][1] || lat > b[1][1]) continue;
-      out.push({ id: st.id, name: st.name, incl: st.incl, lat, lon, km: g.height,
-        kms: vel && typeof vel === 'object' ? Math.hypot(vel.x, vel.y, vel.z) : null });
-    }
+    const now = new Date(), gmst = lib.gstime(now);
+    for (const st of S.satView) { const o = satPos(st, now, gmst); if (o) out.push(o); }
   }
   S.satNow = out;
   m.getSource('sats').setData({ type: 'FeatureCollection', features: out.map((o) => (
@@ -300,21 +339,36 @@ function drawAircraft() {
 
 // Daily satellite photo of the whole Earth from NASA (GIBS service, VIIRS instrument on the NOAA-20 satellite).
 // About 250 metres per pixel: clouds, smoke, dust and large fires are visible; buildings are not.
+// Pictures from space, one at a time (menu 'שכבות'):
+//  'clouds' - the last full-hour picture from Europe's Meteosat weather satellite (EUMETSAT view service):
+//             Europe, Africa and the Middle East, about 1 to 2 km per pixel, day and night.
+//  'd1','d0' - NASA's daily photo of the whole Earth (GIBS service, VIIRS on NOAA-20), about 250 m per pixel.
 const imgDate = (daysAgo) => new Date(Date.now() - daysAgo * 864e5).toISOString().slice(0, 10);
-const imgTiles = () => ['https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/'
-  + imgDate(S.imgDay) + '/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg'];
+const lastHour = () => { const d = new Date(Date.now() - 40 * 60 * 1000); d.setUTCMinutes(0, 0, 0); return d.toISOString().replace('.000Z', 'Z'); };
+function imgSource() {
+  if (S.img === 'clouds') return { key: 'clouds-' + lastHour(), type: 'raster', tileSize: 512, maxzoom: 7,
+    tiles: ['https://view.eumetsat.int/geoserver/ows?service=WMS&version=1.3.0&request=GetMap&layers=mtg_fd:rgb_geocolour&styles='
+      + '&format=image/jpeg&crs=EPSG:3857&bbox={bbox-epsg-3857}&width=512&height=512&time=' + lastHour()] };
+  const day = imgDate(S.img === 'd0' ? 0 : 1);
+  return { key: 'nasa-' + day, type: 'raster', tileSize: 256, maxzoom: 9,
+    tiles: ['https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/' + day
+      + '/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg'] };
+}
+let imgKey = '';
 function applyImagery() {
   const m = S.map; if (!m || !m.getLayer('ac')) return;
+  const on = S.img !== 'off', src = on ? imgSource() : null;
+  if (m.getLayer('img') && (!on || src.key !== imgKey || !m.getSource('img'))) { m.removeLayer('img'); m.removeSource('img'); }
   const layers = m.getStyle().layers;
-  if (S.showImg && !m.getSource('img')) {
-    m.addSource('img', { type: 'raster', tiles: imgTiles(), tileSize: 256, maxzoom: 9 });
+  if (on && !m.getSource('img')) {
+    const { key, ...def } = src; imgKey = key;
+    m.addSource('img', def);
     const first = layers.find((l) => l.type !== 'background');
     m.addLayer({ id: 'img', type: 'raster', source: 'img' }, first ? first.id : undefined);
   }
-  if (m.getLayer('img')) m.setLayoutProperty('img', 'visibility', S.showImg ? 'visible' : 'none');
-  // the drawn land and sea would cover the photo, so they step aside while it is shown; borders, roads and names stay
+  // the drawn land and sea would cover the picture, so they step aside while it is shown; borders, roads and names stay
   const ids = new Set(BASEMAPS.map((b) => b.id));
-  for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', S.showImg ? 'none' : 'visible');
+  for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', on ? 'none' : 'visible');
 }
 
 function drawGnss() {
@@ -340,6 +394,7 @@ function initMap() {
   m.touchZoomRotate.disableRotation();
   S.map = m;
   m.on('style.load', addOverlay);
+  m.on('moveend', () => scanSats());
   m.on('click', (ev) => {
     const p = ev.point, r = 14;
     const hits = m.getLayer('ac') ? m.queryRenderedFeatures([[p.x - r, p.y - r], [p.x + r, p.y + r]], { layers: ['ac'] }) : [];
@@ -454,7 +509,7 @@ function viewSky() {
   const L = t();
   loadRoutes([...new Set(airborne().map((a) => csPrefix(callsign(a))).filter(Boolean))]);
   const list = airborne().slice().sort((a, b) => (callsign(a) || '~').localeCompare(callsign(b) || '~'));
-  return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satNow.length) : '')), list.map(acRow)];
+  return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satInView, S.satNow.length) : '')), list.map(acRow)];
 }
 function viewAircraft(hex) {
   const L = t();
@@ -572,7 +627,7 @@ function applyLang() {
   $('#brand-name').textContent = L.brand;
   $('#btn-lang').textContent = L.otherLang;
   const dm = (n) => { const d = imgDate(n).split('-'); return `${+d[2]}.${+d[1]}`; };
-  $('#imgday-1').textContent = L.imgDay(dm(1), false); $('#imgday-0').textContent = L.imgDay(dm(0), true);
+  $('#img-d1').textContent = L.imgDay(dm(1), false); $('#img-d0').textContent = L.imgDay(dm(0), true);
   $('#btn-lang').setAttribute('lang', S.lang === 'he' ? 'en' : 'he');
   $('#grip').setAttribute('aria-label', L.toggleSheet);
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
@@ -593,14 +648,10 @@ function wire() {
   $('#opt-ac').addEventListener('change', (e) => { S.showAc = e.target.checked; applyLayerOptions(); });
   $('#opt-labels').addEventListener('change', (e) => { S.showLabels = e.target.checked; applyLayerOptions(); });
   $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
-  $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); tickSats(); });
+  $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); scanSats(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
-  $('#opt-img').addEventListener('change', (e) => { S.showImg = e.target.checked; applyImagery(); });
-  document.querySelectorAll('input[name=imgday]').forEach((r) => r.addEventListener('change', () => {
-    if (!r.checked) return;
-    S.imgDay = +r.value;
-    const src = S.map.getSource('img'); if (src) src.setTiles(imgTiles());
-  }));
+  document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
+  setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
     S.theme = r.value; store.set('theme', S.theme);
@@ -618,6 +669,8 @@ refresh();
 refreshSlow();
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
 setInterval(tickSats, 1000);
+loadCatalogue(); setInterval(loadCatalogue, 3 * 3600 * 1000);
+setInterval(scanSats, 10000);
 let timer = setInterval(refresh, CFG.pollMs);
 document.addEventListener('visibilitychange', () => {
   clearInterval(timer);
