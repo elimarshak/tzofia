@@ -1,0 +1,27 @@
+name: satellites-catalogue
+# Keeps our own copy of the public satellite catalogue (CelesTrak "active" group) on the data branch.
+# CelesTrak asks for at most one download per update (they update every 2 hours) and no retries on errors.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download once, publish to the data branch
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o active.csv -w '%{http_code}' --max-time 120 \
+            -A 'tzofia/0.1 (+https://github.com/elimarshak/tzofia)' \
+            'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=csv')
+          echo "http $code, $(wc -c < active.csv) bytes, $(wc -l < active.csv) lines"
+          if [ "$code" != 200 ] || ! head -1 active.csv | grep -q '^OBJECT_NAME'; then
+            echo "no new data; stopping without retry"; head -c 300 active.csv; exit 1
+          fi
+          mkdir out && mv active.csv out/celestrak_active.csv && date -u +%FT%TZ > out/fetched_at.txt
+          cd out && git init -q -b data && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "satellite catalogue $(cat fetched_at.txt)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data
