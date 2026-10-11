@@ -12,10 +12,10 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true, showConj: true,
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true, showConj: true, showSkies: true,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
-  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, quakes: [],
+  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
   map: null,
@@ -62,11 +62,13 @@ async function api(path) {
 async function refresh() {
   const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
   try {
-    const [ac, em, src, drv] = await Promise.all([
+    const [ac, em, src, drv, milw] = await Promise.all([
       api(`/aircraft_live?select=${LIVE_COLS}&in_region=eq.true&pos_time=gte.${since}&lat=not.is.null&limit=2000`),
       api('/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,first_seen,last_seen,lat,lon,alt_baro&active=eq.true&order=first_seen.desc&limit=200'),
       api('/source_status?select=source,last_ok,last_error&source=eq.adsb.lol%2Fpoint'),
       api('/derived?select=key,data,computed_at&key=in.(gnss_grid)'),
+      // military aircraft anywhere in the world (the source sends this list every two minutes, so it may be a little older)
+      api(`/aircraft_live?select=${LIVE_COLS}&mil=eq.true&in_region=eq.false&pos_time=gte.${new Date(Date.now() - 300000).toISOString()}&lat=not.is.null&limit=1500`),
     ]);
     const g = drv.find((d) => d.key === 'gnss_grid');
     S.gnss = g && Date.now() - Date.parse(g.computed_at) < 10 * 60 * 1000 ? g.data : null;
@@ -74,7 +76,7 @@ async function refresh() {
     // received more than once, at least a minute apart, from an aircraft with a known position.
     const confirmed = (e) => ['7500', '7600', '7700'].includes(e.squawk)
       || (e.lat != null && e.lon != null && Date.parse(e.last_seen) - Date.parse(e.first_seen) >= 60000);
-    S.ac = ac; S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
+    S.ac = ac; S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
   } catch {
     S.netErr = true;
   }
@@ -86,7 +88,7 @@ async function refresh() {
 const QUAKE_MIN_MAG = 2.5;
 async function refreshSlow() {
   try {
-    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires,outages)');
+    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires,outages,skies)');
     const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
     const q = rows.find((r) => r.key === 'quakes');
     S.quakes = fresh(q, 30) ? q.data.events.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG) : [];
@@ -96,9 +98,11 @@ async function refreshSlow() {
     const o = rows.find((r) => r.key === 'outages');
     S.outagesOk = !!fresh(o, 90);
     S.outages = S.outagesOk ? o.data.events.slice().sort((a, b) => Date.parse(b.start) - Date.parse(a.start)) : [];
-    if (S.outages.length && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
+    const sk = rows.find((r) => r.key === 'skies');
+    S.skies = fresh(sk, 30) ? sk.data : null;
+    if ((S.outages.length || S.skies) && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
   } catch { /* keep what we have */ }
-  drawQuakes(); drawFires(); drawOutages(); tickSats(); render();
+  drawQuakes(); drawFires(); drawOutages(); drawSkies(); tickSats(); render();
 }
 
 // Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
@@ -128,9 +132,13 @@ async function parseGp(text, kind) {
 async function loadCatalogue() {
   try {
     if (!S.satLib) S.satLib = await import('./vendor/satellite/index.js');
-    const [active, debris, extra, soc] = await Promise.all(['celestrak_active.csv', 'celestrak_debris.csv', 'socrates_gp.csv', 'socrates.csv'].map(getText));
+    const [active, debris, extra, soc, imaging] = await Promise.all(['celestrak_active.csv', 'celestrak_debris.csv', 'socrates_gp.csv', 'socrates.csv', 'celestrak_imaging.csv'].map(getText));
     const sats = await parseGp(active, 'sat');
     if (!sats.length) return;
+    // imaging satellites: 'opt' takes pictures with a camera, 'sar' with radar (works at night and through clouds)
+    const kinds = new Map(csvRows(imaging)[1].map((ln) => ln.split(',')));
+    for (const st of sats) { const k = kinds.get(st.id); if (k === 'opt' || k === 'sar') st.img = k; }
+    S.imgNextAt = 0;
     const ids = new Set(sats.map((x) => x.id));
     for (const d of await parseGp(debris, 'deb')) if (!ids.has(d.id)) { ids.add(d.id); sats.push(d); }
     S.sats = sats;
@@ -167,8 +175,34 @@ function satPos(st, now, gmst) {
   const pos = pv && pv.position, vel = pv && pv.velocity;
   if (!pos || typeof pos !== 'object') return null;
   const g = lib.eciToGeodetic(pos, gmst);
-  return { id: st.id, name: st.name, incl: st.incl, deb: st.kind === 'deb' ? 1 : 0, lat: lib.degreesLat(g.latitude), lon: lib.degreesLong(g.longitude), km: g.height,
+  return { id: st.id, name: st.name, incl: st.incl, deb: st.kind === 'deb' ? 1 : 0, img: st.img ? 1 : 0, lat: lib.degreesLat(g.latitude), lon: lib.degreesLong(g.longitude), km: g.height,
     kms: vel && typeof vel === 'object' ? Math.hypot(vel.x, vel.y, vel.z) : null };
+}
+// Imaging satellites "over Israel": the point on the ground under the satellite is within IMG_KM of the centre of Israel.
+const IMG_KM = 500, IL_CENTRE = [31.4, 35.0];
+function kmFromIsrael(o) {
+  const r = Math.PI / 180, a = Math.sin(((o.lat - IL_CENTRE[0]) * r) / 2) ** 2
+    + Math.cos(o.lat * r) * Math.cos(IL_CENTRE[0] * r) * Math.sin(((o.lon - IL_CENTRE[1]) * r) / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(a));
+}
+// The next time each imaging satellite comes within range in the next 3 hours (30-second steps).
+let passBusy = false;
+async function nextImgPasses() {
+  const lib = S.satLib; if (!lib || passBusy) return;
+  passBusy = true; S.imgNextAt = Date.now();
+  try {
+    const t0 = Date.now(), list = [], here = new Set(S.imgOver.map((x) => x.id));
+    const imgs = S.sats.filter((x) => x.img && !here.has(x.id));
+    for (let i = 0; i < imgs.length; i++) {
+      for (let s = 30; s <= 3 * 3600; s += 30) {
+        const d = new Date(t0 + s * 1000), o = satPos(imgs[i], d, lib.gstime(d));
+        if (o && kmFromIsrael(o) <= IMG_KM) { list.push({ st: imgs[i], at: d.getTime() }); break; }
+      }
+      if (i % 20 === 19) await pause();
+    }
+    S.imgNext = list.sort((a, b) => a.at - b.at);
+    if (['home', 'imgsats'].includes(S.view.name)) render();
+  } finally { passBusy = false; }
 }
 let scanning = false;
 async function scanSats() {
@@ -186,6 +220,12 @@ async function scanSats() {
       if (i % 2000 === 1999) await pause();
     }
     S.satInView = inView.length; S.debInView = inView.filter((x) => x.kind === 'deb').length;
+    const over = [];
+    for (const st of S.sats) if (st.img) { const o = satPos(st, now, gmst); if (o && kmFromIsrael(o) <= IMG_KM) over.push(st); }
+    const changed = over.map((x) => x.id).join() !== S.imgOver.map((x) => x.id).join();
+    S.imgOver = over;
+    if (changed && ['home', 'imgsats'].includes(S.view.name)) render();
+    if (Date.now() - (S.imgNextAt || 0) > 5 * 60 * 1000) nextImgPasses();
     const step = Math.ceil(inView.length / SAT_MAX);
     let view = step > 1 ? inView.filter((_, i) => i % step === 0) : inView;
     if (S.view.name === 'sat' && !view.some((x) => x.id === S.view.id)) { const sel = S.sats.find((x) => x.id === S.view.id); if (sel) view = view.concat(sel); }
@@ -203,7 +243,7 @@ function tickSats() {
   }
   S.satNow = out;
   m.getSource('sats').setData({ type: 'FeatureCollection', features: out.map((o) => (
-    { type: 'Feature', properties: { id: o.id, deb: o.deb }, geometry: { type: 'Point', coordinates: [o.lon, o.lat] } })) });
+    { type: 'Feature', properties: { id: o.id, deb: o.deb, img: o.img }, geometry: { type: 'Point', coordinates: [o.lon, o.lat] } })) });
   if (S.view.name === 'sat') { const f = document.querySelector('#sheet-body dl.facts'); if (f) f.replaceWith(satFacts(S.view.id)); }
 }
 
@@ -250,6 +290,13 @@ function drawOutages() {
   const m = S.map; if (!m || !m.getSource('outages')) return;
   m.getSource('outages').setData({ type: 'FeatureCollection', features: outagePoints().map((x) => (
     { type: 'Feature', properties: { id: x.id, open: x.open }, geometry: { type: 'Point', coordinates: [x.lon, x.lat] } })) });
+}
+// Emptying skies: one mark per flagged country, at the country's label point (above the outage mark, if any).
+const skiesFlagged = () => (S.skies ? S.skies.areas.filter((a) => a.drop) : []);
+function drawSkies() {
+  const m = S.map; if (!m || !m.getSource('skies')) return;
+  m.getSource('skies').setData({ type: 'FeatureCollection', features: skiesFlagged().filter((a) => S.countries && S.countries[a.code]).map((a) => (
+    { type: 'Feature', properties: { id: a.code }, geometry: { type: 'Point', coordinates: S.countries[a.code] } })) });
 }
 function drawQuakes() {
   const m = S.map; if (!m || !m.getSource('quakes')) return;
@@ -307,6 +354,7 @@ const placeName = (a) => [a.city || a.name, a.cc].filter(Boolean).join(', ');
 
 const emName = (e) => (e.flight || '').trim() || e.reg || e.hex.toUpperCase();
 const airborne = () => S.ac.filter((a) => !a.on_ground);
+const findAc = (hex) => S.ac.find((x) => x.hex === hex) || S.milw.find((x) => x.hex === hex) || S.em.find((x) => x.hex === hex);
 
 /* ---------- map ---------- */
 const PLANE = 'M0,-9 L1.6,-3 L8,1.5 L8,3 L1.6,1.2 L1.2,6 L3.4,7.8 L3.4,9 L0,8 L-3.4,9 L-3.4,7.8 L-1.2,6 L-1.6,1.2 L-8,3 L-8,1.5 L-1.6,-3 Z';
@@ -382,6 +430,12 @@ function addOverlay() {
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1, 'text-translate': [0, 24] } });
   m.addLayer({ id: 'outage-sel', type: 'circle', source: 'outages', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 16, 'circle-color': c.accent, 'circle-opacity': 0.2, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2, 'circle-translate': [0, 24] } });
+  m.addSource('skies', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'skies', type: 'circle', source: 'skies',
+    paint: { 'circle-radius': 10, 'circle-color': c.warn, 'circle-opacity': 0.15, 'circle-stroke-color': c.warn, 'circle-stroke-width': 2.2, 'circle-translate': [0, -24] } });
+  m.addLayer({ id: 'skies-dot', type: 'circle', source: 'skies', paint: { 'circle-radius': 3, 'circle-color': c.warn, 'circle-translate': [0, -24] } });
+  m.addLayer({ id: 'skies-sel', type: 'circle', source: 'skies', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 16, 'circle-color': c.accent, 'circle-opacity': 0.2, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2, 'circle-translate': [0, -24] } });
   m.addSource('fires', { type: 'geojson', data: empty });
   m.addLayer({ id: 'fires', type: 'circle', source: 'fires',
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'frp'], 0, 2.4, 20, 4, 200, 7], 'circle-color': c.fire, 'circle-opacity': 0.85,
@@ -398,7 +452,8 @@ function addOverlay() {
   m.addLayer({ id: 'sat-sel', type: 'circle', source: 'sats', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 11, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
   m.addLayer({ id: 'sats', type: 'circle', source: 'sats',
-    paint: { 'circle-radius': ['case', ['==', ['get', 'deb'], 1], 1.8, 2.6], 'circle-color': ['case', ['==', ['get', 'deb'], 1], c.sub, c.ink],
+    paint: { 'circle-radius': ['case', ['==', ['get', 'img'], 1], 3.4, ['==', ['get', 'deb'], 1], 1.8, 2.6],
+      'circle-color': ['case', ['==', ['get', 'img'], 1], c.accent, ['==', ['get', 'deb'], 1], c.sub, c.ink],
       'circle-opacity': ['case', ['==', ['get', 'deb'], 1], 0.75, 0.85], 'circle-stroke-color': c.halo, 'circle-stroke-width': ['case', ['==', ['get', 'deb'], 1], 0.6, 1] } });
   m.addSource('conj', { type: 'geojson', data: empty });
   m.addLayer({ id: 'conj', type: 'circle', source: 'conj',
@@ -424,7 +479,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawShips(); drawConj(); tickSats();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); tickSats();
 }
 
 function applyLayerOptions() {
@@ -441,6 +496,8 @@ function applyLayerOptions() {
   for (const id of ['fires', 'fire-sel']) m.setLayoutProperty(id, 'visibility', S.showFires ? 'visible' : 'none');
   for (const id of ['outages', 'outage-x', 'outage-sel']) m.setLayoutProperty(id, 'visibility', S.showOutages ? 'visible' : 'none');
   m.setFilter('outage-sel', ['==', ['get', 'id'], S.view.name === 'outage' ? S.view.id : '']);
+  for (const id of ['skies', 'skies-dot', 'skies-sel']) m.setLayoutProperty(id, 'visibility', S.showSkies ? 'visible' : 'none');
+  m.setFilter('skies-sel', ['==', ['get', 'id'], S.view.name === 'skyc' ? S.view.id : '']);
   for (const id of ['conj', 'conj-dot', 'conj-sel']) m.setLayoutProperty(id, 'visibility', S.showConj ? 'visible' : 'none');
   m.setFilter('conj-sel', ['==', ['get', 'id'], S.view.name === 'conj' ? S.view.id : '']);
   m.setFilter('ship-sel', ['==', ['get', 'id'], S.view.name === 'ship' ? S.view.id : '']);
@@ -459,6 +516,7 @@ function drawAircraft() {
       properties: { hex: a.hex, label: callsign(a), band: em ? 'e' : band(a), track: a.track ?? 0, low: !em && lowAcc(a) ? 1 : 0, prio: em ? 0 : 1 } });
   };
   for (const a of S.ac) push(a, isEmerg(a));
+  for (const a of S.milw) push(a, isEmerg(a));   // military aircraft anywhere in the world
   for (const e of S.em) push(e, true);   // emergencies anywhere in the world
   m.getSource('ac').setData({ type: 'FeatureCollection', features: feats });
 }
@@ -520,7 +578,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
-const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj'];
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -559,12 +617,14 @@ function initMap() {
       const qk = !ship && !cj && !sat ? pick('quakes', ev.point) : null;
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
       const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
+      const sky = !ship && !sat && !qk && !fire && !cut ? pick('skies', box) : null;
       if (ship) go({ name: 'ship', id: ship.properties.id, brief: true, from });
       else if (cj) go({ name: 'conj', id: cj.properties.id, brief: true, from });
       else if (sat) go({ name: 'sat', id: sat.properties.id, brief: true, from });
       else if (qk) go({ name: 'quake', id: qk.properties.id, brief: true, from });
       else if (fire) go({ name: 'fire', id: fire.properties.id, brief: true, from });
       else if (cut) go({ name: 'outage', id: cut.properties.id, brief: true, from });
+      else if (sky) go({ name: 'skyc', id: sky.properties.id, brief: true, from });
       else if (DETAIL_VIEWS.includes(S.view.name)) {
         const to = (S.view.brief ? S.view.from : null) || S.view.from || { name: 'home' };
         go(to);
@@ -640,6 +700,9 @@ function viewHome() {
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
     row(S.quakes.length ? c.accent : c.alt[2], L.quakes, quakeSummary(), () => go({ name: 'quakes' })),
     row(S.outages.some((e) => !e.end) ? c.warn : c.alt[2], L.outages, outageSummary(), () => go({ name: 'outages' })),
+    row(skiesFlagged().length ? c.warn : c.alt[2], L.skies, skiesSummary(), () => go({ name: 'skies' })),
+    row(c.alt[2], L.milw, L.milwCount(S.milw.length), () => go({ name: 'milw' })),
+    row(S.imgOver.length ? c.accent : c.alt[2], L.imgSats, imgSummary(), () => go({ name: 'imgsats' })),
     row(S.conj.length ? c.warn : c.alt[2], L.conjs, conjSummary(), () => go({ name: 'conjs' })),
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
@@ -672,7 +735,7 @@ function viewSky() {
 }
 function viewAircraft(hex) {
   const L = t();
-  const a = S.ac.find((x) => x.hex === hex) || S.em.find((x) => x.hex === hex);
+  const a = findAc(hex);
   const back = S.view.from || { name: 'home' };
   if (!a) return [header(hex.toUpperCase(), back), h('p', { class: 'note' }, L.none)];
   const cs = callsign(a);
@@ -780,6 +843,62 @@ function viewOutage(id) {
   if (e.link) add(L.oLink, h('a', { href: e.link, target: '_blank', rel: 'noopener noreferrer', style: 'color:var(--accent)' }, L.oLinkText));
   return [detailHead(outagePlace(e), L.outage), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.outageNote)];
 }
+function skiesSummary() {
+  const L = t(), k = S.skies;
+  if (!k) return L.skiesStale;
+  if (!k.live) return L.skiesNoLive;
+  if (k.days < k.need_days) return L.skiesLearning(k.days, k.need_days);
+  const f = skiesFlagged();
+  return f.length ? L.skiesSome(f.map((a) => countryName(a.code))) : L.skiesNone;
+}
+const skyName = (code) => (code === 'ALL' ? t().skiesAll : countryName(code));
+function showSkyArea(a) {
+  go({ name: 'skyc', id: a.code, from: S.view });
+  const at = a.code !== 'ALL' && S.countries && S.countries[a.code];
+  if (at) S.map.easeTo({ center: at, zoom: Math.max(S.map.getZoom(), 5), padding: { bottom: $('#sheet').offsetHeight, top: 70, left: 0, right: 0 }, duration: 600 });
+}
+function viewSkies() {
+  const L = t(), c = T(), k = S.skies;
+  const list = k ? [k.all, ...k.areas.filter((a) => a.now > 0 || (a.base || 0) > 0)] : [];
+  const rows = list.map((a) => row(a.drop ? c.warn : a.code === 'ALL' ? c.accent : c.alt[2], skyName(a.code),
+    a.base == null ? L.skiesRowNoBase(a.now) : L.skiesRow(a.now, Math.round(a.base)), () => showSkyArea(a)));
+  return [header(L.skies, { name: 'home' }), h('p', { class: 'note' }, skiesSummary()), h('p', { class: 'note' }, L.skiesNote), rows];
+}
+function viewSkyArea(code) {
+  const L = t(), k = S.skies, a = k && (code === 'ALL' ? k.all : k.areas.find((x) => x.code === code));
+  if (!a) return [detailHead(L.skies), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (key, v) => facts.push(h('dt', null, key), h('dd', null, v == null || v === '' ? L.unknown : v));
+  add(L.skNow, L.planes(a.now));
+  add(L.skBase, a.base == null ? L.skNoBase : L.planes(Math.round(a.base)));
+  if (a.base) add(L.skChange, L.pctChange(Math.round((a.now / a.base - 1) * 100)));
+  add(L.skDays, L.days(k.days));
+  return [detailHead(skyName(code), a.drop ? L.skDrop : null), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.skiesNote)];
+}
+function imgSummary() {
+  const L = t();
+  if (!S.sats.length) return L.loading;
+  const o = S.imgOver, opt = o.filter((x) => x.img === 'opt').length, sar = o.length - opt;
+  const next = S.imgNext && S.imgNext.find((x) => x.at > Date.now());
+  return [o.length ? L.imgOverSome(opt, sar) : L.imgOverNone, next ? ' ' + L.imgNextIn(L.inTime((next.at - Date.now()) / 1000)) : ''].join('');
+}
+const imgTag = (st) => (st.img === 'sar' ? t().satSar : t().satOpt);
+function viewImgSats() {
+  const L = t(), c = T();
+  const openSat = (st) => () => { go({ name: 'sat', id: st.id, from: S.view }); scanSats(); };
+  const nameOf = (st) => h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, st.name);
+  const now = S.imgOver.map((st) => row(c.accent, nameOf(st), imgTag(st), openSat(st)));
+  const next = (S.imgNext || []).filter((x) => x.at > Date.now()).slice(0, 30)
+    .map((x) => row(c.alt[2], nameOf(x.st), L.imgRow(imgTag(x.st), L.inTime((x.at - Date.now()) / 1000)), openSat(x.st)));
+  return [header(L.imgSats, { name: 'home' }), h('p', { class: 'note' }, imgSummary()), h('p', { class: 'note' }, L.imgNote),
+    now.length ? h('h3', { class: 'sub' }, L.imgNowTitle) : null, now,
+    next.length ? h('h3', { class: 'sub' }, L.imgNextTitle) : null, next];
+}
+function viewMilw() {
+  const L = t();
+  const list = S.milw.slice().sort((a, b) => (callsign(a) || a.ac_type || '~').localeCompare(callsign(b) || b.ac_type || '~'));
+  return [header(L.milw, { name: 'home' }), h('p', { class: 'note' }, L.milwCount(list.length) + ' ' + L.milwNote), list.map(acRow)];
+}
 function satFacts(id) {
   const L = t(), o = S.satNow.find((x) => x.id === id);
   const facts = [];
@@ -799,7 +918,7 @@ function viewSat(id) {
   const origin = deb ? L.debFrom[debrisOf(st.name)] : null;
   return [h('div', { class: 'head' },
     h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), L.back),
-    h('h2', null, h('span', { class: 'cs' }, st ? st.name : id), h('i', { class: 'tag', style: 'font-style:normal' }, deb ? L.deb : L.sat))),
+    h('h2', null, h('span', { class: 'cs' }, st ? st.name : id), h('i', { class: 'tag', style: 'font-style:normal' }, deb ? L.deb : st && st.img ? imgTag(st) : L.sat))),
   origin ? h('p', { class: 'note' }, origin) : null,
   h('p', { class: 'note' }, here ? (deb ? L.debNote : L.satNote) : L.satLeft), satFacts(id)];
 }
@@ -888,7 +1007,8 @@ function render() {
   $('#sheet').classList.toggle('brief', !!short);
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
-    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : viewHome();
+    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : v.name === 'skies' ? viewSkies() : v.name === 'skyc' ? viewSkyArea(v.id)
+    : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -899,7 +1019,7 @@ function viewBrief(v) {
   const L = t(), ltr = (x) => h('span', { class: 'cs' }, x), tag = (x, warn) => h('i', { class: 'tag' + (warn ? ' warn' : ''), style: 'font-style:normal' }, x);
   let title = null; const lines = [];
   if (v.name === 'ac') {
-    const a = S.ac.find((x) => x.hex === v.hex) || S.em.find((x) => x.hex === v.hex);
+    const a = findAc(v.hex);
     if (!a) return null;
     const cs = callsign(a), airline = cs ? airlineOf(cs) : null, rt = cs ? routeOf(cs) : null;
     title = [ltr(cs || a.reg || a.hex.toUpperCase()), a.mil ? tag(L.mil) : null, isEmerg(a) || !('gs' in a) ? tag(L.sq[a.squawk] || L.emerg, true) : null];
@@ -918,8 +1038,13 @@ function viewBrief(v) {
     if (x.dest) lines.push([L.fTo + ': ', ltr(x.dest)]);
   } else if (v.name === 'sat') {
     const st = S.sats.find((x) => x.id === v.id), o = S.satNow.find((x) => x.id === v.id);
-    title = [ltr(st ? st.name : v.id), tag(st && st.kind === 'deb' ? L.deb : L.sat)];
+    title = [ltr(st ? st.name : v.id), tag(st && st.kind === 'deb' ? L.deb : st && st.img ? imgTag(st) : L.sat)];
     if (o) lines.push([`${L.fAlt} ${L.km(Math.round(o.km))}.`, o.kms != null ? ` ${L.fSpeed} ${L.kmh(Math.round(o.kms * 3600))}.` : ''].join(''));
+  } else if (v.name === 'skyc') {
+    const k = S.skies, a = k && (v.id === 'ALL' ? k.all : k.areas.find((x) => x.code === v.id));
+    if (!a) return null;
+    title = [skyName(v.id), a.drop ? tag(L.skDrop, true) : null];
+    lines.push(a.base == null ? L.skiesRowNoBase(a.now) : L.skiesRow(a.now, Math.round(a.base)));
   } else if (v.name === 'conj') {
     const e = S.conj.find((x) => x.id === v.id);
     if (!e) return null;
@@ -987,6 +1112,7 @@ function wire() {
   $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); scanSats(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
   $('#opt-ships').addEventListener('change', (e) => { S.showShips = e.target.checked; applyLayerOptions(); refreshShips(); });
+  $('#opt-skies').addEventListener('change', (e) => { S.showSkies = e.target.checked; applyLayerOptions(); });
   $('#opt-conj').addEventListener('change', (e) => { S.showConj = e.target.checked; applyLayerOptions(); });
   $('#opt-outages').addEventListener('change', (e) => { S.showOutages = e.target.checked; applyLayerOptions(); });
   $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
