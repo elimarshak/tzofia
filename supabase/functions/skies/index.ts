@@ -4,6 +4,8 @@
 // the median of the days on which our source worked normally. A country is flagged when the usual level is
 // at least MIN_BASE aircraft and the count now is half of it or less. The result is one JSON document.
 // Country shapes: Natural Earth 1:50m (public domain), cut to the covered area by tools/build_skies_areas.py.
+// Phone alerts: a flagged country is queued once per event (again only after 3 hours without the flag), and only
+// while the whole covered area looks normal, since a drop everywhere at once is more likely a reception problem.
 import postgres from "npm:postgres@3.4.5";
 import areas from "./areas.json" with { type: "json" };
 
@@ -25,6 +27,18 @@ function inside(x: number, y: number, ring: number[][]) {
 function countryOf(lon: number, lat: number) {
   for (const [code, rings] of Object.entries(AREAS)) if (rings.some((r) => inside(lon, lat, r))) return code;
   return null;
+}
+const heN = (c: number) => (c === 0 ? "אף מטוס" : c === 1 ? "מטוס אחד" : c === 2 ? "שני מטוסים" : `${c} מטוסים`);
+const enN = (c: number) => (c === 1 ? "one aircraft" : `${c} aircraft`);
+function alertText(code: string, now: number, base: number) {
+  const he = new Intl.DisplayNames(["he"], { type: "region" }).of(code) ?? code;
+  const en = new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+  return {
+    tag: `skies-${code}`,
+    he: { title: `השמיים מעל ${he} מתרוקנים`,
+          body: `${now === 0 ? `בשעה האחרונה לא עבר מעל ${he} אף מטוס` : now === 1 ? `בשעה האחרונה עבר מעל ${he} מטוס אחד` : `בשעה האחרונה עברו מעל ${he} ${heN(now)}`}, ובדרך כלל ${base === 1 ? "עובר שם בשעה הזאת של היום מטוס אחד" : `עוברים שם בשעה הזאת של היום ${heN(base)}`}.` },
+    en: { title: `Skies over ${en} are emptying`, body: `In the past hour ${enN(now)} flew over ${en}; usually ${enN(base)} at this hour.` },
+  };
 }
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
@@ -68,7 +82,21 @@ Deno.serve(async () => {
     };
     await sql`insert into public.derived (key, data, computed_at) values ('skies', ${sql.json(data as never)}, now())
               on conflict (key) do update set data = excluded.data, computed_at = excluded.computed_at`;
-    return reply({ rows: rows.length, days: good.length, flagged: data.areas.filter((a) => a.drop).map((a) => a.code) });
+    const queued: string[] = [];
+    if (live && enough && !data.all.drop) {
+      for (const a of data.areas.filter((x) => x.drop)) {
+        const key = `skies:${a.code}`;
+        const [st] = await sql`select last_true from ingest.alert_state where key = ${key}`;
+        const isNew = !st || Date.now() - new Date(st.last_true).getTime() > 3 * 3600 * 1000;
+        await sql`insert into ingest.alert_state (key, last_true) values (${key}, now()) on conflict (key) do update set last_true = now()`;
+        if (!isNew) continue;
+        const base = Math.round(a.base!);
+        await sql`insert into ingest.push_queue (topic, payload) values ('skies', ${sql.json(alertText(a.code, a.now, base) as never)})`;
+        queued.push(a.code);
+      }
+      if (queued.length) await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/push`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "dispatch" }) });
+    }
+    return reply({ queued, rows: rows.length, days: good.length, flagged: data.areas.filter((a) => a.drop).map((a) => a.code) });
   } catch (e) {
     return reply({ error: String(e).slice(0, 200) }, 500);
   }

@@ -65,3 +65,4 @@ dl.facts dd{font-weight:500}
 .brief-line{font-size:14.5px;line-height:1.45;color:var(--sub)}
 .back.more{min-height:40px;margin-top:2px}
 .sheet h3.sub{font-size:13px;font-weight:600;color:var(--sub);margin:16px 0 4px}
+.push-note{font-size:13.5px;line-height:1.45;color:var(--sub);margin:2px 0 8px}

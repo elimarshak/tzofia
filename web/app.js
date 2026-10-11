@@ -1096,6 +1096,55 @@ function applyLang() {
   $('#legend').replaceChildren(L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high));
   $('#credit').replaceChildren(...L.credit.map((p) => Array.isArray(p) ? h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]) : p));
 }
+/* ---------- phone alerts (Web Push) ---------- */
+// The browser subscribes with the site's public key; our server keeps the subscription and sends an alert when a
+// chosen event happens. On an iPhone this works only after the site is added to the home screen.
+const PUSH_URL = CFG.api.replace('/rest/v1', '/functions/v1/push');
+const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function pushNote(text) { const n = $('#push-note'); n.textContent = text || ''; n.hidden = !text; }
+function b64u(s) {
+  const b = atob((s + '='.repeat((4 - (s.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(b, (c) => c.charCodeAt(0));
+}
+async function pushSub() {
+  if (!pushOk()) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+async function pushOn() {
+  const L = t();
+  if (!pushOk()) { pushNote(isIOS() ? L.pushIOS : L.pushNo); return false; }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') { pushNote(L.pushDenied); return false; }
+  const reg = await navigator.serviceWorker.register('sw.js');
+  await navigator.serviceWorker.ready;
+  const { key } = await (await fetch(PUSH_URL, { credentials: 'omit' })).json();
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(key) });
+  const r = await fetch(PUSH_URL, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'subscribe', sub: sub.toJSON(), topics: ['skies'], lang: S.lang }) });
+  if (!r.ok) throw new Error('subscribe ' + r.status);
+  store.set('push', 'skies'); pushNote(L.pushOnDone);
+  return true;
+}
+async function pushOff() {
+  const sub = await pushSub();
+  if (sub) {
+    await fetch(PUSH_URL, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unsubscribe', endpoint: sub.endpoint }) });
+    await sub.unsubscribe();
+  }
+  store.set('push', ''); pushNote(t().pushOffDone);
+}
+async function pushInit() {
+  const box = $('#opt-push-skies');
+  box.checked = store.get('push', '') === 'skies' && !!(await pushSub().catch(() => null));
+  box.addEventListener('change', async () => {
+    box.disabled = true;
+    try { box.checked = box.checked ? await pushOn() : (await pushOff(), false); }
+    catch { box.checked = false; pushNote(t().pushFail); }
+    finally { box.disabled = false; }
+  });
+}
 function closeLayers() { $('#layers').hidden = true; $('#btn-layers').setAttribute('aria-expanded', 'false'); }
 
 function wire() {
@@ -1129,7 +1178,7 @@ function wire() {
 
 /* ---------- start ---------- */
 applyTheme(); applyLang(); render();
-initMap(); wire();
+initMap(); wire(); pushInit();
 refJson('airlines.json').then((j) => { S.ref.airlines = j; render(); }).catch(() => { S.ref.airlines = {}; });
 refresh();
 refreshSlow();
