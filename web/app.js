@@ -12,10 +12,10 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true,
+  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true, showConj: true,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
-  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, quakes: [],
+  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, quakes: [],
   ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
   map: null,
@@ -102,37 +102,72 @@ async function refreshSlow() {
 }
 
 // Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
-// on the device. Every 10 seconds we work out which satellites are over the part of the map on screen,
-// and every second we move just those. A phone therefore never animates more than SAT_MAX objects.
-const SAT_SRC = 'https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_active.csv';
+// on the device, together with the debris of the big breakups. Every 10 seconds we work out which objects
+// are over the part of the map on screen, and every second we move just those. A phone therefore never
+// animates more than SAT_MAX objects.
+const DATA = 'https://raw.githubusercontent.com/elimarshak/tzofia/data/';
 const SAT_MAX = 2500;
 const pause = () => new Promise((r) => setTimeout(r, 0));
+const getText = async (name) => { try { const r = await fetch(DATA + name, { cache: 'no-cache' }); return r.ok ? await r.text() : ''; } catch { return ''; } };
+const csvRows = (text) => { const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(Boolean); return lines.length ? [lines[0].split(','), lines.slice(1)] : [[], []]; };
+// Which breakup a piece of debris comes from, by the name the catalogue gives it.
+const debrisOf = (name) => (/^COSMOS 1408/.test(name) ? 'c1408' : /^FENGYUN 1C/.test(name) ? 'fy1c' : /^(IRIDIUM 33|COSMOS 2251)/.test(name) ? 'col09' : null);
+async function parseGp(text, kind) {
+  const lib = S.satLib, [head, lines] = csvRows(text), all = [];
+  if (head[0] !== 'OBJECT_NAME') return all;
+  const NUM = new Set(['MEAN_MOTION', 'ECCENTRICITY', 'INCLINATION', 'RA_OF_ASC_NODE', 'ARG_OF_PERICENTER', 'MEAN_ANOMALY',
+    'EPHEMERIS_TYPE', 'NORAD_CAT_ID', 'ELEMENT_SET_NO', 'REV_AT_EPOCH', 'BSTAR', 'MEAN_MOTION_DOT', 'MEAN_MOTION_DDOT']);
+  for (let n = 0; n < lines.length; n++) {
+    const cells = lines[n].split(','); if (cells.length < head.length) continue;
+    const o = {}; head.forEach((k, i) => { o[k] = NUM.has(k) ? Number(cells[i]) : cells[i]; });
+    try { const rec = lib.json2satrec(o); if (rec && !rec.error) all.push({ id: String(o.NORAD_CAT_ID), name: o.OBJECT_NAME, incl: o.INCLINATION, epoch: o.EPOCH, kind, rec }); } catch { /* skip */ }
+    if (n % 1500 === 1499) await pause();
+  }
+  return all;
+}
 async function loadCatalogue() {
   try {
     if (!S.satLib) S.satLib = await import('./vendor/satellite/index.js');
-    const lib = S.satLib;
-    const text = await (await fetch(SAT_SRC, { cache: 'no-cache' })).text();
-    const lines = text.split(/\r?\n/).filter(Boolean), head = lines[0].split(',');
-    if (head[0] !== 'OBJECT_NAME') return;
-    const NUM = new Set(['MEAN_MOTION', 'ECCENTRICITY', 'INCLINATION', 'RA_OF_ASC_NODE', 'ARG_OF_PERICENTER', 'MEAN_ANOMALY',
-      'EPHEMERIS_TYPE', 'NORAD_CAT_ID', 'ELEMENT_SET_NO', 'REV_AT_EPOCH', 'BSTAR', 'MEAN_MOTION_DOT', 'MEAN_MOTION_DDOT']);
-    const all = [];
-    for (let n = 1; n < lines.length; n++) {
-      const cells = lines[n].split(','); if (cells.length < head.length) continue;
-      const o = {}; head.forEach((k, i) => { o[k] = NUM.has(k) ? Number(cells[i]) : cells[i]; });
-      try { const rec = lib.json2satrec(o); if (rec && !rec.error) all.push({ id: String(o.NORAD_CAT_ID), name: o.OBJECT_NAME, incl: o.INCLINATION, epoch: o.EPOCH, rec }); } catch { /* skip */ }
-      if (n % 1500 === 0) await pause();
-    }
-    S.sats = all;
-    scanSats();
+    const [active, debris, extra, soc] = await Promise.all(['celestrak_active.csv', 'celestrak_debris.csv', 'socrates_gp.csv', 'socrates.csv'].map(getText));
+    const sats = await parseGp(active, 'sat');
+    if (!sats.length) return;
+    const ids = new Set(sats.map((x) => x.id));
+    for (const d of await parseGp(debris, 'deb')) if (!ids.has(d.id)) { ids.add(d.id); sats.push(d); }
+    S.sats = sats;
+    S.satExtra = new Map((await parseGp(extra, 'other')).map((x) => [x.id, x]));
+    loadConj(soc);
+    scanSats(); drawConj(); render();
   } catch { /* keep what we have */ }
+}
+// Closest predicted approaches between two objects in orbit (CelesTrak SOCRATES, the 40 closest in the next 7 days).
+// The mark on the map is where the first object will be at the moment of closest approach.
+function loadConj(text) {
+  const [head, lines] = csvRows(text);
+  if (head[0] !== 'NORAD_CAT_ID_1') { S.conjOk = false; return; }
+  const col = (k) => head.indexOf(k), lib = S.satLib, now = Date.now();
+  const byId = new Map(S.sats.map((x) => [x.id, x]));
+  const clean = (v) => v.replace(/\s*\[[^\]]*\]\s*$/, '');
+  S.conj = lines.map((ln) => {
+    const c = ln.split(','), tca = Date.parse(c[col('TCA')].replace(' ', 'T') + 'Z');
+    const a = { id: c[col('NORAD_CAT_ID_1')], name: clean(c[col('OBJECT_NAME_1')]) }, b = { id: c[col('NORAD_CAT_ID_2')], name: clean(c[col('OBJECT_NAME_2')]) };
+    const e = { id: `${a.id}-${b.id}-${tca}`, a, b, tca, range: Number(c[col('TCA_RANGE')]), speed: Number(c[col('TCA_RELATIVE_SPEED')]), prob: Number(c[col('MAX_PROB')]) };
+    const st = byId.get(a.id) || S.satExtra.get(a.id) || byId.get(b.id) || S.satExtra.get(b.id);
+    if (st && lib) { const d = new Date(tca); const o = satPos(st, d, lib.gstime(d)); if (o) Object.assign(e, { lat: o.lat, lon: o.lon, km: o.km }); }
+    return e;
+  }).filter((e) => e.tca > now && Number.isFinite(e.range)).sort((x, y) => x.range - y.range);
+  S.conjOk = true;
+}
+function drawConj() {
+  const m = S.map; if (!m || !m.getSource('conj')) return;
+  m.getSource('conj').setData({ type: 'FeatureCollection', features: S.conj.filter((e) => e.lat != null && e.tca > Date.now()).map((e) => (
+    { type: 'Feature', properties: { id: e.id }, geometry: { type: 'Point', coordinates: [e.lon, e.lat] } })) });
 }
 function satPos(st, now, gmst) {
   const lib = S.satLib, pv = lib.propagate(st.rec, now);
   const pos = pv && pv.position, vel = pv && pv.velocity;
   if (!pos || typeof pos !== 'object') return null;
   const g = lib.eciToGeodetic(pos, gmst);
-  return { id: st.id, name: st.name, incl: st.incl, lat: lib.degreesLat(g.latitude), lon: lib.degreesLong(g.longitude), km: g.height,
+  return { id: st.id, name: st.name, incl: st.incl, deb: st.kind === 'deb' ? 1 : 0, lat: lib.degreesLat(g.latitude), lon: lib.degreesLong(g.longitude), km: g.height,
     kms: vel && typeof vel === 'object' ? Math.hypot(vel.x, vel.y, vel.z) : null };
 }
 let scanning = false;
@@ -150,7 +185,7 @@ async function scanSats() {
       if (o && o.lat >= s0 && o.lat <= n0 && (whole || [o.lon, o.lon - 360, o.lon + 360].some((x) => x >= w && x <= e))) inView.push(S.sats[i]);
       if (i % 2000 === 1999) await pause();
     }
-    S.satInView = inView.length;
+    S.satInView = inView.length; S.debInView = inView.filter((x) => x.kind === 'deb').length;
     const step = Math.ceil(inView.length / SAT_MAX);
     let view = step > 1 ? inView.filter((_, i) => i % step === 0) : inView;
     if (S.view.name === 'sat' && !view.some((x) => x.id === S.view.id)) { const sel = S.sats.find((x) => x.id === S.view.id); if (sel) view = view.concat(sel); }
@@ -168,7 +203,7 @@ function tickSats() {
   }
   S.satNow = out;
   m.getSource('sats').setData({ type: 'FeatureCollection', features: out.map((o) => (
-    { type: 'Feature', properties: { id: o.id }, geometry: { type: 'Point', coordinates: [o.lon, o.lat] } })) });
+    { type: 'Feature', properties: { id: o.id, deb: o.deb }, geometry: { type: 'Point', coordinates: [o.lon, o.lat] } })) });
   if (S.view.name === 'sat') { const f = document.querySelector('#sheet-body dl.facts'); if (f) f.replaceWith(satFacts(S.view.id)); }
 }
 
@@ -363,7 +398,15 @@ function addOverlay() {
   m.addLayer({ id: 'sat-sel', type: 'circle', source: 'sats', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 11, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
   m.addLayer({ id: 'sats', type: 'circle', source: 'sats',
-    paint: { 'circle-radius': 2.6, 'circle-color': c.ink, 'circle-opacity': 0.85, 'circle-stroke-color': c.halo, 'circle-stroke-width': 1 } });
+    paint: { 'circle-radius': ['case', ['==', ['get', 'deb'], 1], 1.8, 2.6], 'circle-color': ['case', ['==', ['get', 'deb'], 1], c.sub, c.ink],
+      'circle-opacity': ['case', ['==', ['get', 'deb'], 1], 0.75, 0.85], 'circle-stroke-color': c.halo, 'circle-stroke-width': ['case', ['==', ['get', 'deb'], 1], 0.6, 1] } });
+  m.addSource('conj', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'conj', type: 'circle', source: 'conj',
+    paint: { 'circle-radius': 7, 'circle-color': c.warn, 'circle-opacity': 0.12, 'circle-stroke-color': c.warn, 'circle-stroke-width': 1.8 } });
+  m.addLayer({ id: 'conj-dot', type: 'circle', source: 'conj',
+    paint: { 'circle-radius': 2, 'circle-color': c.warn } });
+  m.addLayer({ id: 'conj-sel', type: 'circle', source: 'conj', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 13, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
   m.addSource('ac', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'ac-ring', type: 'symbol', source: 'ac', filter: ['==', ['get', 'low'], 1],
     layout: { 'icon-image': 'ring', 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
@@ -381,7 +424,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawShips(); tickSats();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawShips(); drawConj(); tickSats();
 }
 
 function applyLayerOptions() {
@@ -398,6 +441,8 @@ function applyLayerOptions() {
   for (const id of ['fires', 'fire-sel']) m.setLayoutProperty(id, 'visibility', S.showFires ? 'visible' : 'none');
   for (const id of ['outages', 'outage-x', 'outage-sel']) m.setLayoutProperty(id, 'visibility', S.showOutages ? 'visible' : 'none');
   m.setFilter('outage-sel', ['==', ['get', 'id'], S.view.name === 'outage' ? S.view.id : '']);
+  for (const id of ['conj', 'conj-dot', 'conj-sel']) m.setLayoutProperty(id, 'visibility', S.showConj ? 'visible' : 'none');
+  m.setFilter('conj-sel', ['==', ['get', 'id'], S.view.name === 'conj' ? S.view.id : '']);
   m.setFilter('ship-sel', ['==', ['get', 'id'], S.view.name === 'ship' ? S.view.id : '']);
   m.setFilter('fire-sel', ['==', ['get', 'id'], S.view.name === 'fire' ? S.view.id : '']);
   applyImagery();
@@ -475,7 +520,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
-const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage'];
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -509,11 +554,13 @@ function initMap() {
       const from = DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view;
       const pick = (layer, area) => (m.getLayer(layer) ? m.queryRenderedFeatures(area, { layers: [layer] })[0] : null);
       const ship = pick('ships', box);
-      const sat = !ship ? pick('sats', box) : null;
-      const qk = !ship && !sat ? pick('quakes', ev.point) : null;
+      const cj = !ship ? pick('conj', box) : null;
+      const sat = !ship && !cj ? pick('sats', box) : null;
+      const qk = !ship && !cj && !sat ? pick('quakes', ev.point) : null;
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
       const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
       if (ship) go({ name: 'ship', id: ship.properties.id, brief: true, from });
+      else if (cj) go({ name: 'conj', id: cj.properties.id, brief: true, from });
       else if (sat) go({ name: 'sat', id: sat.properties.id, brief: true, from });
       else if (qk) go({ name: 'quake', id: qk.properties.id, brief: true, from });
       else if (fire) go({ name: 'fire', id: fire.properties.id, brief: true, from });
@@ -593,6 +640,7 @@ function viewHome() {
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
     row(S.quakes.length ? c.accent : c.alt[2], L.quakes, quakeSummary(), () => go({ name: 'quakes' })),
     row(S.outages.some((e) => !e.end) ? c.warn : c.alt[2], L.outages, outageSummary(), () => go({ name: 'outages' })),
+    row(S.conj.length ? c.warn : c.alt[2], L.conjs, conjSummary(), () => go({ name: 'conjs' })),
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
 function viewGnss() {
@@ -620,7 +668,7 @@ function viewSky() {
   const L = t();
   loadRoutes([...new Set(airborne().map((a) => csPrefix(callsign(a))).filter(Boolean))]);
   const list = airborne().slice().sort((a, b) => (callsign(a) || '~').localeCompare(callsign(b) || '~'));
-  return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satInView, S.satNow.length) : '')), list.map(acRow)];
+  return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satInView - (S.debInView || 0), S.debInView || 0, S.satNow.length) : '')), list.map(acRow)];
 }
 function viewAircraft(hex) {
   const L = t();
@@ -747,11 +795,48 @@ function satFacts(id) {
 }
 function viewSat(id) {
   const L = t(), st = S.sats.find((x) => x.id === id), back = S.view.from || { name: 'home' };
-  const here = S.satNow.some((x) => x.id === id);
+  const here = S.satNow.some((x) => x.id === id), deb = st && st.kind === 'deb';
+  const origin = deb ? L.debFrom[debrisOf(st.name)] : null;
   return [h('div', { class: 'head' },
     h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), L.back),
-    h('h2', null, h('span', { class: 'cs' }, st ? st.name : id), h('i', { class: 'tag', style: 'font-style:normal' }, L.sat))),
-  h('p', { class: 'note' }, here ? L.satNote : L.satLeft), satFacts(id)];
+    h('h2', null, h('span', { class: 'cs' }, st ? st.name : id), h('i', { class: 'tag', style: 'font-style:normal' }, deb ? L.deb : L.sat))),
+  origin ? h('p', { class: 'note' }, origin) : null,
+  h('p', { class: 'note' }, here ? (deb ? L.debNote : L.satNote) : L.satLeft), satFacts(id)];
+}
+const metres = (km) => (km < 1 ? t().metres(Math.round(km * 1000)) : t().km(Math.round(km * 10) / 10));
+const chance = (p) => (!(p > 0) ? t().unknown : p >= 0.01 ? t().pct(Math.round(p * 1000) / 10) : p >= 0.0001 ? t().pct(Number((p * 100).toPrecision(1))) : t().pctTiny);
+const pairName = (e) => [h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, e.a.name), t().and, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, e.b.name)];
+function conjSummary() {
+  const L = t();
+  if (!S.conjOk) return L.conjStale;
+  return S.conj.length ? L.conjSome(S.conj.length, metres(S.conj[0].range)) : L.conjNone;
+}
+function showConj(e) {
+  go({ name: 'conj', id: e.id, from: S.view });
+  if (e.lat != null) S.map.easeTo({ center: [e.lon, e.lat], zoom: Math.max(S.map.getZoom(), 3), padding: { bottom: $('#sheet').offsetHeight, top: 70, left: 0, right: 0 }, duration: 600 });
+}
+function viewConjs() {
+  const L = t(), c = T();
+  const rows = S.conj.map((e) => row(c.warn, pairName(e), `${L.inTime((e.tca - Date.now()) / 1000)} ${L.cPass(metres(e.range))}.`, () => showConj(e)));
+  return [header(L.conjs, { name: 'home' }), h('p', { class: 'note' }, conjSummary()), h('p', { class: 'note' }, L.conjsNote), rows];
+}
+function viewConj(id) {
+  const L = t(), e = S.conj.find((x) => x.id === id);
+  if (!e) return [detailHead(L.conj), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (k, v) => facts.push(h('dt', null, k), h('dd', null, v == null || v === '' ? L.unknown : v));
+  const obj = (o) => (S.sats.some((x) => x.id === o.id)
+    ? h('a', { href: '#', class: 'cs', style: 'color:var(--accent)', on: { click: (ev) => { ev.preventDefault(); go({ name: 'sat', id: o.id, from: S.view }); scanSats(); } } }, o.name)
+    : h('span', { class: 'cs' }, o.name));
+  add(L.cFirst, obj(e.a));
+  add(L.cSecond, obj(e.b));
+  add(L.qTime, `${when(new Date(e.tca).toISOString())} (${L.inTime((e.tca - Date.now()) / 1000).toLowerCase()})`);
+  add(L.cRange, metres(e.range));
+  add(L.cSpeed, L.kmh(Math.round(e.speed * 3600)));
+  add(L.cProb, chance(e.prob));
+  if (e.km != null) add(L.fAlt, L.km(Math.round(e.km)));
+  if (e.lat != null) add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(2)}, ${e.lon.toFixed(2)}`));
+  return [detailHead(L.conj), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.conjNote)];
 }
 
 function detailHead(title, tag) {
@@ -803,7 +888,7 @@ function render() {
   $('#sheet').classList.toggle('brief', !!short);
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
-    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : viewHome();
+    : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -833,8 +918,14 @@ function viewBrief(v) {
     if (x.dest) lines.push([L.fTo + ': ', ltr(x.dest)]);
   } else if (v.name === 'sat') {
     const st = S.sats.find((x) => x.id === v.id), o = S.satNow.find((x) => x.id === v.id);
-    title = [ltr(st ? st.name : v.id), tag(L.sat)];
+    title = [ltr(st ? st.name : v.id), tag(st && st.kind === 'deb' ? L.deb : L.sat)];
     if (o) lines.push([`${L.fAlt} ${L.km(Math.round(o.km))}.`, o.kms != null ? ` ${L.fSpeed} ${L.kmh(Math.round(o.kms * 3600))}.` : ''].join(''));
+  } else if (v.name === 'conj') {
+    const e = S.conj.find((x) => x.id === v.id);
+    if (!e) return null;
+    title = [L.conj];
+    lines.push(pairName(e));
+    lines.push(`${L.inTime((e.tca - Date.now()) / 1000)} ${L.cPass(metres(e.range))}.`);
   } else if (v.name === 'quake') {
     const e = S.quakes.find((x) => x.id === v.id);
     if (!e) return null;
@@ -896,6 +987,7 @@ function wire() {
   $('#opt-sats').addEventListener('change', (e) => { S.showSats = e.target.checked; applyLayerOptions(); scanSats(); tickSats(); });
   $('#opt-quakes').addEventListener('change', (e) => { S.showQuakes = e.target.checked; applyLayerOptions(); });
   $('#opt-ships').addEventListener('change', (e) => { S.showShips = e.target.checked; applyLayerOptions(); refreshShips(); });
+  $('#opt-conj').addEventListener('change', (e) => { S.showConj = e.target.checked; applyLayerOptions(); });
   $('#opt-outages').addEventListener('change', (e) => { S.showOutages = e.target.checked; applyLayerOptions(); });
   $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
   document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
@@ -920,6 +1012,7 @@ setInterval(tickSats, 1000);
 loadCatalogue(); setInterval(loadCatalogue, 3 * 3600 * 1000);
 refreshShips(); setInterval(refreshShips, 60 * 1000);
 setInterval(scanSats, 10000);
+setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);
 document.addEventListener('visibilitychange', () => {
   clearInterval(timer);
