@@ -6,6 +6,8 @@ Files written into <data dir> (a file whose download failed keeps its previous c
   celestrak_debris.csv  debris of the four big breakups CelesTrak publishes as groups
   socrates.csv          the closest predicted approaches between two objects in the next 7 days (CelesTrak SOCRATES)
   socrates_gp.csv       orbital elements of objects in those approaches that are in neither file above
+  celestrak_imaging.csv catalogue numbers of imaging satellites: KIND sar (radar) from the 'sar' group,
+                        opt (camera) from the 'resource' and 'planet' groups
   fetched_at.txt        time of this run
 
 CelesTrak asks for at most one download of the same data per update and no retries after an error,
@@ -62,6 +64,18 @@ if len(parts) == len(DEBRIS):
     save('celestrak_debris.csv', '\n'.join(parts[0][:1] + [ln for p in parts for ln in p[1:]]) + '\n')
 else:
     print('debris incomplete; keeping the previous copy')
+
+# 2b. imaging satellites: only the catalogue numbers and the kind (their orbits are already in the active file)
+kinds, complete = {}, True
+for g, kind in (('sar', 'sar'), ('resource', 'opt'), ('planet', 'opt')):
+    t = get(GP.format('GROUP=' + g)); time.sleep(1)
+    if not gp_ok(t): complete = False; print('  skipped', g); continue
+    for n in ids(t): kinds.setdefault(n, kind)          # radar first: a satellite in both groups is a radar satellite
+if complete:
+    save('celestrak_imaging.csv', 'NORAD_CAT_ID,KIND\n' + ''.join(f'{n},{k}\n' for n, k in sorted(kinds.items())))
+    print('imaging satellites:', len(kinds), {k: list(kinds.values()).count(k) for k in ('sar', 'opt')})
+else:
+    print('imaging groups incomplete; keeping the previous copy')
 
 # 3. closest approaches in the next 7 days
 soc = get(SOC)
