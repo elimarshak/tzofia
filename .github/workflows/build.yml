@@ -38,6 +38,7 @@ jobs:
           mkdir -p dist/assets/sprites && cp -r /tmp/assets/sprites/v4 dist/assets/sprites/v4
           cp web/package-lock.json dist/package-lock.json
           touch dist/.nojekyll
+          echo openeye.co.il > dist/CNAME
           git clone --depth 1 https://github.com/vradarserver/standing-data /tmp/standing-data
           python3 tools/build_ref.py /tmp/standing-data dist/ref
           curl -fsSL -o /tmp/ne50.geojson https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_0_countries.geojson
