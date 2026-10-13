@@ -46,6 +46,9 @@ for d in sorted(os.listdir(aroot)):
         for r in rows(os.path.join(p, fn)):
             code = r.get('ICAO') or r.get('Code')
             if code in used:
-                airports[code] = [r.get('Name', ''), r.get('Location', ''), r.get('CountryISO2', '')]
+                rec = [r.get('Name', ''), r.get('Location', ''), r.get('CountryISO2', '')]
+                try: rec += [round(float(r['Latitude']), 3), round(float(r['Longitude']), 3)]   # for the share of the route already flown
+                except (KeyError, TypeError, ValueError): pass
+                airports[code] = rec
 json.dump(airports, open(os.path.join(out, 'airports.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print(f'airlines {len(airlines)}, route files {files}, routes {total}, airports {len(airports)}')

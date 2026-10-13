@@ -12,7 +12,11 @@ const store = {
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
   theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
-  showAc: true, showLabels: true, showGnss: true, showSats: true, showQuakes: true, showShips: true, showFires: true, showOutages: true, showConj: true, showSkies: true,
+  // Layers shown when the site opens. Like the leading live maps, it opens with the core picture (aircraft, ships and the
+  // unusual signals) and leaves the dense layers (satellites, close approaches in space, thermal hotspots) for the user
+  // to turn on. Whatever the user turns on or off is remembered on their device.
+  showAc: true, showLabels: true, showGnss: true, showSats: false, showQuakes: true, showShips: true, showFires: false, showOutages: true, showConj: false, showSkies: true,
+  follow: null, trail: null, link: null,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
@@ -20,6 +24,12 @@ const S = {
   view: { name: 'home' },
   map: null,
 };
+const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies: 'showSkies', sats: 'showSats', conj: 'showConj', ships: 'showShips', quakes: 'showQuakes', fires: 'showFires', outages: 'showOutages' };
+try { const saved = JSON.parse(store.get('layers', '{}')); for (const [k, f] of Object.entries(LAYER_OPTS)) if (typeof saved[k] === 'boolean') S[f] = saved[k]; } catch { /* nothing saved yet */ }
+const saveLayers = () => store.set('layers', JSON.stringify(Object.fromEntries(Object.entries(LAYER_OPTS).map(([k, f]) => [k, S[f]]))));
+// A link straight to one item on the map, e.g. openeye.co.il/#ac-4x1234 or #ship-123456789 (like the leading sites do).
+{ const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; }
+const coarse = matchMedia('(pointer: coarse)').matches;   // a finger needs a bigger area around an item than a mouse
 const t = () => STR[S.lang];
 const T = () => THEMES[S.theme];
 const $ = (s) => document.querySelector(s);
@@ -82,6 +92,7 @@ async function refresh() {
   }
   drawAircraft(); drawGnss();
   render();
+  followTick(); trailTick(); openLink();
 }
 
 /* ---------- slower layers: satellites and earthquakes (every 5 minutes) ---------- */
@@ -351,6 +362,17 @@ async function loadRoutes(prefixes) {
   } finally { render(); }
 }
 const placeName = (a) => [a.city || a.name, a.cc].filter(Boolean).join(', ');
+// How far along the registered route the aircraft is, 0..1, or null when it can't be told or the aircraft is clearly
+// not on that route (the route is the one registered for the callsign, not a confirmation of this flight).
+function routeProgress(a, rt) {
+  if (!rt || rt.length < 2 || a.lat == null) return null;
+  const from = S.ref.airports && S.ref.airports[rt[0].code], to = S.ref.airports && S.ref.airports[rt[rt.length - 1].code];
+  if (!from || !to || from[3] == null || to[3] == null) return null;
+  const km = (la1, lo1, la2, lo2) => { const r = Math.PI / 180, d = Math.sin((la2 - la1) * r / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin((lo2 - lo1) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(d)); };
+  const total = km(from[3], from[4], to[3], to[4]), done = km(from[3], from[4], a.lat, a.lon), left = km(a.lat, a.lon, to[3], to[4]);
+  if (total < 50 || done + left > total * 1.25) return null;
+  return Math.min(1, Math.max(0, done / (done + left)));
+}
 
 const emName = (e) => (e.flight || '').trim() || e.reg || e.hex.toUpperCase();
 const airborne = () => S.ac.filter((a) => !a.on_ground);
@@ -462,6 +484,10 @@ function addOverlay() {
     paint: { 'circle-radius': 2, 'circle-color': c.warn } });
   m.addLayer({ id: 'conj-sel', type: 'circle', source: 'conj', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 13, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
+  // the path the selected aircraft flew in the last hour (like the line the leading flight maps draw)
+  m.addSource('trail', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'trail', type: 'line', source: 'trail', layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': c.accent, 'line-width': 2.4, 'line-opacity': 0.85 } });
   m.addSource('ac', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'ac-ring', type: 'symbol', source: 'ac', filter: ['==', ['get', 'low'], 1],
     layout: { 'icon-image': 'ring', 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
@@ -479,7 +505,73 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); tickSats();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); tickSats(); drawTrail();
+}
+
+/* ---------- the selected aircraft: its path, following it, and a link to it ---------- */
+const TRAIL_URL = CFG.api.replace('/rest/v1', '/functions/v1/trail');
+let trailAt = 0;
+function drawTrail() {
+  const m = S.map; if (!m || !m.getSource('trail')) return;
+  const tr = S.trail, a = tr && S.view.name === 'ac' && S.view.hex === tr.hex ? findAc(tr.hex) : null;
+  const pts = a ? tr.points.concat(a.lat != null ? [[a.lon, a.lat]] : []) : [];
+  m.getSource('trail').setData({ type: 'FeatureCollection', features: pts.length > 1 && S.showAc
+    ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: pts } }] : [] });
+}
+async function trailTick(force) {
+  const hex = S.view.name === 'ac' ? S.view.hex : null;
+  if (!hex) { if (S.trail) { S.trail = null; drawTrail(); } return; }
+  if (!force && S.trail && S.trail.hex === hex && Date.now() - trailAt < 60000) { drawTrail(); return; }
+  trailAt = Date.now();
+  try {
+    const r = await fetch(TRAIL_URL + '?hex=' + encodeURIComponent(hex), { credentials: 'omit' });
+    const j = r.ok ? await r.json() : null;
+    if (j && S.view.name === 'ac' && S.view.hex === hex) S.trail = { hex, points: j.points || [] };
+  } catch { /* the line is a bonus; the rest of the card works without it */ }
+  drawTrail();
+}
+function followTick() {
+  if (!S.follow) return;
+  const a = findAc(S.follow);
+  if (!a || S.view.name !== 'ac' || S.view.hex !== S.follow) { S.follow = null; render(); return; }
+  if (a.lat != null) S.map.easeTo({ center: [a.lon, a.lat], padding: mapPadding(), duration: 800 });
+}
+const mapPadding = () => (innerWidth >= 900 ? { top: 70, bottom: 0, left: 0, right: 0 } : { top: 70, bottom: $('#sheet').offsetHeight, left: 0, right: 0 });
+const linkOf = (v) => (v.name === 'ac' ? v.hex : v.id);
+function setLink() {
+  const v = S.view, id = DETAIL_VIEWS.includes(v.name) ? linkOf(v) : null;
+  const want = id ? '#' + v.name + '-' + encodeURIComponent(id) : '';
+  if (location.hash !== want) history.replaceState(null, '', location.pathname + location.search + want);
+}
+// Opens the item named in the link once its data has arrived (ships, satellites and the rest load at different times).
+function openLink() {
+  const k = S.link; if (!k) return;
+  const ok = k.name === 'ac' ? findAc(k.id) : k.name === 'ship' ? S.ships.find((s) => String(s.mmsi) === k.id)
+    : k.name === 'sat' ? S.sats.find((x) => String(x.id) === k.id) : k.name === 'quake' ? S.quakes.find((x) => String(x.id) === k.id)
+    : k.name === 'fire' ? S.fires.find((x) => String(x.id) === k.id) : k.name === 'outage' ? S.outages.find((x) => String(x.id) === k.id)
+    : k.name === 'conj' ? S.conj.find((x) => String(x.id) === k.id) : k.name === 'skyc' ? S.skies && (k.id === 'ALL' || S.skies.areas.some((x) => x.code === k.id)) : null;
+  if (!ok) return;
+  S.link = null;
+  if (k.name === 'sat' && !S.showSats) { S.showSats = true; $('#opt-sats').checked = true; applyLayerOptions(); scanSats(); }
+  if (k.name === 'conj' && !S.showConj) { S.showConj = true; $('#opt-conj').checked = true; }
+  if (k.name === 'fire' && !S.showFires) { S.showFires = true; $('#opt-fires').checked = true; }
+  go(k.name === 'ac' ? { name: 'ac', hex: ok.hex, brief: true, from: { name: 'home' } } : { name: k.name, id: k.name === 'ship' ? String(ok.mmsi) : k.name === 'skyc' ? k.id : ok.id, brief: true, from: { name: 'home' } });
+  if (k.name === 'ac' || k.name === 'ship') flyTo(ok, 7);
+}
+async function copyLink() {
+  const L = t(), url = location.origin + location.pathname + location.hash;
+  let done = false;
+  try { await navigator.clipboard.writeText(url); done = true; } catch { /* some browsers refuse; the address bar already shows the link */ }
+  toast(done ? L.linkCopied : L.linkInBar);
+}
+function toast(text) {
+  const el = $('#toast'); el.textContent = text; el.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 2600);
+}
+function closeCard() {
+  S.follow = null;
+  go({ name: 'home' });
+  $('#sheet').classList.add('closed');
 }
 
 function applyLayerOptions() {
@@ -597,8 +689,15 @@ function initMap() {
   });
   m.on('style.load', addOverlay);
   m.on('moveend', () => { scanSats(); if (S.img === 'sharp' && sharpHere() !== sharpShown) applyImagery(); });
+  // Until the first full drawing of the map, a small note says it is loading (on a slow phone connection this takes a few seconds).
+  m.once('idle', () => { $('#maploading').hidden = true; });
+  setTimeout(() => { $('#maploading').hidden = true; }, 20000);
+  m.on('dragstart', () => { if (S.follow) { S.follow = null; render(); } });   // moving the map by hand stops following an aircraft
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) m.on('mousemove', (ev) => hoverTip(ev.point));
+  m.on('mouseout', () => hoverTip(null));
   m.on('click', (ev) => {
-    const p = ev.point, r = 14;
+    hoverTip(null);
+    const p = ev.point, r = coarse ? 22 : 14;   // at least the 24-pixel touch area the accessibility standard (WCAG 2.2) sets
     const hits = m.getLayer('ac') ? m.queryRenderedFeatures([[p.x - r, p.y - r], [p.x + r, p.y + r]], { layers: ['ac'] }) : [];
     if (hits.length) {
       let best = hits[0], bd = Infinity;
@@ -608,7 +707,7 @@ function initMap() {
       }
       go({ name: 'ac', hex: best.properties.hex, brief: true, from: DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view });
     } else {
-      const box = [[p.x - 10, p.y - 10], [p.x + 10, p.y + 10]];
+      const q = coarse ? 18 : 12, box = [[p.x - q, p.y - q], [p.x + q, p.y + q]];
       const from = DETAIL_VIEWS.includes(S.view.name) ? S.view.from : S.view;
       const pick = (layer, area) => (m.getLayer(layer) ? m.queryRenderedFeatures(area, { layers: [layer] })[0] : null);
       const ship = pick('ships', box);
@@ -627,12 +726,47 @@ function initMap() {
       else if (sky) go({ name: 'skyc', id: sky.properties.id, brief: true, from });
       else if (DETAIL_VIEWS.includes(S.view.name)) {
         const to = (S.view.brief ? S.view.from : null) || S.view.from || { name: 'home' };
+        S.follow = null;
         go(to);
         if (to.name === 'home') $('#sheet').classList.add('closed');   // a tap on empty map puts the card away and leaves the map clear
       }
     }
-    closeLayers();
+    closeLayers(); closeSearch(); $('#sources').hidden = true;
   });
+}
+
+// With a mouse: the pointer turns into a hand over anything that can be clicked, and a short label shows what it is
+// (the leading flight and ship maps do the same), so the map itself tells the user what is clickable.
+const HOVER_LAYERS = ['ac', 'ships', 'conj', 'sats', 'quakes', 'fires', 'outages', 'skies'];
+function hoverTip(p) {
+  const m = S.map, tip = $('#tip');
+  if (!p || !m) { tip.hidden = true; if (m) m.getCanvas().style.cursor = ''; return; }
+  const layers = HOVER_LAYERS.filter((l) => m.getLayer(l) && m.getLayoutProperty(l, 'visibility') !== 'none');
+  const f = layers.length ? m.queryRenderedFeatures([[p.x - 10, p.y - 10], [p.x + 10, p.y + 10]], { layers })[0] : null;
+  m.getCanvas().style.cursor = f ? 'pointer' : '';
+  const text = f ? hoverText(f) : null;
+  if (!text) { tip.hidden = true; return; }
+  tip.textContent = text; tip.hidden = false;
+  tip.style.left = Math.min(p.x + 14, innerWidth - tip.offsetWidth - 8) + 'px';
+  tip.style.top = Math.max(8, p.y - tip.offsetHeight - 10) + 'px';
+}
+function hoverText(f) {
+  const L = t(), id = f.properties.id;
+  switch (f.layer.id) {
+    case 'ac': {
+      const a = findAc(f.properties.hex); if (!a) return null;
+      const alt = a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null;
+      return [callsign(a) || a.reg || a.hex.toUpperCase(), alt].filter(Boolean).join(' · ');
+    }
+    case 'ships': { const x = S.ships.find((s) => String(s.mmsi) === String(id)); return x ? x.name || String(x.mmsi) : L.ship; }
+    case 'sats': { const x = S.sats.find((s) => String(s.id) === String(id)); return x ? x.name : L.sat; }
+    case 'quakes': { const e = S.quakes.find((x) => String(x.id) === String(id)); return e ? L.quakeTitle(e.mag.toFixed(1)) : L.quakes; }
+    case 'fires': return L.fire;
+    case 'outages': { const e = S.outages.find((x) => String(x.id) === String(id)); return e ? outagePlace(e) : L.outage; }
+    case 'skies': return skyName(id);
+    case 'conj': return L.conj;
+    default: return null;
+  }
 }
 
 function flyTo(a, zoom) {
@@ -646,10 +780,12 @@ function flyTo(a, zoom) {
 /* ---------- sheet views ---------- */
 function go(view) {
   S.view = view;
+  if (S.follow && !(view.name === 'ac' && view.hex === S.follow)) S.follow = null;
   $('#sheet').classList.remove('closed');
   applyLayerOptions();
   render();
   $('#sheet-body').scrollTop = 0;
+  setLink(); trailTick();
 }
 
 function freshLine() {
@@ -771,6 +907,7 @@ function viewAircraft(hex) {
     isEmerg(a) || !('gs' in a) ? h('i', { class: 'tag warn', style: 'font-style:normal' }, L.sq[a.squawk] || L.emerg) : null);
   return [h('div', { class: 'head' },
     h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), L.back), title, freshLine()),
+  actionRow(S.view, null),
   h('dl', { class: 'facts' }, facts),
   airline || (rt && rt.length > 1) ? h('p', { class: 'note' }, L.routeNote) : null];
 }
@@ -1005,6 +1142,8 @@ function render() {
   const v = S.view;
   const short = v.brief ? viewBrief(v) : null;
   $('#sheet').classList.toggle('brief', !!short);
+  $('#sheet').classList.toggle('detail', DETAIL_VIEWS.includes(v.name));   // shows the close button; the sources line stays on the main panel
+  $('#sheet').classList.toggle('home', v.name === 'home');
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
     : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : v.name === 'skies' ? viewSkies() : v.name === 'skyc' ? viewSkyArea(v.id)
@@ -1027,7 +1166,15 @@ function viewBrief(v) {
     const alt = a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null;
     const fly = [alt ? `${L.fAlt} ${alt}.` : null, a.gs != null ? `${L.fSpeed} ${L.speed(a.gs)}.` : null].filter(Boolean).join(' ');
     if (fly) lines.push(fly);
-    if (rt && rt.length > 1) lines.push([L.fTo + ': ', ltr(placeName(rt[rt.length - 1]))]);
+    if (rt && rt.length > 1) {
+      lines.push([L.fFrom + ': ', ltr(placeName(rt[0]))]);
+      lines.push([L.fTo + ': ', ltr(placeName(rt[rt.length - 1]))]);
+      const pr = routeProgress(a, rt);
+      if (pr != null) lines.push(h('span', { class: 'prog', role: 'img', 'aria-label': L.progress(Math.round(pr * 100)) },
+        h('i', { style: `inline-size:${Math.round(pr * 100)}%` })));
+    }
+    const seenAt = a.pos_time || a.last_seen;
+    if (seenAt) lines.push(`${L.fSeen}: ${L.ago(secAgo(seenAt))}.`);
   } else if (v.name === 'ship') {
     const x = S.ships.find((s) => String(s.mmsi) === v.id);
     if (!x) return null;
@@ -1036,6 +1183,7 @@ function viewBrief(v) {
     const what = [kind ? `${L.shType}: ${kind}` : null, x.sog != null ? `${L.fSpeed} ${L.knots(x.sog)}` : null].filter(Boolean).join('. ');
     if (what) lines.push(what + '.');
     if (x.dest) lines.push([L.fTo + ': ', ltr(x.dest)]);
+    if (x.t) lines.push(`${L.fSeen}: ${L.ago(secAgo(x.t))}.`);
   } else if (v.name === 'sat') {
     const st = S.sats.find((x) => x.id === v.id), o = S.satNow.find((x) => x.id === v.id);
     title = [ltr(st ? st.name : v.id), tag(st && st.kind === 'deb' ? L.deb : st && st.img ? imgTag(st) : L.sat)];
@@ -1071,7 +1219,15 @@ function viewBrief(v) {
   } else return null;
   return [h('div', { class: 'head' }, h('h2', null, ...title.filter(Boolean))),
     ...lines.map((x) => h('p', { class: 'brief-line' }, ...[].concat(x))),
-    h('button', { class: 'back more', type: 'button', on: { click: () => go({ ...v, brief: false, from: v }) } }, L.allDetails)];
+    actionRow(v, h('button', { class: 'back more', type: 'button', on: { click: () => go({ ...v, brief: false, from: v }) } }, L.allDetails))];
+}
+// The actions under a selected item: full details (on the short card), following the aircraft, and a link to share.
+function actionRow(v, first) {
+  const L = t(), following = v.name === 'ac' && S.follow === v.hex;
+  return h('div', { class: 'acts' }, first,
+    v.name === 'ac' ? h('button', { class: 'back more', type: 'button', 'aria-pressed': String(following),
+      on: { click: () => { S.follow = following ? null : v.hex; render(); followTick(); } } }, following ? L.followStop : L.follow) : null,
+    h('button', { class: 'back more', type: 'button', on: { click: copyLink } }, L.copyLink));
 }
 
 /* ---------- chrome: language, theme, layers ---------- */
@@ -1092,10 +1248,60 @@ function applyLang() {
   $('#btn-lang').setAttribute('lang', S.lang === 'he' ? 'en' : 'he');
   $('#grip').setAttribute('aria-label', L.toggleSheet);
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
-  const c = T();
-  $('#legend').replaceChildren(L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high));
-  $('#credit').replaceChildren(...L.credit.map((p) => Array.isArray(p) ? h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]) : p));
+  const credit = () => L.credit.map((p) => Array.isArray(p) ? h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]) : p);
+  $('#credit').replaceChildren(...credit());
+  $('#sources-text').replaceChildren(...credit());
+  for (const [id, key] of [['#btn-zin', 'zoomIn'], ['#btn-zout', 'zoomOut'], ['#btn-home', 'homeView'], ['#btn-info', 'sources'], ['#btn-search', 'search'], ['#btn-close', 'close']]) {
+    $(id).setAttribute('aria-label', L[key]); $(id).title = L[key];
+  }
+  $('#q').placeholder = L.searchPh; $('#q').setAttribute('aria-label', L.search);
+  $('.ctl').setAttribute('aria-label', L.mapControls);
+  drawLegend();
 }
+// The key at the bottom of the map: aircraft altitude colours always, and when opened, every symbol on the map now.
+function drawLegend() {
+  const L = t(), c = T(), open = $('#legend').getAttribute('aria-expanded') === 'true';
+  const sym = (style, text) => h('span', { class: 'key-item' }, h('i', { class: 'sym', style }), text);
+  const items = [
+    S.showAc ? sym(`border:2px dashed ${c.warn};border-radius:50%;background:none`, L.tagLow) : null,
+    S.showGnss ? sym(`background:${c.warn};opacity:.5`, L.gnss) : null,
+    S.showSkies ? sym(`border:2px solid ${c.warn};border-radius:50%;background:none`, L.skies) : null,
+    S.showShips ? sym(`background:${c.ship};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.ships) : null,
+    S.showQuakes ? sym(`border:1.6px solid ${c.accent};border-radius:50%;background:none`, L.quakes) : null,
+    S.showOutages ? sym(`border:2px solid ${c.ink};border-radius:50%;background:none`, L.outages) : null,
+    S.showFires ? sym(`background:${c.fire};border-radius:50%;inline-size:8px;block-size:8px`, L.fires) : null,
+    S.showSats ? sym(`background:${c.ink};border-radius:50%;inline-size:6px;block-size:6px`, L.sats) : null,
+    S.showConj ? sym(`border:1.8px solid ${c.warn};border-radius:50%;background:none`, L.conjs) : null,
+  ].filter(Boolean);
+  $('#legend').replaceChildren(
+    h('span', { class: 'key-row' }, L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high),
+      items.length ? svg(open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6', 'chev') : null),
+    ...(open && items.length ? [h('span', { class: 'key-list' }, items)] : []));
+}
+// Search by callsign, registration or transponder ID for aircraft, and by name or MMSI for ships.
+function runSearch() {
+  const L = t(), q = $('#q').value.trim().toUpperCase(), out = $('#results');
+  if (q.length < 2) { out.replaceChildren(); return; }
+  const c = T(), hits = [];
+  const seen = new Set();
+  for (const a of S.ac.concat(S.milw, S.em)) {
+    if (seen.has(a.hex)) continue; seen.add(a.hex);
+    const cs = callsign(a);
+    if ((cs && cs.toUpperCase().includes(q)) || (a.reg && a.reg.toUpperCase().includes(q)) || a.hex.toUpperCase() === q)
+      hits.push(row(isEmerg(a) ? c.warn : c.alt[2], h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, cs || a.reg || a.hex.toUpperCase()),
+        [L.optAircraft, a.ac_type, cs ? airlineOf(cs) : null].filter(Boolean).join(' · '),
+        () => { closeSearch(); go({ name: 'ac', hex: a.hex, brief: true, from: { name: 'home' } }); flyTo(a, 8); }));
+    if (hits.length >= 12) break;
+  }
+  if (S.showShips) for (const x of S.ships) {
+    if (hits.length >= 16) break;
+    if ((x.name && x.name.toUpperCase().includes(q)) || String(x.mmsi) === q)
+      hits.push(row(c.ship, h('span', { class: 'cs', style: 'display:inline;color:inherit;font-size:inherit' }, x.name || String(x.mmsi)), [L.ship, shipKind(x.kind)].filter(Boolean).join(' · '),
+        () => { closeSearch(); go({ name: 'ship', id: String(x.mmsi), brief: true, from: { name: 'home' } }); flyTo(x, 8); }));
+  }
+  out.replaceChildren(...(hits.length ? hits : [h('p', { class: 'note' }, L.searchNone)]));
+}
+function closeSearch() { $('#search').hidden = true; $('#btn-search').setAttribute('aria-expanded', 'false'); }
 /* ---------- phone alerts (Web Push) ---------- */
 // The browser subscribes with the site's public key; our server keeps the subscription and sends an alert when a
 // chosen event happens. On an iPhone this works only after the site is added to the home screen.
@@ -1153,8 +1359,25 @@ function wire() {
     applyLang(); render(); S.map.setStyle(mapStyle());
   });
   $('#btn-layers').addEventListener('click', () => {
+    closeSearch(); $('#sources').hidden = true;
     const p = $('#layers'); p.hidden = !p.hidden; $('#btn-layers').setAttribute('aria-expanded', String(!p.hidden));
   });
+  $('#btn-search').addEventListener('click', () => {
+    closeLayers(); $('#sources').hidden = true;
+    const p = $('#search'); p.hidden = !p.hidden; $('#btn-search').setAttribute('aria-expanded', String(!p.hidden));
+    if (!p.hidden) { $('#q').focus(); runSearch(); }
+  });
+  $('#q').addEventListener('input', runSearch);
+  $('#btn-zin').addEventListener('click', () => S.map.zoomIn());
+  $('#btn-zout').addEventListener('click', () => S.map.zoomOut());
+  $('#btn-home').addEventListener('click', () => { S.follow = null; S.map.easeTo({ center: CFG.center, zoom: CFG.zoom, padding: mapPadding(), duration: 700 }); render(); });
+  $('#btn-info').addEventListener('click', () => { closeLayers(); closeSearch(); $('#sources').hidden = !$('#sources').hidden; });
+  $('#btn-close').addEventListener('click', closeCard);
+  $('#legend').addEventListener('click', () => {
+    const l = $('#legend'); l.setAttribute('aria-expanded', String(l.getAttribute('aria-expanded') !== 'true')); drawLegend();
+  });
+  for (const [k, f] of Object.entries(LAYER_OPTS)) $('#opt-' + k).checked = S[f];
+  for (const [k, f] of Object.entries(LAYER_OPTS)) $('#opt-' + k).addEventListener('change', (e) => { S[f] = e.target.checked; saveLayers(); drawLegend(); drawTrail(); });
   $('#opt-ac').addEventListener('change', (e) => { S.showAc = e.target.checked; applyLayerOptions(); });
   $('#opt-labels').addEventListener('change', (e) => { S.showLabels = e.target.checked; applyLayerOptions(); });
   $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
@@ -1173,7 +1396,12 @@ function wire() {
     applyTheme(); applyLang(); render(); S.map.setStyle(mapStyle());
   }));
   $('#grip').addEventListener('click', () => $('#sheet').classList.toggle('closed'));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLayers(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = !$('#layers').hidden || !$('#search').hidden || !$('#sources').hidden;
+    closeLayers(); closeSearch(); $('#sources').hidden = true;
+    if (!open && DETAIL_VIEWS.includes(S.view.name)) closeCard();   // Esc closes the open card, like the close button
+  });
 }
 
 /* ---------- start ---------- */
@@ -1182,6 +1410,7 @@ initMap(); wire(); pushInit();
 refJson('airlines.json').then((j) => { S.ref.airlines = j; render(); }).catch(() => { S.ref.airlines = {}; });
 refresh();
 refreshSlow();
+{ const k = setInterval(() => { if (S.link) openLink(); else clearInterval(k); }, 1500); setTimeout(() => clearInterval(k), 120000); }
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
 setInterval(tickSats, 1000);
 loadCatalogue(); setInterval(loadCatalogue, 3 * 3600 * 1000);
