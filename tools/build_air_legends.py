@@ -17,10 +17,18 @@ def get(url):
     with urllib.request.urlopen(req, timeout=60) as r:
         return r.read()
 
-out = {}
+out, log = {}, []
+def colormap(lid):
+    for v in ('v1.3', 'v1.2', 'v1.0'):
+        url = f'https://gibs.earthdata.nasa.gov/colormaps/{v}/{lid}.xml'
+        try:
+            body = get(url); log.append(f'ok {len(body)} {url}'); return body
+        except Exception as e:
+            log.append(f'ERR {e} {url}')
+    raise RuntimeError('no colour map')
 for lid in GIBS:
     try:
-        root = ET.fromstring(get(f'https://gibs.earthdata.nasa.gov/colormaps/v1.3/{lid}.xml'))
+        root = ET.fromstring(colormap(lid))
         best = None
         for cm in root.iter('ColorMap'):
             ents = [e for e in cm.iter('ColorMapEntry') if e.get('transparent', 'false') != 'true' and e.get('nodata', 'false') != 'true']
@@ -33,9 +41,11 @@ for lid in GIBS:
         out[lid] = {'stops': stops, 'first': ents[0].get('label') or ents[0].get('value'), 'last': ents[-1].get('label') or ents[-1].get('value'), 'units': units, 'entries': len(ents)}
         print('ok', lid, len(ents), units, out[lid]['first'], out[lid]['last'])
     except Exception as e:
-        print('ERR', lid, e)
-try:
-    open(os.path.join(OUT, 'legend_cams_pm25.png'), 'wb').write(get(CAMS)); print('ok cams legend')
-except Exception as e:
-    print('ERR cams legend', e)
+        print('ERR', lid, e); log.append(f'ERR parse {lid} {e}')
+for name, url in (('legend_cams_pm25.png', CAMS), ('legend_cams_pm25_sld.png', CAMS + '&sld_version=1.1.0')):
+    try:
+        body = get(url); open(os.path.join(OUT, name), 'wb').write(body); log.append(f'ok {len(body)} {body[:60]!r} {url}')
+    except Exception as e:
+        log.append(f'ERR {e} {url}')
+open(os.path.join(OUT, 'air_legends_log.txt'), 'w').write('\n'.join(log))
 json.dump(out, open(os.path.join(OUT, 'air_legends.json'), 'w'), separators=(',', ':'))
