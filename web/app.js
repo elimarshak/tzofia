@@ -88,7 +88,7 @@ async function refresh() {
     // received more than once, at least a minute apart, from an aircraft with a known position.
     const confirmed = (e) => ['7500', '7600', '7700'].includes(e.squawk)
       || (e.lat != null && e.lon != null && Date.parse(e.last_seen) - Date.parse(e.first_seen) >= 60000);
-    S.near = ac; mergeAc(); S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
+    S.near = ac; mergeAc(); S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src.filter((x) => x.last_ok).sort((a, b) => Date.parse(b.last_ok) - Date.parse(a.last_ok))[0] || src[0] || null; S.netErr = false; S.loaded = true;
     if (!secondaryStarted) setTimeout(startSecondary, 3000);
   } catch {
     S.netErr = true;
