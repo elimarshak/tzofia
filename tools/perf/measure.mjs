@@ -25,14 +25,17 @@ for (let i = 0; i < RUNS; i++) {
   page.on('requestfinished', (q) => { if (!firstAc && q.url().includes('/aircraft_live?')) firstAc = Date.now() - t0; });
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
   const dcl = Date.now() - t0;
-  await page.waitForFunction(() => document.getElementById('maploading')?.hidden === true, null, { timeout: 60000, polling: 100 }).catch(() => {});
+  let waitErr = '';
+  await page.waitForFunction(() => document.getElementById('maploading')?.hidden === true, null, { timeout: 60000, polling: 100 }).catch((e) => { waitErr = String(e).slice(0, 80); });
   const mapDone = Date.now() - t0;
+  await page.waitForFunction(() => performance.getEntriesByName('oe-aircraft').length > 0, null, { timeout: 30000, polling: 100 }).catch(() => {});
+  const marks = await page.evaluate(() => Object.fromEntries(['oe-aircraft', 'oe-map-idle'].map((k) => [k, Math.round(performance.getEntriesByName(k)[0]?.startTime || 0)])));
   await page.waitForTimeout(4000);
   if (i === 0) await page.screenshot({ path: 'perf-shot.png' });
   const fcp = await page.evaluate(() => Math.round(performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0));
   const total = files.reduce((a, f) => a + f.size, 0);
   const until = files.filter((f) => f.t - t0 <= mapDone).reduce((a, f) => a + f.size, 0);
-  results.push({ run: i + 1, fcp, dcl, firstAircraftData: firstAc, mapDrawn: mapDone, kbUntilMap: Math.round(until / 1024), kbTotal: Math.round(total / 1024), requests: files.length });
+  results.push({ run: i + 1, fcp, dcl, firstAircraftData: firstAc, aircraftOnMap: marks['oe-aircraft'], mapIdle: marks['oe-map-idle'], mapDrawn: mapDone, waitErr, kbUntilMap: Math.round(until / 1024), kbTotal: Math.round(total / 1024), requests: files.length });
   if (i === 0) {
     const big = files.slice().sort((a, b) => b.size - a.size).slice(0, 20).map((f) => `${Math.round(f.size / 1024)} KB  at ${f.t - t0} ms  ${f.url.slice(0, 110)}`);
     console.log('Biggest files on the first run:\n' + big.join('\n'));
