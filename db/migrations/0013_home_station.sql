@@ -13,7 +13,7 @@ create table if not exists ingest.station_keys (
 );
 alter table ingest.station_keys enable row level security;
 insert into ingest.station_keys (station, key_hash)
-values ('home', '__FINGERPRINT__')
+values ('home', 'dda307ab21cbf48cf5338bc371de9a8edb5d9fa409f7b4031679861f35f8b1f7')
 on conflict (station) do update set key_hash = excluded.key_hash;
 
 create or replace function public.home_ingest(p_key text, p_data jsonb) returns text
