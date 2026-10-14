@@ -652,6 +652,7 @@ function openLink() {
   if (k.name === 'ac' || k.name === 'ship' || k.name === 'airst' || k.name === 'airlv') flyTo(ok, k.name.startsWith('air') ? 9 : 7);
 }
 async function copyLink() {
+  track('copylink');
   const L = t(), url = location.origin + location.pathname + location.hash;
   let done = false;
   try { await navigator.clipboard.writeText(url); done = true; } catch { /* some browsers refuse; the address bar already shows the link */ }
@@ -914,6 +915,10 @@ function flyTo(a, zoom) {
 
 /* ---------- sheet views ---------- */
 function go(view) {
+  if (view.name !== S.view.name || view.id !== S.view.id || view.hex !== S.view.hex) {
+    if (DETAIL_VIEWS.includes(view.name)) track('item:' + view.name);
+    else if (view.name !== 'home') track('view:' + view.name);
+  }
   S.view = view;
   if (S.follow && !(view.name === 'ac' && view.hex === S.follow)) S.follow = null;
   $('#sheet').classList.remove('closed');
@@ -1184,6 +1189,7 @@ function airDays() {
 }
 const AIR_IMGS = ['no2', 'so2', 'dust', 'pm25'];
 function setAirImg(v) {
+  if (v !== S.airImg) track('airimg:' + v);
   S.airImg = v;
   document.querySelectorAll('input[name=airimg]').forEach((r) => { r.checked = r.value === v; });
   applyAirImg(); render();
@@ -1504,7 +1510,7 @@ function actionRow(v, first) {
   const L = t(), following = v.name === 'ac' && S.follow === v.hex;
   return h('div', { class: 'acts' }, first,
     v.name === 'ac' ? h('button', { class: 'back more', type: 'button', 'aria-pressed': String(following),
-      on: { click: () => { S.follow = following ? null : v.hex; render(); followTick(); } } }, following ? L.followStop : L.follow) : null,
+      on: { click: () => { S.follow = following ? null : v.hex; if (S.follow) track('follow'); render(); followTick(); } } }, following ? L.followStop : L.follow) : null,
     h('button', { class: 'back more', type: 'button', on: { click: copyLink } }, L.copyLink));
 }
 
@@ -1616,7 +1622,7 @@ async function pushOn() {
   const r = await fetch(PUSH_URL, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'subscribe', sub: sub.toJSON(), topics: ['skies'], lang: S.lang }) });
   if (!r.ok) throw new Error('subscribe ' + r.status);
-  store.set('push', 'skies'); pushNote(L.pushOnDone);
+  store.set('push', 'skies'); pushNote(L.pushOnDone); track('push:on');
   return true;
 }
 async function pushOff() {
@@ -1641,7 +1647,7 @@ function closeLayers() { $('#layers').hidden = true; $('#btn-layers').setAttribu
 
 function wire() {
   $('#btn-lang').addEventListener('click', () => {
-    S.lang = S.lang === 'he' ? 'en' : 'he'; store.set('lang', S.lang);
+    S.lang = S.lang === 'he' ? 'en' : 'he'; store.set('lang', S.lang); track('lang:' + S.lang);
     applyLang(); render(); S.map.setStyle(mapStyle());
   });
   $('#btn-layers').addEventListener('click', () => {
@@ -1653,17 +1659,18 @@ function wire() {
     const p = $('#search'); p.hidden = !p.hidden; $('#btn-search').setAttribute('aria-expanded', String(!p.hidden));
     if (!p.hidden) { $('#q').focus(); runSearch(); }
   });
-  $('#q').addEventListener('input', runSearch);
+  $('#q').addEventListener('input', () => { runSearch(); if ($('#q').value.trim().length >= 2) track('search'); });
   $('#btn-zin').addEventListener('click', () => S.map.zoomIn());
   $('#btn-zout').addEventListener('click', () => S.map.zoomOut());
   $('#btn-home').addEventListener('click', () => { S.follow = null; S.map.easeTo({ center: CFG.center, zoom: CFG.zoom, padding: mapPadding(), duration: 700 }); render(); });
   $('#btn-info').addEventListener('click', () => { closeLayers(); closeSearch(); $('#sources').hidden = !$('#sources').hidden; });
   $('#btn-close').addEventListener('click', closeCard);
   $('#legend').addEventListener('click', () => {
+    track('legend');
     const l = $('#legend'); l.setAttribute('aria-expanded', String(l.getAttribute('aria-expanded') !== 'true')); drawLegend();
   });
   for (const [k, f] of Object.entries(LAYER_OPTS)) $('#opt-' + k).checked = S[f];
-  for (const [k, f] of Object.entries(LAYER_OPTS)) $('#opt-' + k).addEventListener('change', (e) => { S[f] = e.target.checked; saveLayers(); drawLegend(); drawTrail(); });
+  for (const [k, f] of Object.entries(LAYER_OPTS)) $('#opt-' + k).addEventListener('change', (e) => { S[f] = e.target.checked; saveLayers(); drawLegend(); drawTrail(); track(`layer:${k}:${e.target.checked ? 'on' : 'off'}`); });
   $('#opt-ac').addEventListener('change', (e) => { S.showAc = e.target.checked; applyLayerOptions(); });
   $('#opt-labels').addEventListener('change', (e) => { S.showLabels = e.target.checked; applyLayerOptions(); });
   $('#opt-gnss').addEventListener('change', (e) => { S.showGnss = e.target.checked; applyLayerOptions(); });
@@ -1677,11 +1684,11 @@ function wire() {
   $('#opt-airst').addEventListener('change', (e) => { S.showAirSt = e.target.checked; applyLayerOptions(); render(); });
   $('#opt-airlive').addEventListener('change', (e) => { S.showAirLive = e.target.checked; applyLayerOptions(); render(); });
   document.querySelectorAll('input[name=airimg]').forEach((r) => r.addEventListener('change', () => { if (r.checked) setAirImg(r.value); }));
-  document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
+  document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); track('img:' + r.value); } }));
   setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
     if (!r.checked) return;
-    S.theme = r.value; store.set('theme', S.theme);
+    S.theme = r.value; store.set('theme', S.theme); track('theme:' + S.theme);
     applyTheme(); applyLang(); render(); S.map.setStyle(mapStyle());
   }));
   $('#grip').addEventListener('click', () => $('#sheet').classList.toggle('closed'));
@@ -1693,18 +1700,47 @@ function wire() {
   });
 }
 
-/* ---------- our own visit count (no outside service, no cookie; see db/migrations/0012_visits.sql) ---------- */
-// One line when the site opens and one every 5 minutes while it is open on screen. The browser keeps a random number
-// of its own, so a returning visitor is not counted as new.
+/* ---------- our own visit counter (no outside service, no cookie; see db/migrations/0012_visits.sql) ---------- */
+// The browser keeps a random number of its own (not tied to a person) and one per visit; a visit ends after 30 minutes
+// without activity. One line when the site opens, one every minute while it is open on screen, one per action.
+// Ilya's own browsers are marked (after he opens the private numbers page, or with ?me=1 once) and left out of the numbers.
 const HIT_URL = CFG.api.replace('/rest/v1', '/functions/v1/hit');
-const visitId = (() => { let v = store.get('vid', ''); if (!/^[a-z0-9]{12,40}$/.test(v)) { v = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join(''); store.set('vid', v); } return v; })();
-function hit(kind) {
-  let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* unknown */ }
-  const body = JSON.stringify({ kind, vid: visitId, path: location.hash || '/', ref: kind === 'open' ? document.referrer : '', lang: S.lang, tz });
-  fetch(HIT_URL, { method: 'POST', credentials: 'omit', keepalive: true, headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
+const rid = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join('');
+const visitor = (() => { let v = store.get('vid', ''); if (!/^[a-z0-9]{12,40}$/.test(v)) { v = rid(); store.set('vid', v); } return v; })();
+if (new URLSearchParams(location.search).get('me') === '1') store.set('me', '1');
+const hitOff = navigator.webdriver === true;   // a test browser driven by a program is not a visitor
+let visit = null;
+function visitId() {   // the current visit's number, kept for the tab; a new one after 30 minutes without activity
+  const now = Date.now();
+  if (!visit) { try { visit = JSON.parse(sessionStorage.getItem('tz-visit') || 'null'); } catch { visit = null; } }
+  if (!visit || !/^[a-z0-9]{12,40}$/.test(visit.id) || now - visit.t > 30 * 60 * 1000) visit = { id: rid(), t: now, opened: false };
+  visit.t = now;
+  try { sessionStorage.setItem('tz-visit', JSON.stringify(visit)); } catch { /* private mode */ }
+  return visit.id;
 }
-setTimeout(() => hit('open'), 3000);
-setInterval(() => { if (!document.hidden) hit('ping'); }, 5 * 60 * 1000);
+function hit(kind, name) {
+  if (hitOff) return;
+  const sid = visitId();
+  if (kind === 'open') { if (visit.opened) return; visit.opened = true; try { sessionStorage.setItem('tz-visit', JSON.stringify(visit)); } catch { /* */ } }
+  let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* unknown */ }
+  const q = new URLSearchParams(location.search), src = q.get('src') || q.get('utm_source') || '';
+  const body = { kind, vid: visitor, sid, w: innerWidth, lang: S.lang, theme: S.theme, tz, me: store.get('me', '') === '1' };
+  if (kind === 'open') Object.assign(body, { path: location.hash || '/', ref: document.referrer, src });
+  if (name) body.name = name;
+  fetch(HIT_URL, { method: 'POST', credentials: 'omit', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
+}
+// an action is counted once per 5 seconds, so a quick double tap is one action
+const lastAct = new Map();
+function track(name) {
+  const now = Date.now();
+  if (now - (lastAct.get(name) || 0) < 5000) return;
+  lastAct.set(name, now);
+  if (!visit || !visit.opened) hit('open');
+  hit('event', name);
+}
+// the opening is counted once the page has been on screen for 3 seconds
+{ let shown = 0; const tick = () => { if (!document.hidden && ++shown >= 3) { hit('open'); return; } setTimeout(tick, 1000); }; setTimeout(tick, 1000); }
+setInterval(() => { if (!document.hidden && visit && visit.opened) hit('ping'); }, 60 * 1000);
 
 /* ---------- start ---------- */
 applyTheme(); applyLang(); render();
