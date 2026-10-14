@@ -1552,11 +1552,13 @@ function drawLegend() {
     S.showSats ? sym(`background:${c.ink};border-radius:50%;inline-size:6px;block-size:6px`, L.sats) : null,
     S.showConj ? sym(`border:1.8px solid ${c.warn};border-radius:50%;background:none`, L.conjs) : null,
     S.showAirSt ? sym(`background:${c.air};border-radius:50%;inline-size:8px;block-size:8px`, L.optAirSt) : null,
+    ...(S.showAirLive ? AQI_COLS.map((col, i) => sym(`background:${col};border-radius:50%`, `${L.aqiKeyTitle}: ${L.aqiKey[i]}`)) : []),
   ].filter(Boolean);
   const ak = S.airImg !== 'off' ? airKey() : null;
   const grad = ak ? `linear-gradient(to ${L.dir === 'rtl' ? 'left' : 'right'},${ak.stops.map((s) => `rgb(${s.join(',')})`).join(',')})` : '';
   $('#legend').replaceChildren(
-    ...(S.showAirLive ? [h('span', { class: 'key-row air-key' }, L.aqiShort + ':', h('span', null, L.aqiCats[0]), ...AQI_COLS.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.aqiCats[5]))] : []),
+    // the live readings, in the same form as the altitude row under it: from clean air (green) to hazardous
+    ...(S.showAirLive ? [h('span', { class: 'key-row air-key' }, L.aqiKeyTitle, h('span', null, L.aqiKey[0]), ...AQI_COLS.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.aqiKey[5]))] : []),
     ...(ak ? [h('span', { class: 'key-row air-key' }, L.airShort[S.airImg] + ':', h('span', null, L.low), h('i', { class: 'grad', style: 'background:' + grad }), h('span', null, L.high))] : []),
     h('span', { class: 'key-row' }, L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high),
       items.length ? svg(open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6', 'chev') : null),
