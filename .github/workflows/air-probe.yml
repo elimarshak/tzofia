@@ -1,0 +1,16 @@
+name: air-probe
+on:
+  push:
+    branches: [air-probe]
+    paths: ['tools/air/**', '.github/workflows/air-probe.yml']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/air/probe.py probe.txt || true
+      - run: |
+          git config user.name tzofia-probe; git config user.email noreply@github.com
+          git add probe.txt && git commit -qm "air probe result" && git push
