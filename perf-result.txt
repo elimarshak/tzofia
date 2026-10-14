@@ -1,0 +1,36 @@
+Biggest files on the first run:
+273 KB  at 787 ms  https://openeye.co.il/vendor/maplibre-gl.js
+75 KB  at 622 ms  https://openeye.co.il/fonts/Heebo.ttf
+54 KB  at 1599 ms  https://openeye.co.il/config.js
+28 KB  at 1525 ms  https://openeye.co.il/app.js
+13 KB  at 1614 ms  https://openeye.co.il/i18n.js
+10 KB  at 388 ms  https://openeye.co.il/vendor/maplibre-gl.css
+8 KB  at 1244 ms  https://openeye.co.il/vendor/pmtiles.js
+7 KB  at 1339 ms  https://openeye.co.il/vendor/basemaps.js
+3 KB  at 379 ms  https://openeye.co.il/app.css
+2 KB  at 291 ms  https://openeye.co.il/
+2 KB  at 1608 ms  https://openeye.co.il/regions.js
+0 KB  at 1422 ms  https://openeye.co.il/basemap-info.js
+
+Everything that arrived before the map finished drawing:
+291 ms  2 KB  https://openeye.co.il/
+379 ms  3 KB  https://openeye.co.il/app.css
+388 ms  10 KB  https://openeye.co.il/vendor/maplibre-gl.css
+622 ms  75 KB  https://openeye.co.il/fonts/Heebo.ttf
+787 ms  273 KB  https://openeye.co.il/vendor/maplibre-gl.js
+1244 ms  8 KB  https://openeye.co.il/vendor/pmtiles.js
+1339 ms  7 KB  https://openeye.co.il/vendor/basemaps.js
+1422 ms  0 KB  https://openeye.co.il/basemap-info.js
+1525 ms  28 KB  https://openeye.co.il/app.js
+1599 ms  54 KB  https://openeye.co.il/config.js
+1608 ms  2 KB  https://openeye.co.il/regions.js
+1614 ms  13 KB  https://openeye.co.il/i18n.js
+
+RESULTS (milliseconds from opening the address)
+┌─────────┬─────┬─────┬──────┬───────────────────┬──────────┬────────────┬─────────┬──────────┐
+│ (index) │ run │ fcp │ dcl  │ firstAircraftData │ mapDrawn │ kbUntilMap │ kbTotal │ requests │
+├─────────┼─────┼─────┼──────┼───────────────────┼──────────┼────────────┼─────────┼──────────┤
+│ 0       │ 1   │ 427 │ 1599 │ null              │ 1766     │ 475        │ 475     │ 12       │
+│ 1       │ 2   │ 257 │ 1446 │ 2777              │ 3228     │ 648        │ 2011    │ 79       │
+│ 2       │ 3   │ 269 │ 1486 │ 2917              │ 3442     │ 684        │ 2056    │ 80       │
+└─────────┴─────┴─────┴──────┴───────────────────┴──────────┴────────────┴─────────┴──────────┘
