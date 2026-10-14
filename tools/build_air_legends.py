@@ -18,9 +18,17 @@ def get(url):
         return r.read()
 
 out, log = {}, []
+import re
+CAPS = get('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml').decode('utf-8', 'replace')
+log.append(f'capabilities {len(CAPS)} bytes')
 def colormap(lid):
-    for v in ('v1.3', 'v1.2', 'v1.0'):
-        url = f'https://gibs.earthdata.nasa.gov/colormaps/{v}/{lid}.xml'
+    # the colour map's address is listed with the layer in GIBS's own capabilities document
+    i = CAPS.find(f'<ows:Identifier>{lid}</ows:Identifier>')
+    j = CAPS.rfind('<Layer>', 0, i); k = CAPS.find('</Layer>', i)
+    blk = CAPS[j:k]
+    urls = re.findall(r'xlink:href="([^"]+colormaps[^"]+\.xml)"', blk)
+    log.append(f'{lid}: {urls}')
+    for url in sorted(urls, key=lambda u: '1.3' not in u):
         try:
             body = get(url); log.append(f'ok {len(body)} {url}'); return body
         except Exception as e:
@@ -42,9 +50,10 @@ for lid in GIBS:
         print('ok', lid, len(ents), units, out[lid]['first'], out[lid]['last'])
     except Exception as e:
         print('ERR', lid, e); log.append(f'ERR parse {lid} {e}')
-for name, url in (('legend_cams_pm25.png', CAMS), ('legend_cams_pm25_sld.png', CAMS + '&sld_version=1.1.0')):
+ALT = CAMS.replace('&layer=', '&layers=').replace('&style=', '&styles=')
+for name, url in (('legend_cams_pm25.png', CAMS), ('legend_cams_pm25_b.png', ALT), ('legend_cams_pm25_c.png', CAMS.replace('version=1.3.0', 'version=1.1.1'))):
     try:
-        body = get(url); open(os.path.join(OUT, name), 'wb').write(body); log.append(f'ok {len(body)} {body[:60]!r} {url}')
+        body = get(url); open(os.path.join(OUT, name), 'wb').write(body); log.append(f'ok {len(body)} {body[:400]!r} {url}')
     except Exception as e:
         log.append(f'ERR {e} {url}')
 open(os.path.join(OUT, 'air_legends_log.txt'), 'w').write('\n'.join(log))
