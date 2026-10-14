@@ -1693,6 +1693,19 @@ function wire() {
   });
 }
 
+/* ---------- our own visit count (no outside service, no cookie; see db/migrations/0012_visits.sql) ---------- */
+// One line when the site opens and one every 5 minutes while it is open on screen. The browser keeps a random number
+// of its own, so a returning visitor is not counted as new.
+const HIT_URL = CFG.api.replace('/rest/v1', '/functions/v1/hit');
+const visitId = (() => { let v = store.get('vid', ''); if (!/^[a-z0-9]{12,40}$/.test(v)) { v = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(36).padStart(2, '0')).join(''); store.set('vid', v); } return v; })();
+function hit(kind) {
+  let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* unknown */ }
+  const body = JSON.stringify({ kind, vid: visitId, path: location.hash || '/', ref: kind === 'open' ? document.referrer : '', lang: S.lang, tz });
+  fetch(HIT_URL, { method: 'POST', credentials: 'omit', keepalive: true, headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
+}
+setTimeout(() => hit('open'), 3000);
+setInterval(() => { if (!document.hidden) hit('ping'); }, 5 * 60 * 1000);
+
 /* ---------- start ---------- */
 applyTheme(); applyLang(); render();
 initMap(); wire(); pushInit();
