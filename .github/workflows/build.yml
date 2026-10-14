@@ -47,6 +47,7 @@ jobs:
           python3 tools/build_ref.py /tmp/standing-data dist/ref
           curl -fsSL -o /tmp/ne50.geojson https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_0_countries.geojson
           python3 tools/build_countries.py /tmp/ne50.geojson dist/ref/countries.json
+          python3 tools/build_air_legends.py dist/ref || echo 'air legends failed, the site draws no key'
       - name: Basemap cache
         id: bm
         uses: actions/cache@v4
