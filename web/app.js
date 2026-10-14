@@ -11,7 +11,7 @@ const store = {
 
 const S = {
   lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
-  theme: store.get('theme', 'dark') === 'light' ? 'light' : 'dark',
+  theme: store.get('theme', 'light') === 'dark' ? 'dark' : 'light',
   // Layers shown when the site opens. Like the leading live maps, it opens with the core picture (aircraft, ships and the
   // unusual signals) and leaves the dense layers (satellites, close approaches in space, thermal hotspots) for the user
   // to turn on. Whatever the user turns on or off is remembered on their device.
@@ -334,7 +334,11 @@ function band(a) {
   return x < 5000 ? '0' : x < 15000 ? '1' : x < 30000 ? '2' : '3';
 }
 const isEmerg = (a) => ['7500', '7600', '7700'].includes(a.squawk) || S.em.some((e) => e.hex === a.hex);
-const lowAcc = (a) => !a.on_ground && a.nic != null && a.nic < 7;
+// An aircraft that reports almost no speed high in the air is reporting something no aircraft can do: its
+// navigation system is most likely receiving a false position (the pattern seen when GPS is spoofed).
+// Its position and speed are then not shown as facts, and the map marks it as an unreliable position.
+const badFix = (a) => !a.on_ground && a.gs != null && a.gs < 100 && (a.alt_baro ?? a.alt_geom ?? 0) >= 20000;
+const lowAcc = (a) => !a.on_ground && ((a.nic != null && a.nic < 7) || badFix(a));
 const callsign = (a) => { const c = (a.flight || '').trim(); return /^[A-Z0-9-]{2,8}$/i.test(c) ? c : ''; };   // transponders sometimes send filler such as @@@@@@@@
 /* ---------- airlines and routes: an open public-domain table keyed by callsign ---------- */
 const refUrl = (f) => new URL('ref/' + f, location.href).href;
@@ -383,7 +387,7 @@ function sourceLines(parts) {
   });
 }
 function routeProgress(a, rt) {
-  if (!rt || rt.length < 2 || a.lat == null) return null;
+  if (!rt || rt.length < 2 || a.lat == null || badFix(a)) return null;
   const from = S.ref.airports && S.ref.airports[rt[0].code], to = S.ref.airports && S.ref.airports[rt[rt.length - 1].code];
   if (!from || !to || from[3] == null || to[3] == null) return null;
   const total = km(from[3], from[4], to[3], to[4]), done = km(from[3], from[4], a.lat, a.lon), left = km(a.lat, a.lon, to[3], to[4]);
@@ -531,7 +535,7 @@ let trailAt = 0;
 function drawTrail() {
   const m = S.map; if (!m || !m.getSource('trail')) return;
   const tr = S.trail, a = tr && S.view.name === 'ac' && S.view.hex === tr.hex ? findAc(tr.hex) : null;
-  let pts = a ? tr.points.concat(a.lat != null ? [[a.lon, a.lat]] : []) : [];
+  let pts = a && !badFix(a) ? tr.points.concat(a.lat != null ? [[a.lon, a.lat]] : []) : [];
   // a line that does not reach the aircraft would mislead: draw it only when the stored path ends near the live position
   if (pts.length > 1 && kmBetween(pts[pts.length - 2], pts[pts.length - 1]) > 60) pts = [];
   m.getSource('trail').setData({ type: 'FeatureCollection', features: pts.length > 1 && S.showAc
@@ -911,8 +915,8 @@ function viewAircraft(hex) {
   add(L.fAlt, a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null);
   add(L.fPos, a.lat != null && a.lon != null ? ltr(`${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}`) : null);
   if ('gs' in a) {
-    add(L.fSpeed, a.gs != null ? L.speed(a.gs) : null);
-    add(L.fTrack, a.track != null ? L.deg(a.track) : null);
+    add(L.fSpeed, badFix(a) ? L.notPossible : a.gs != null ? L.speed(a.gs) : null);
+    add(L.fTrack, badFix(a) ? L.notPossible : a.track != null ? L.deg(a.track) : null);
     const vr = a.baro_rate ?? a.geom_rate;
     add(L.fVert, vr != null ? L.vert(vr) : null);
   }
@@ -927,6 +931,7 @@ function viewAircraft(hex) {
   return [h('div', { class: 'head' },
     h('button', { class: 'back', type: 'button', on: { click: () => go(back) } }, chev(), L.back), title, freshLine()),
   actionRow(S.view, null),
+  badFix(a) ? h('p', { class: 'note warnnote' }, L.badFixNote) : null,
   h('dl', { class: 'facts' }, facts),
   airline || (rt && rt.length > 1) ? h('p', { class: 'note' }, L.routeNote) : null];
 }
@@ -1183,8 +1188,9 @@ function viewBrief(v) {
     title = [ltr(cs || a.reg || a.hex.toUpperCase()), a.mil ? tag(L.mil) : null, isEmerg(a) || !('gs' in a) ? tag(L.sq[a.squawk] || L.emerg, true) : null];
     if (airline) lines.push(ltr(airline));
     const alt = a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null;
-    const fly = [alt ? `${L.fAlt} ${alt}.` : null, a.gs != null ? `${L.fSpeed} ${L.speed(a.gs)}.` : null].filter(Boolean).join(' ');
+    const fly = [alt ? `${L.fAlt} ${alt}.` : null, a.gs != null && !badFix(a) ? `${L.fSpeed} ${L.speed(a.gs)}.` : null].filter(Boolean).join(' ');
     if (fly) lines.push(fly);
+    if (badFix(a)) lines.push(h('span', { class: 'warnnote' }, L.badFixNote));
     if (rt && rt.length > 1) {
       lines.push([L.fFrom + ': ', ltr(placeName(rt[0]))]);
       lines.push([L.fTo + ': ', ltr(placeName(rt[rt.length - 1]))]);
