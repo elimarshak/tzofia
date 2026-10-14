@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm install --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
-      - run: node tools/perf/measure.mjs https://openeye.co.il/ 3 > perf-result.txt 2>&1 || true
+      - run: node tools/perf/measure.mjs https://openeye.co.il/ 5 > perf-result.txt 2>&1 || true
       - name: Save the result on this branch
         run: |
           git config user.name tzofia-perf; git config user.email noreply@github.com
-          git add perf-result.txt && git commit -qm "perf result" && git push
+          git add perf-result.txt perf-shot.png && git commit -qm "perf result" && git push

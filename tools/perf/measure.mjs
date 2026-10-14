@@ -28,6 +28,7 @@ for (let i = 0; i < RUNS; i++) {
   await page.waitForFunction(() => document.getElementById('maploading')?.hidden === true, null, { timeout: 60000, polling: 100 }).catch(() => {});
   const mapDone = Date.now() - t0;
   await page.waitForTimeout(4000);
+  if (i === 0) await page.screenshot({ path: 'perf-shot.png' });
   const fcp = await page.evaluate(() => Math.round(performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0));
   const total = files.reduce((a, f) => a + f.size, 0);
   const until = files.filter((f) => f.t - t0 <= mapDone).reduce((a, f) => a + f.size, 0);
