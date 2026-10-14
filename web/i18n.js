@@ -55,7 +55,7 @@ export const STR = {
     vert: (f) => Math.abs(f) < 200 ? 'שומר גובה' : f > 0 ? `מטפס ${n(Math.abs(f))} רגל בדקה` : `יורד ${n(Math.abs(f))} רגל בדקה`,
     ago: (s) => { const m = Math.round(s / 60), hr = Math.round(s / 3600);
       return s <= 1 ? 'עכשיו' : s < 60 ? `לפני ${s} שניות` : s < 90 ? 'לפני דקה' : m < 60 ? `לפני ${m} דקות` : hr <= 1 ? 'לפני שעה' : hr === 2 ? 'לפני שעתיים' : hr < 24 ? `לפני ${hr} שעות` : hr < 36 ? 'לפני יום' : Math.round(hr / 24) === 2 ? 'לפני יומיים' : `לפני ${Math.round(hr / 24)} ימים`; },
-    ships: 'ספינות', ship: 'ספינה', shName: 'שם', shType: 'סוג', shMmsi: 'מספר זיהוי ימי (MMSI)',
+    ships: 'ספינות', shipsHome: 'ספינות שקלטה תחנת OPENEYE', ship: 'ספינה', shName: 'שם', shType: 'סוג', shMmsi: 'מספר זיהוי ימי (MMSI)',
     shipKinds: { fishing: 'ספינת דיג', military: 'ספינה צבאית', pleasure: 'סירת פנאי', tug: 'גוררת', rescue: 'חיפוש והצלה', law: 'שיטור ואכיפה', passenger: 'ספינת נוסעים', cargo: 'ספינת משא', tanker: 'מכלית', other: 'אחר' },
     knots: (k) => `${n(Math.round(k * 1.852))} קמ״ש (${Math.round(k * 10) / 10} קשר)`,
     shipNote: 'הספינה משדרת את הנתונים בעצמה. ספינה שכיבתה את המשדר, או שנמצאת רחוק מתחנת קליטה בחוף, לא מופיעה במפה. השם והיעד הם מה שהצוות הזין.',
@@ -226,7 +226,7 @@ export const STR = {
     vert: (f) => Math.abs(f) < 200 ? 'Level' : f > 0 ? `Climbing ${n(Math.abs(f))} ft/min` : `Descending ${n(Math.abs(f))} ft/min`,
     ago: (s) => { const m = Math.round(s / 60), hr = Math.round(s / 3600);
       return s <= 1 ? 'just now' : s < 60 ? `${s} seconds ago` : s < 90 ? 'a minute ago' : m < 60 ? `${m} minutes ago` : hr <= 1 ? 'an hour ago' : hr < 24 ? `${hr} hours ago` : hr < 36 ? 'a day ago' : `${Math.round(hr / 24)} days ago`; },
-    ships: 'Ships', ship: 'Ship', shName: 'Name', shType: 'Type', shMmsi: 'MMSI',
+    ships: 'Ships', shipsHome: 'Ships heard by the OPENEYE station', ship: 'Ship', shName: 'Name', shType: 'Type', shMmsi: 'MMSI',
     shipKinds: { fishing: 'Fishing', military: 'Military', pleasure: 'Pleasure craft', tug: 'Tug', rescue: 'Search and rescue', law: 'Law enforcement', passenger: 'Passenger', cargo: 'Cargo', tanker: 'Tanker', other: 'Other' },
     knots: (k) => `${Math.round(k * 10) / 10} kt (${n(Math.round(k * 1.852))} km/h)`,
     shipNote: 'The ship broadcasts this data itself. A ship with its transmitter off, or one far from a shore receiving station, does not appear. The name and destination are whatever the crew entered.',

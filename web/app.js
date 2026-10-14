@@ -314,15 +314,17 @@ async function refreshShips() {
   if (!S.showShips || document.hidden) return;
   try {
     const since = new Date(Date.now() - 20 * 60 * 1000).toISOString();
-    S.ships = await api(`/ships_live?select=mmsi,name,lat,lon,sog,cog,heading,nav,kind,dest,callsign,t&t=gte.${since}&lat=not.is.null&limit=8000`);
+    S.ships = await api(`/ships_live?select=mmsi,name,lat,lon,sog,cog,heading,nav,kind,dest,callsign,t,home_at&t=gte.${since}&lat=not.is.null&limit=8000`);
   } catch { /* keep what we have */ }
-  drawShips();
+  drawShips(); drawLegend();
   if (S.view.name === 'ship') render();
 }
+// a ship our own receiving station heard in the last 15 minutes is drawn in its own colour (decided by Ilya on 15.10.2026)
+const homeShip = (x) => !!x.home_at && Date.now() - Date.parse(x.home_at) < 15 * 60 * 1000;
 function drawShips() {
   const m = S.map; if (!m || !m.getSource('ships')) return;
   m.getSource('ships').setData({ type: 'FeatureCollection', features: S.ships.map((x) => (
-    { type: 'Feature', properties: { id: String(x.mmsi), dir: x.heading ?? x.cog ?? 0, still: (x.sog ?? 0) < 0.5 ? 1 : 0 },
+    { type: 'Feature', properties: { id: String(x.mmsi), dir: x.heading ?? x.cog ?? 0, still: (x.sog ?? 0) < 0.5 ? 1 : 0, home: homeShip(x) ? 1 : 0 },
       geometry: { type: 'Point', coordinates: [x.lon, x.lat] } })) });
 }
 function drawFires() {
@@ -504,6 +506,7 @@ function addOverlay() {
   img('plane-e', planeImage(c.warn, c.halo));
   img('ring', ringImage(c.warn));
   img('ship-1', shipImage(c.ship, c.halo, true)); img('ship-0', shipImage(c.ship, c.halo, false));
+  img('ship-h1', shipImage(c.shipHome, c.halo, true)); img('ship-h0', shipImage(c.shipHome, c.halo, false));
 
   m.addSource('gnss', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'gnss', type: 'fill', source: 'gnss',
@@ -556,8 +559,10 @@ function addOverlay() {
   m.addLayer({ id: 'ship-sel', type: 'circle', source: 'ships', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 14, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
   m.addLayer({ id: 'ships', type: 'symbol', source: 'ships',
-    layout: { 'icon-image': ['case', ['==', ['get', 'still'], 1], 'ship-0', 'ship-1'], 'icon-rotate': ['get', 'dir'], 'icon-rotation-alignment': 'map',
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 4, 0.55, 8, 0.9, 11, 1.1], 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+    layout: { 'icon-image': ['case', ['==', ['get', 'home'], 1], ['case', ['==', ['get', 'still'], 1], 'ship-h0', 'ship-h1'], ['==', ['get', 'still'], 1], 'ship-0', 'ship-1'],
+      'icon-rotate': ['get', 'dir'], 'icon-rotation-alignment': 'map', 'symbol-sort-key': ['get', 'home'],
+      'icon-size': ['*', ['case', ['==', ['get', 'home'], 1], 1.45, 1], ['interpolate', ['linear'], ['zoom'], 4, 0.55, 8, 0.9, 11, 1.1]],
+      'icon-allow-overlap': true, 'icon-ignore-placement': true } });
   m.addSource('sats', { type: 'geojson', data: empty });
   m.addLayer({ id: 'sat-sel', type: 'circle', source: 'sats', filter: ['==', ['get', 'id'], ''],
     paint: { 'circle-radius': 11, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
@@ -1552,6 +1557,7 @@ function drawLegend() {
     S.showGnss ? sym(`background:${c.warn};opacity:.5`, L.gnss) : null,
     S.showSkies ? sym(`border:2px solid ${c.warn};border-radius:50%;background:none`, L.skies) : null,
     S.showShips ? sym(`background:${c.ship};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.ships) : null,
+    S.showShips && S.ships.some(homeShip) ? sym(`background:${c.shipHome};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.shipsHome) : null,
     S.showQuakes ? sym(`border:1.6px solid ${c.accent};border-radius:50%;background:none`, L.quakes) : null,
     S.showOutages ? sym(`border:2px solid ${c.ink};border-radius:50%;background:none`, L.outages) : null,
     S.showFires ? sym(`background:${c.fire};border-radius:50%;inline-size:8px;block-size:8px`, L.fires) : null,
