@@ -5,6 +5,7 @@ on:
     paths: ['tools/perf/**', '.github/workflows/perf.yml']
 permissions:
   contents: write
+  actions: read
 jobs:
   measure:
     runs-on: ubuntu-latest
@@ -13,8 +14,26 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm install --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
-      - run: node tools/perf/measure.mjs https://openeye.co.il/ 5 > perf-result.txt 2>&1 || true
+      - name: The two builds (before the change, and now)
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh run download 38502639887 -n site -D before -R ${{ github.repository }}
+          gh run download 38504945903 -n site -D after -R ${{ github.repository }}
+          # the same two load-time marks the current build has, added to the old build
+          python3 - <<'PY'
+          p='before/app.js'; s=open(p).read()
+          a="  m.getSource('ac').setData({ type: 'FeatureCollection', features: feats });\n"
+          assert s.count(a)==1
+          s=s.replace(a,a+"  if (feats.length && !performance.getEntriesByName('oe-aircraft').length) m.once('render', () => performance.mark('oe-aircraft'));\n")
+          b="  m.once('idle', () => { $('#maploading').hidden = true; });"
+          assert s.count(b)==1
+          s=s.replace(b,"  m.once('idle', () => { $('#maploading').hidden = true; performance.mark('oe-map-idle'); });")
+          open(p,'w').write(s)
+          PY
+          (node tools/perf/serve.mjs before 8081 &) ; (node tools/perf/serve.mjs after 8082 &) ; sleep 2
+          node tools/perf/ab.mjs 7 > perf-result.txt 2>&1 || true
+          cat perf-result.txt
       - name: Save the result on this branch
         run: |
           git config user.name tzofia-perf; git config user.email noreply@github.com
-          git add perf-result.txt perf-shot.png && git commit -qm "perf result" && git push
+          git add perf-result.txt && git commit -qm "perf result" && git push
