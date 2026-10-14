@@ -366,6 +366,22 @@ const placeName = (a) => [a.city || a.name, a.cc].filter(Boolean).join(', ');
 // not on that route (the route is the one registered for the callsign, not a confirmation of this flight).
 const km = (la1, lo1, la2, lo2) => { const r = Math.PI / 180, d = Math.sin((la2 - la1) * r / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin((lo2 - lo1) * r / 2) ** 2; return 12742 * Math.asin(Math.min(1, Math.sqrt(d))); };
 const kmBetween = (p, q) => km(p[1], p[0], q[1], q[0]);   // [lon, lat] pairs
+// The sources box lists one source per line, with the Latin names and licences kept whole inside the Hebrew text.
+function sourceLines(parts) {
+  const lines = [[]];
+  for (const p of parts) {
+    if (Array.isArray(p)) { lines[lines.length - 1].push(h('bdi', {}, h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]))); continue; }
+    p.split(/(?<=\.)\s+/).forEach((seg, i) => {
+      if (i > 0) lines.push([]);
+      for (const bit of seg.split(/(\([^)]*\))/)) if (bit) lines[lines.length - 1].push(/[A-Za-z]/.test(bit) && /^\(/.test(bit) ? h('bdi', {}, bit) : bit);
+    });
+  }
+  return lines.filter((l) => l.length).map((l) => {
+    const last = l[l.length - 1];
+    if (typeof last === 'string') l[l.length - 1] = last.replace(/\.\s*$/, '');
+    return h('li', {}, ...l);
+  });
+}
 function routeProgress(a, rt) {
   if (!rt || rt.length < 2 || a.lat == null) return null;
   const from = S.ref.airports && S.ref.airports[rt[0].code], to = S.ref.airports && S.ref.airports[rt[rt.length - 1].code];
@@ -1253,7 +1269,7 @@ function applyLang() {
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
   const credit = () => L.credit.map((p) => Array.isArray(p) ? h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]) : p);
   $('#credit').replaceChildren(...credit());
-  $('#sources-text').replaceChildren(...credit());
+  $('#sources-text').replaceChildren(...sourceLines(L.credit));
   for (const [id, key] of [['#btn-zin', 'zoomIn'], ['#btn-zout', 'zoomOut'], ['#btn-home', 'homeView'], ['#btn-info', 'sources'], ['#btn-search', 'search'], ['#btn-close', 'close']]) {
     $(id).setAttribute('aria-label', L[key]); $(id).title = L[key];
   }
