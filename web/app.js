@@ -364,11 +364,12 @@ async function loadRoutes(prefixes) {
 const placeName = (a) => [a.city || a.name, a.cc].filter(Boolean).join(', ');
 // How far along the registered route the aircraft is, 0..1, or null when it can't be told or the aircraft is clearly
 // not on that route (the route is the one registered for the callsign, not a confirmation of this flight).
+const km = (la1, lo1, la2, lo2) => { const r = Math.PI / 180, d = Math.sin((la2 - la1) * r / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin((lo2 - lo1) * r / 2) ** 2; return 12742 * Math.asin(Math.min(1, Math.sqrt(d))); };
+const kmBetween = (p, q) => km(p[1], p[0], q[1], q[0]);   // [lon, lat] pairs
 function routeProgress(a, rt) {
   if (!rt || rt.length < 2 || a.lat == null) return null;
   const from = S.ref.airports && S.ref.airports[rt[0].code], to = S.ref.airports && S.ref.airports[rt[rt.length - 1].code];
   if (!from || !to || from[3] == null || to[3] == null) return null;
-  const km = (la1, lo1, la2, lo2) => { const r = Math.PI / 180, d = Math.sin((la2 - la1) * r / 2) ** 2 + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin((lo2 - lo1) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(d)); };
   const total = km(from[3], from[4], to[3], to[4]), done = km(from[3], from[4], a.lat, a.lon), left = km(a.lat, a.lon, to[3], to[4]);
   if (total < 50 || done + left > total * 1.25) return null;
   return Math.min(1, Math.max(0, done / (done + left)));
@@ -514,7 +515,9 @@ let trailAt = 0;
 function drawTrail() {
   const m = S.map; if (!m || !m.getSource('trail')) return;
   const tr = S.trail, a = tr && S.view.name === 'ac' && S.view.hex === tr.hex ? findAc(tr.hex) : null;
-  const pts = a ? tr.points.concat(a.lat != null ? [[a.lon, a.lat]] : []) : [];
+  let pts = a ? tr.points.concat(a.lat != null ? [[a.lon, a.lat]] : []) : [];
+  // a line that does not reach the aircraft would mislead: draw it only when the stored path ends near the live position
+  if (pts.length > 1 && kmBetween(pts[pts.length - 2], pts[pts.length - 1]) > 60) pts = [];
   m.getSource('trail').setData({ type: 'FeatureCollection', features: pts.length > 1 && S.showAc
     ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: pts } }] : [] });
 }
