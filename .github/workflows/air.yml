@@ -1,0 +1,27 @@
+name: air-quality
+# Keeps our own copy of the Ministry of Environmental Protection's open air-quality data on the data branch
+# (see tools/fetch_air.py): the monitoring stations and the forecast, which the Ministry updates two or three times a day.
+on:
+  schedule:
+    - cron: '47 */2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: data-branch
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download once, publish to the data branch
+        run: |
+          set -euo pipefail
+          python3 -m venv /tmp/av && /tmp/av/bin/pip install -q pyproj==3.7.0
+          mkdir out
+          # start from the previous copy, so a file whose download fails keeps its last version
+          git fetch -q --depth 1 origin data && git --work-tree=out checkout FETCH_HEAD -- . || true
+          /tmp/av/bin/python tools/fetch_air.py out
+          ls -l out
+          cd out && rm -rf .git && git init -q -b data && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "air data $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data

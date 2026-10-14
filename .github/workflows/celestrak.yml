@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency: data-branch   # the air-quality workflow writes to the same branch; one at a time
 jobs:
   fetch:
     runs-on: ubuntu-latest
