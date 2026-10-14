@@ -1,6 +1,7 @@
 name: air-quality
 # Keeps our own copy of the Ministry of Environmental Protection's open air-quality data on the data branch
-# (see tools/fetch_air.py): the monitoring stations and the forecast, which the Ministry updates two or three times a day.
+# (see tools/fetch_air.py): the monitoring stations and the forecast, which the Ministry updates two or three times a day,
+# and which of NASA's air-pollution pictures are newest (tools/build_air_legends.py).
 on:
   schedule:
     - cron: '47 */2 * * *'
@@ -21,6 +22,8 @@ jobs:
           # start from the previous copy, so a file whose download fails keeps its last version
           git fetch -q --depth 1 origin data && git --work-tree=out checkout FETCH_HEAD -- . || true
           /tmp/av/bin/python tools/fetch_air.py out
+          # NASA's air-pollution pictures: the newest day and the colour keys
+          python3 tools/build_air_legends.py out || echo 'NASA air layers failed; the previous copy stays'
           ls -l out
           cd out && rm -rf .git && git init -q -b data && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "air data $(date -u +%Y-%m-%dT%H:%MZ)"

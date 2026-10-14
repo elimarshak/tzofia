@@ -37,7 +37,7 @@ def save(name, obj):
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
 
 def clean(v):
-    v = '' if v is None else str(v).strip()
+    v = '' if v is None else str(v).replace('_x000D_', '').strip()   # '_x000D_' is a line break left over from Excel
     return '' if v.lower() in ('null', 'none', 'nan') else v
 
 # --- stations ---

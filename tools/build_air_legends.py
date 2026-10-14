@@ -1,60 +1,103 @@
 #!/usr/bin/env python3
-"""Colour keys for the air-pollution pictures on the map. Usage: build_air_legends.py <out dir>
+"""The air-pollution pictures from NASA's GIBS service: which picture to show and its colour key.
+Usage: build_air_legends.py <out dir>        (run by .github/workflows/air.yml every 2 hours)
 
-For each NASA (GIBS) layer, reads the official colour map and keeps the colours in order from the lowest value
-to the highest (transparent entries are skipped), so the site can draw its own key with Hebrew words.
-Also saves the CAMS colour key picture as it comes from ECMWF, for checking. Written: <out>/air_legends.json"""
-import json, os, sys, urllib.request
+GIBS lists every picture it serves in one capabilities document (Web Mercator, the projection our map uses).
+For each kind below, the first listed layer that exists there is kept, with:
+  the tile address template, the newest day available, the deepest zoom level,
+  and its official colour map reduced to about a dozen colours, lowest value first, with the words at both ends.
+Written: <out>/air_layers.json, and <out>/air_layers_log.txt with what was found (for checking)."""
+import json, os, re, sys, urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 
 OUT = sys.argv[1]
 UA = 'tzofia/0.1 (+https://github.com/elimarshak/tzofia)'
-GIBS = ['TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column', 'TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column', 'VIIRS_NOAA20_AOD_Deep_Blue_Land_Ocean']
-CAMS = 'https://eccharts.ecmwf.int/wms/?token=public&service=WMS&version=1.3.0&request=GetLegendGraphic&layer=composition_europe_pm2p5_forecast_surface&style=sh_pm2p5_web_surface_concentration&format=image/png'
+CAPS_URL = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml'
+# kind -> layers to try, in order; then any layer whose name matches the pattern (the newest one wins)
+KINDS = {
+    'no2':  (['TROPOMI_L2_Nitrogen_Dioxide_Tropospheric_Column', 'OMI_Nitrogen_Dioxide_Tropo_Column'], r'Nitrogen_Dioxide'),
+    'so2':  (['TROPOMI_L2_Sulfur_Dioxide_Total_Vertical_Column', 'OMPS_NPP_SO2_PBL', 'OMI_SO2_Planetary_Boundary_Layer'], r'Sulfur_Dioxide|_SO2_'),
+    'dust': (['VIIRS_NOAA20_AOD_Deep_Blue_Land_Ocean', 'VIIRS_SNPP_AOD_Deep_Blue_Land_Ocean', 'MODIS_Combined_Value_Added_AOD'], r'AOD|Aerosol_Optical'),
+}
+NS = {'w': 'http://www.opengis.net/wmts/1.0', 'ows': 'http://www.opengis.net/ows/1.1'}
+XL = '{http://www.w3.org/1999/xlink}href'
+log = []
 
 def get(url):
     req = urllib.request.Request(url, headers={'User-Agent': UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
+    with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
 
-out, log = {}, []
-import re
-CAPS = get('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml').decode('utf-8', 'replace')
-log.append(f'capabilities {len(CAPS)} bytes')
-def colormap(lid):
-    # the colour map's address is listed with the layer in GIBS's own capabilities document
-    i = CAPS.find(f'<ows:Identifier>{lid}</ows:Identifier>')
-    j = CAPS.rfind('<Layer>', 0, i); k = CAPS.find('</Layer>', i)
-    blk = CAPS[j:k]
-    urls = re.findall(r'xlink:href="([^"]+colormaps[^"]+\.xml)"', blk)
-    log.append(f'{lid}: {urls}')
-    for url in sorted(urls, key=lambda u: '1.3' not in u):
+def layer_info(L):
+    lid = L.findtext('ows:Identifier', namespaces=NS)
+    fmt_url = None
+    for ru in L.findall('w:ResourceURL', NS):
+        if ru.get('resourceType') == 'tile':
+            fmt_url = ru.get('template')
+            if (ru.get('format') or '').endswith('png'): break
+    tms = [t.text for t in L.findall('w:TileMatrixSetLink/w:TileMatrixSet', NS)]
+    level = max((int(m.group(1)) for t in tms if (m := re.search(r'Level(\d+)$', t or ''))), default=None)
+    day = None
+    for d in L.findall('w:Dimension', NS):
+        if d.findtext('ows:Identifier', namespaces=NS) == 'Time':
+            day = (d.findtext('w:Default', namespaces=NS) or '').strip()[:10] or None
+    cmaps = [m.get(XL) for m in L.findall('ows:Metadata', NS) if 'colormap' in (m.get(XL) or '')]
+    return {'id': lid, 'template': fmt_url, 'level': level, 'tms': tms, 'day': day, 'colormaps': cmaps}
+
+def colour_key(urls):
+    for url in sorted(urls, key=lambda u: ('v1.3' not in u, 'v1.2' not in u)):
         try:
-            body = get(url); log.append(f'ok {len(body)} {url}'); return body
+            root = ET.fromstring(get(url))
         except Exception as e:
-            log.append(f'ERR {e} {url}')
-    raise RuntimeError('no colour map')
-for lid in GIBS:
-    try:
-        root = ET.fromstring(colormap(lid))
+            log.append(f'  colour map ERR {e} {url}'); continue
         best = None
-        for cm in root.iter('ColorMap'):
-            ents = [e for e in cm.iter('ColorMapEntry') if e.get('transparent', 'false') != 'true' and e.get('nodata', 'false') != 'true']
+        for cm in root.iter():
+            if not cm.tag.endswith('ColorMap'): continue
+            ents = [e for e in cm.iter() if e.tag.endswith('ColorMapEntry')
+                    and e.get('transparent', 'false') != 'true' and e.get('nodata', 'false') != 'true']
             if ents and (best is None or len(ents) > len(best[1])): best = (cm, ents)
+        if not best: log.append(f'  colour map empty {url}'); continue
         cm, ents = best
-        cols = [[int(v) for v in e.get('rgb').split(',')] for e in ents]
-        step = max(1, len(cols) // 10)
+        legend = [e for e in cm.iter() if e.tag.endswith('LegendEntry')]
+        cols = [[int(v) for v in e.get('rgb').split(',')[:3]] for e in ents]
+        step = max(1, len(cols) // 12)
         stops = cols[::step] + ([cols[-1]] if (len(cols) - 1) % step else [])
-        units = cm.get('units') or ''
-        out[lid] = {'stops': stops, 'first': ents[0].get('label') or ents[0].get('value'), 'last': ents[-1].get('label') or ents[-1].get('value'), 'units': units, 'entries': len(ents)}
-        print('ok', lid, len(ents), units, out[lid]['first'], out[lid]['last'])
-    except Exception as e:
-        print('ERR', lid, e); log.append(f'ERR parse {lid} {e}')
-ALT = CAMS.replace('&layer=', '&layers=').replace('&style=', '&styles=')
-for name, url in (('legend_cams_pm25.png', CAMS), ('legend_cams_pm25_b.png', ALT), ('legend_cams_pm25_c.png', CAMS.replace('version=1.3.0', 'version=1.1.1'))):
-    try:
-        body = get(url); open(os.path.join(OUT, name), 'wb').write(body); log.append(f'ok {len(body)} {body[:400]!r} {url}')
-    except Exception as e:
-        log.append(f'ERR {e} {url}')
-open(os.path.join(OUT, 'air_legends_log.txt'), 'w').write('\n'.join(log))
-json.dump(out, open(os.path.join(OUT, 'air_legends.json'), 'w'), separators=(',', ':'))
+        words = lambda e: (e.get('tooltip') or e.get('label') or e.get('value') or e.get('sourceValue') or '').strip()
+        first = words(legend[0]) if legend else words(ents[0])
+        last = words(legend[-1]) if legend else words(ents[-1])
+        log.append(f'  colour map ok {len(ents)} entries, {cm.get("units")!r}, {first!r} .. {last!r} {url}')
+        return {'stops': stops, 'first': first, 'last': last, 'units': cm.get('units') or ''}
+    return None
+
+caps = ET.fromstring(get(CAPS_URL))
+layers = {}
+for L in caps.iter('{%s}Layer' % NS['w']):
+    lid = L.findtext('ows:Identifier', namespaces=NS)
+    if lid: layers[lid] = L
+log.append(f'capabilities: {len(layers)} layers')
+
+out = {'fetched_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'source': 'NASA GIBS', 'layers': {}}
+for kind, (names, pattern) in KINDS.items():
+    found = [n for n in names if n in layers]
+    similar = sorted(n for n in layers if re.search(pattern, n))
+    log.append(f'{kind}: listed {found}; similar names: {similar[:40]}')
+    pick = None
+    for n in found + similar:
+        info = layer_info(layers[n])
+        if info['template'] and info['level'] and info['day']:
+            if n in found: pick = info; break
+            if pick is None or info['day'] > pick['day']: pick = info
+    if not pick:
+        log.append(f'{kind}: nothing usable'); continue
+    key = colour_key(pick['colormaps'])
+    log.append(f'{kind}: {pick["id"]} day {pick["day"]} level {pick["level"]} key {"yes" if key else "no"}')
+    out['layers'][kind] = {'id': pick['id'], 'day': pick['day'], 'maxzoom': pick['level'],
+                           'tiles': pick['template'].replace('{Time}', pick['day']).replace('{TileMatrixSet}', f'GoogleMapsCompatible_Level{pick["level"]}')
+                                    .replace('{TileMatrix}', '{z}').replace('{TileRow}', '{y}').replace('{TileCol}', '{x}'),
+                           'key': key}
+
+open(os.path.join(OUT, 'air_layers_log.txt'), 'w').write('\n'.join(log) + '\n')
+print('\n'.join(log))
+if out['layers']:
+    json.dump(out, open(os.path.join(OUT, 'air_layers.json'), 'w'), separators=(',', ':'))
