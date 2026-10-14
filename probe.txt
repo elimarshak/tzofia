@@ -1,0 +1,6 @@
+200 38 https://air.sviva.gov.il/Account/GetApiToken
+200 2 https://air-papi.sviva.gov.il/v1/GenerateToken
+ERR HTTP Error 401: Unauthorized https://air-papi.sviva.gov.il/v1/envista/regions
+ERR HTTP Error 401: Unauthorized https://air-papi.sviva.gov.il/v1/envista/pollutants
+ERR HTTP Error 401: Unauthorized https://air-papi.sviva.gov.il/v1/envista/stations/index/latest?unitConversion=true&regionsIds=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15&hoursBack=3
+ERR HTTP Error 401: Unauthorized https://air-papi.sviva.gov.il/v1/envista/regions/data/latest?unitConversion=true&regionsIds=1&hoursBack=2
