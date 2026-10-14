@@ -1,0 +1,26 @@
+name: ip-location
+# Our own table for telling a visitor's country (and, in Israel, city) from the network address, for the visit
+# counter (see tools/build_ipgeo.py). The source, DB-IP's free table, is updated once a month.
+on:
+  schedule:
+    - cron: '23 4 3 * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: data-branch   # other workflows write to the same branch; one at a time
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build once, publish to the data branch
+        run: |
+          set -euo pipefail
+          mkdir out
+          # start from the previous copy of the branch, so the other files on it stay as they are
+          git fetch -q --depth 1 origin data && git --work-tree=out checkout FETCH_HEAD -- . || true
+          python3 tools/build_ipgeo.py out
+          ls -l out
+          cd out && rm -rf .git && git init -q -b data && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "ip location table $(date -u +%Y-%m-%d)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data
