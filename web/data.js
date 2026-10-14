@@ -27,7 +27,7 @@ export async function apiPages(path, max) {
 const ago = (sec) => new Date(Date.now() - sec * 1000).toISOString();
 
 // Everything the map needs every 15 seconds: aircraft within about 460 km, declared emergencies,
-// the freshness of the aircraft sources (adsb.lol and our own home station), the navigation-interference grid and military aircraft worldwide.
+// the freshness of the aircraft sources, the navigation-interference grid and military aircraft worldwide.
 export const nearLoad = () => Promise.all([
   api(`/aircraft_live?select=${LIVE_COLS}&in_region=eq.true&pos_time=gte.${ago(CFG.maxAgeSec)}&lat=not.is.null&limit=2000`),
   api('/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,first_seen,last_seen,lat,lon,alt_baro&active=eq.true&order=first_seen.desc&limit=200'),

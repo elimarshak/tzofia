@@ -319,7 +319,7 @@ async function refreshShips() {
   drawShips(); drawLegend();
   if (S.view.name === 'ship') render();
 }
-// a ship our own receiving station heard in the last 15 minutes is drawn in its own colour (decided by Ilya on 15.10.2026)
+// ships marked with home_at in the last 15 minutes are drawn in their own colour
 const homeShip = (x) => !!x.home_at && Date.now() - Date.parse(x.home_at) < 15 * 60 * 1000;
 function drawShips() {
   const m = S.map; if (!m || !m.getSource('ships')) return;
