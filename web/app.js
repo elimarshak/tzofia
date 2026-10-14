@@ -1471,10 +1471,11 @@ refreshShips(); setInterval(refreshShips, 60 * 1000);
 setInterval(scanSats, 10000);
 setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);
-refreshFar(); let farTimer = setInterval(refreshFar, CFG.farPollMs);
+const FAR_MS = CFG.farPollMs || 60000;   // a browser may still hold the previous config.js for a few minutes
+refreshFar(); let farTimer = setInterval(refreshFar, FAR_MS);
 document.addEventListener('visibilitychange', () => {
   clearInterval(timer); clearInterval(farTimer);
-  if (!document.hidden) { refresh(); timer = setInterval(refresh, CFG.pollMs); refreshFar(); farTimer = setInterval(refreshFar, CFG.farPollMs); }
+  if (!document.hidden) { refresh(); timer = setInterval(refresh, CFG.pollMs); refreshFar(); farTimer = setInterval(refreshFar, FAR_MS); }
 });
 setInterval(() => {   // keeps the "updated … ago" line honest without rebuilding the panel
   const f = document.querySelector('#sheet-body .fresh');
