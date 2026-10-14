@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#EEF0EA">
+<title>OPENEYE: הקלטות הקשר</title>
+<!-- OPENEYE home station: the recordings of Ben Gurion approach and tower (rtl_airband, one file per transmission).
+     Served only inside the home network and the private Tailscale link. File names carry the time in UTC;
+     the page shows Israel time. -->
+<style>
+@font-face{font-family:Heebo;src:url(Heebo.ttf) format("truetype");font-weight:100 900;font-display:swap}
+:root{--bg:#EEF0EA;--panel:#FFFFFF;--ink:#16222E;--sub:#4A5866;--line:#D9DEE2;--accent:#0B4F8A;--appr:#0B4F8A;--twr:#A8195C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Heebo,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.06em;margin-bottom:8px}
+header svg{width:22px;height:22px;color:var(--accent)}
+h1{font-size:22px;font-weight:600;margin:4px 0 12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+button{font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);min-height:44px;padding:0 14px}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.4;cursor:default}
+.day{font-size:18px;font-weight:600;flex:1;text-align:center;min-width:180px}
+.note{color:var(--sub);font-size:14px;margin:6px 0}
+section{background:var(--panel);border-radius:14px;padding:6px 14px;margin:12px 0;box-shadow:0 1px 6px rgba(22,34,46,.08)}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.row:first-child{border-top:0}
+.time{font-variant-numeric:tabular-nums;font-weight:600;min-width:76px}
+.ch{font-size:14px;color:var(--sub);min-width:120px}
+.ch i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px;vertical-align:0}
+audio{flex:1;min-width:220px;height:40px}
+.empty{padding:18px 0;color:var(--sub);text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <header><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><path d="M12 12 18.4 5.6"/><path d="M12 12 18.4 5.6A9 9 0 0 1 21 12Z" fill="currentColor" fill-opacity=".35" stroke="none"/><circle cx="15.8" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>OPENEYE</header>
+  <h1>הקלטות הקשר של נתב"ג</h1>
+
+  <div class="bar">
+    <button id="prev" type="button">היום הקודם</button>
+    <div class="day" id="day"></div>
+    <button id="next" type="button">היום הבא</button>
+  </div>
+  <div class="bar" role="group" aria-label="תדר">
+    <button type="button" data-ch="all" aria-pressed="true">הכול</button>
+    <button type="button" data-ch="approach" aria-pressed="false">גישה 120.500</button>
+    <button type="button" data-ch="tower" aria-pressed="false">מגדל 134.600</button>
+  </div>
+  <p class="note" id="count"></p>
+  <section id="list"></section>
+  <p class="note">כל שיחה נשמרת כקובץ נפרד. השעות לפי שעון ישראל. ההקלטות נשמרות חצי שנה.</p>
+</main>
+<script>
+const TZ = 'Asia/Jerusalem';
+const CH = { approach: { name: 'גישה 120.500', color: 'var(--appr)' }, tower: { name: 'מגדל 134.600', color: 'var(--twr)' } };
+const $ = (s) => document.querySelector(s);
+let day = new Date(), filter = 'all', rows = [];
+
+const ymdIL = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const timeIL = (d) => new Intl.DateTimeFormat('he-IL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
+const dayTitle = (d) => {
+  const today = ymdIL(new Date()), y = ymdIL(new Date(Date.now() - 864e5)), k = ymdIL(d);
+  const long = new Intl.DateTimeFormat('he-IL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }).format(d);
+  return k === today ? 'היום, ' + long : k === y ? 'אתמול, ' + long : long;
+};
+// file name: approach_20261014_215959.mp3, the time in UTC
+const parse = (name) => {
+  const m = /^(approach|tower)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.mp3$/.exec(name);
+  return m ? { ch: m[1], at: new Date(Date.UTC(+m[2], m[3] - 1, +m[4], +m[5], +m[6], +m[7])) } : null;
+};
+async function listDir(path) {
+  try { const r = await fetch(path, { cache: 'no-store' }); return r.ok ? await r.json() : []; } catch { return []; }
+}
+async function load() {
+  const want = ymdIL(day);
+  // an Israel day spans two UTC days, so both folders are read
+  const utcDays = [new Date(day.getTime() - 864e5), day, new Date(day.getTime() + 864e5)]
+    .map((d) => d.toISOString().slice(0, 10).replace(/-/g, '/'));
+  const found = [];
+  for (const ch of Object.keys(CH)) {
+    for (const u of [...new Set(utcDays)]) {
+      const dir = `files/${ch}/${u}/`;
+      for (const f of await listDir(dir)) {
+        if (f.type !== 'file') continue;
+        const p = parse(f.name);
+        if (p && ymdIL(p.at) === want) found.push({ ...p, url: dir + f.name });
+      }
+    }
+  }
+  rows = found.sort((a, b) => b.at - a.at);
+  render();
+}
+function render() {
+  $('#day').textContent = dayTitle(day);
+  $('#next').disabled = ymdIL(day) >= ymdIL(new Date());
+  const shown = rows.filter((r) => filter === 'all' || r.ch === filter);
+  $('#count').textContent = !shown.length ? '' : shown.length === 1 ? 'הקלטה אחת' : `${shown.length} הקלטות`;
+  const list = $('#list');
+  list.replaceChildren();
+  if (!shown.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = 'אין הקלטות ביום הזה.'; list.append(p); return; }
+  for (const r of shown) {
+    const row = document.createElement('div'); row.className = 'row';
+    const t = document.createElement('span'); t.className = 'time'; t.textContent = timeIL(r.at);
+    const c = document.createElement('span'); c.className = 'ch';
+    const dot = document.createElement('i'); dot.style.background = CH[r.ch].color; c.append(dot, CH[r.ch].name);
+    const a = document.createElement('audio'); a.controls = true; a.preload = 'none'; a.src = r.url;
+    row.append(t, c, a); list.append(row);
+  }
+}
+$('#prev').onclick = () => { day = new Date(day.getTime() - 864e5); load(); };
+$('#next').onclick = () => { day = new Date(Math.min(Date.now(), day.getTime() + 864e5)); load(); };
+document.querySelectorAll('[data-ch]').forEach((b) => b.onclick = () => {
+  filter = b.dataset.ch;
+  document.querySelectorAll('[data-ch]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+});
+// new recordings appear by themselves on today's page, unless something is playing
+setInterval(() => {
+  const playing = [...document.querySelectorAll('audio')].some((a) => !a.paused);
+  if (!playing && ymdIL(day) === ymdIL(new Date())) load();
+}, 60000);
+load();
+</script>
+</body>
+</html>
