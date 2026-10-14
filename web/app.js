@@ -28,7 +28,10 @@ const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies
 try { const saved = JSON.parse(store.get('layers', '{}')); for (const [k, f] of Object.entries(LAYER_OPTS)) if (typeof saved[k] === 'boolean') S[f] = saved[k]; } catch { /* nothing saved yet */ }
 const saveLayers = () => store.set('layers', JSON.stringify(Object.fromEntries(Object.entries(LAYER_OPTS).map(([k, f]) => [k, S[f]]))));
 // A link straight to one item on the map, e.g. openeye.co.il/#ac-4x1234 or #ship-123456789 (like the leading sites do).
-{ const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; }
+const readLink = () => { const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; return !!m; };
+readLink();
+// a link opened while the site is already open in this tab changes only the address after the #
+addEventListener('hashchange', () => { if (readLink()) openLink(); });
 const coarse = matchMedia('(pointer: coarse)').matches;   // a finger needs a bigger area around an item than a mouse
 const t = () => STR[S.lang];
 const T = () => THEMES[S.theme];
