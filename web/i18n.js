@@ -123,6 +123,20 @@ export const STR = {
       PM10: 'חלקיקים נשימים (PM10)', 'PM2.5': 'חלקיקים דקים (PM2.5)', CO: 'פחמן חד-חמצני (CO)', Benzene: 'בנזן' },
     airWx: { WS: 'מהירות רוח', WD: 'כיוון רוח', TEMP: 'טמפרטורה', RH: 'לחות', PREC: 'גשם', BP: 'לחץ אוויר' },
     airStNote: 'מיקום התחנה ומה היא מודדת, לפי המאגר הפתוח של המשרד להגנת הסביבה.',
+    airLive: 'מדידות זיהום האוויר בזמן אמת', airLvOfficial: 'תחנה רשמית', airLvSensor: 'חיישן של מתנדב', airLvMain: 'המזהם העיקרי עכשיו',
+    airLvCount: (w, sc) => {
+      const a = w ? (w === 1 ? 'תחנה רשמית אחת' : `${w} תחנות רשמיות`) : '', b = sc ? (sc === 1 ? 'חיישן אחד של מתנדב' : `${sc} חיישנים של מתנדבים`) : '';
+      if (!a && !b) return 'אף תחנה ואף חיישן לא מדווחים כרגע.';
+      const verb = a && b ? 'מדווחים' : a ? (w === 1 ? 'מדווחת' : 'מדווחות') : (sc === 1 ? 'מדווח' : 'מדווחים');
+      return `${a && b ? `${a} ו${/^\d/.test(b) ? '-' : ''}${b}` : a || b} ${verb} עכשיו.`;
+    },
+    airLvShown: 'המדידות מוצגות על המפה. לחיצה נוספת תסתיר אותן.', airLvHidden: 'לחיצה תציג את המדידות על המפה.',
+    airLvNoteW: 'זו מדידה מתחנה של המשרד להגנת הסביבה, כפי שהארגון World Air Quality Index Project מפרסם אותה.',
+    airLvNoteS: 'זה חיישן חלקיקים ביתי של מתנדב ברשת Sensor.Community. הוא פחות מדויק מתחנה רשמית, ובלחות גבוהה הוא נוטה להראות יותר חלקיקים ממה שיש באמת.',
+    aqiShort: 'מדד איכות האוויר', aqiCats: ['טוב', 'בינוני', 'לא בריא לקבוצות רגישות', 'לא בריא', 'מאוד לא בריא', 'מסוכן'],
+    aqiNote: 'מדד איכות האוויר כאן הוא המדד של הסוכנות להגנת הסביבה של ארצות הברית, והוא נע בין 0 ל-500. ככל שהמספר גבוה יותר, האוויר מזוהם יותר.',
+    aqiPol: { pm25: 'חלקיקים דקים (PM2.5)', pm10: 'חלקיקים נשימים (PM10)', no2: 'חנקן דו-חמצני (NO₂)', so2: 'גופרית דו-חמצנית (SO₂)', o3: 'אוזון (O₃)', co: 'פחמן חד-חמצני (CO)' },
+    ugm: (v) => `${Math.round(v * 10) / 10} מיקרוגרם למטר מעוקב`,
     alertSent: (at) => `ההתרעה נשלחה ב-${at.getDate()}.${at.getMonth() + 1} בשעה ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}.`,
     skNow: 'בשעה האחרונה', skBase: 'בדרך כלל באותה שעה', skChange: 'השינוי', skDays: 'ימים שנכללו בהשוואה', skNoBase: 'עדיין אין נתונים של מספיק ימים כדי להשוות', skDrop: 'ירידה חדה',
     planes: (c) => (c === 0 ? 'אף מטוס' : c === 1 ? 'מטוס אחד' : c === 2 ? 'שני מטוסים' : `${n(c)} מטוסים`),
@@ -157,7 +171,7 @@ export const STR = {
     mag: (m) => `עוצמה ${m}`, quakeTitle: (m) => `רעידת אדמה בעוצמה ${m}`,
     qMag: 'עוצמה', qTime: 'מתי', qDepth: 'עומק', qRegion: 'אזור', unknown: 'לא ידוע', gone: 'האירוע כבר לא ברשימה.',
     km: (k) => `${n(k)} ק״מ`, kmh: (k) => `${n(k)} קמ״ש`,
-    credit: ['מפה: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '. מטוסים: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). רעידות אדמה: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). לוויינים, פסולת חלל והתקרבויות: ', ['CelesTrak', 'https://celestrak.org'], '. ספינות: ', ['aisstream.io', 'https://aisstream.io'], '. מוקדי חום: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. ניתוקי אינטרנט: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). עננים: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. צילום יומי וזיהום אוויר מהלוויין: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. צילום מפורט: מכיל נתוני ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` משנת ${YEAR}, שעברו עיבוד. איכות האוויר: `, ['המשרד להגנת הסביבה, data.gov.il', 'https://data.gov.il'], '. תחזית חלקיקים: ', ['Copernicus CAMS', 'https://atmosphere.copernicus.eu'], ` (CC BY 4.0). חברות תעופה ומסלולים: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0).'],
+    credit: ['מפה: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '. מטוסים: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). רעידות אדמה: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). לוויינים, פסולת חלל והתקרבויות: ', ['CelesTrak', 'https://celestrak.org'], '. ספינות: ', ['aisstream.io', 'https://aisstream.io'], '. מוקדי חום: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. ניתוקי אינטרנט: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). עננים: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. צילום יומי וזיהום אוויר מהלוויין: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. צילום מפורט: מכיל נתוני ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` משנת ${YEAR}, שעברו עיבוד. איכות האוויר: `, ['המשרד להגנת הסביבה, data.gov.il', 'https://data.gov.il'], '. תחזית חלקיקים: ', ['Copernicus CAMS', 'https://atmosphere.copernicus.eu'], ' (CC BY 4.0). מדידות התחנות בזמן אמת: ', ['World Air Quality Index Project', 'https://waqi.info'], ' והמשרד להגנת הסביבה. חיישנים של מתנדבים: ', ['Sensor.Community', 'https://sensor.community'], ` (ODbL). חברות תעופה ומסלולים: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0).'],
   },
   en: {
     dir: 'ltr', brand: 'OPENEYE', otherLang: 'עברית',
@@ -282,6 +296,21 @@ export const STR = {
       PM10: 'Inhalable particles (PM10)', 'PM2.5': 'Fine particles (PM2.5)', CO: 'Carbon monoxide (CO)', Benzene: 'Benzene' },
     airWx: { WS: 'Wind speed', WD: 'Wind direction', TEMP: 'Temperature', RH: 'Humidity', PREC: 'Rain', BP: 'Air pressure' },
     airStNote: 'Station location and what it measures, from the Ministry of Environmental Protection open data.',
+    airLive: 'Live air-pollution readings', airLvOfficial: 'Official station', airLvSensor: 'Volunteer sensor', airLvMain: 'Main pollutant right now',
+    airLvCount: (w, sc) => {
+      const a = w ? (w === 1 ? 'One official station' : `${w} official stations`) : '', b = sc ? (sc === 1 ? 'one volunteer sensor' : `${sc} volunteer sensors`) : '';
+      if (!a && !b) return 'No live readings are coming in right now.';
+      const one = (a && !b && w === 1) || (!a && sc === 1);
+      const subj = a && b ? `${a} and ${b}` : a || b.charAt(0).toUpperCase() + b.slice(1);
+      return `${subj} ${one ? 'is' : 'are'} reporting now.`;
+    },
+    airLvShown: 'The readings are shown on the map. Tap again to hide them.', airLvHidden: 'Tap to show the readings on the map.',
+    airLvNoteW: 'This is a reading from a Ministry of Environmental Protection station, as republished by the World Air Quality Index Project (WAQI).',
+    airLvNoteS: "This is a volunteer's home particle sensor in the Sensor.Community network. It is less accurate than an official station, and in high humidity it tends to show more particles than there really are.",
+    aqiShort: 'Air quality index', aqiCats: ['Good', 'Moderate', 'Unhealthy for sensitive groups', 'Unhealthy', 'Very unhealthy', 'Hazardous'],
+    aqiNote: "This is the US Environmental Protection Agency's Air Quality Index (AQI), on a scale of 0 to 500. The higher the number, the more polluted the air.",
+    aqiPol: { pm25: 'Fine particles (PM2.5)', pm10: 'Inhalable particles (PM10)', no2: 'Nitrogen dioxide (NO₂)', so2: 'Sulphur dioxide (SO₂)', o3: 'Ozone (O₃)', co: 'Carbon monoxide (CO)' },
+    ugm: (v) => `${Math.round(v * 10) / 10} µg/m³`,
     alertSent: (at) => `Sent on ${at.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} at ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}.`,
     skNow: 'Past hour', skBase: 'Usually at this hour', skChange: 'Change', skDays: 'Days compared', skNoBase: 'Not enough days yet to compare', skDrop: 'Sharp drop',
     planes: (c) => (c === 1 ? 'One aircraft' : `${n(c)} aircraft`),
@@ -316,6 +345,6 @@ export const STR = {
     mag: (m) => `Magnitude ${m}`, quakeTitle: (m) => `Magnitude ${m} earthquake`,
     qMag: 'Magnitude', qTime: 'When', qDepth: 'Depth', qRegion: 'Region', unknown: 'Unknown', gone: 'This event is no longer listed.',
     km: (k) => `${n(k)} km`, kmh: (k) => `${n(k)} km/h`,
-    credit: ['Map: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '. Aircraft: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). Earthquakes: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). Satellites, debris and close approaches: ', ['CelesTrak', 'https://celestrak.org'], '. Ships: ', ['aisstream.io', 'https://aisstream.io'], '. Thermal hotspots: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. Internet outages: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). Clouds: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. Daily photo and air pollution from satellites: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. Detailed photo: contains modified ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` data ${YEAR}. Air quality: `, ['Ministry of Environmental Protection, data.gov.il', 'https://data.gov.il'], '. Particle forecast: ', ['Copernicus CAMS', 'https://atmosphere.copernicus.eu'], ` (CC BY 4.0). Airlines and routes: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0).'],
+    credit: ['Map: ', ['© OpenStreetMap', 'https://www.openstreetmap.org/copyright'], ', ', ['Protomaps', 'https://protomaps.com'], '. Aircraft: ', ['adsb.lol', 'https://adsb.lol'], ' (ODbL). Earthquakes: ', ['EMSC', 'https://www.seismicportal.eu'], ' (CC BY 4.0). Satellites, debris and close approaches: ', ['CelesTrak', 'https://celestrak.org'], '. Ships: ', ['aisstream.io', 'https://aisstream.io'], '. Thermal hotspots: ', ['NASA FIRMS', 'https://firms.modaps.eosdis.nasa.gov'], '. Internet outages: ', ['Cloudflare Radar', 'https://radar.cloudflare.com/outage-center'], ' (CC BY-NC 4.0). Clouds: ', ['© EUMETSAT', 'https://view.eumetsat.int'], '. Daily photo and air pollution from satellites: ', ['NASA GIBS', 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api'], '. Detailed photo: contains modified ', ['Copernicus Sentinel', 'https://dataspace.copernicus.eu'], ` data ${YEAR}. Air quality: `, ['Ministry of Environmental Protection, data.gov.il', 'https://data.gov.il'], '. Particle forecast: ', ['Copernicus CAMS', 'https://atmosphere.copernicus.eu'], ' (CC BY 4.0). Live station readings: ', ['World Air Quality Index Project', 'https://waqi.info'], ' and the Ministry of Environmental Protection. Volunteer sensors: ', ['Sensor.Community', 'https://sensor.community'], ` (ODbL). Airlines and routes: `, ['standing-data', 'https://github.com/vradarserver/standing-data'], ' (CC0).'],
   },
 };

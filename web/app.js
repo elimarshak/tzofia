@@ -16,21 +16,21 @@ const S = {
   // Layers shown when the site opens. Like the leading live maps, it opens with the core picture (aircraft, ships and the
   // unusual signals) and leaves the dense layers (satellites, close approaches in space, thermal hotspots) for the user
   // to turn on. Whatever the user turns on or off is remembered on their device.
-  showAc: true, showLabels: true, showGnss: true, showSats: false, showQuakes: true, showShips: true, showFires: false, showOutages: true, showConj: false, showSkies: true, showAirSt: false,
+  showAc: true, showLabels: true, showGnss: true, showSats: false, showQuakes: true, showShips: true, showFires: false, showOutages: true, showConj: false, showSkies: true, showAirSt: false, showAirLive: false,
   follow: null, trail: null, link: null,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
   ac: [], near: [], far: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
-  airSt: [], airFc: null, airLayers: null, airImg: 'off',
+  airSt: [], airFc: null, airLayers: null, airImg: 'off', airLive: null, airLvSt: new Map(),
   view: { name: 'home' },
   map: null,
 };
-const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies: 'showSkies', sats: 'showSats', conj: 'showConj', ships: 'showShips', quakes: 'showQuakes', fires: 'showFires', outages: 'showOutages', airst: 'showAirSt' };
+const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies: 'showSkies', sats: 'showSats', conj: 'showConj', ships: 'showShips', quakes: 'showQuakes', fires: 'showFires', outages: 'showOutages', airst: 'showAirSt', airlive: 'showAirLive' };
 try { const saved = JSON.parse(store.get('layers', '{}')); for (const [k, f] of Object.entries(LAYER_OPTS)) if (typeof saved[k] === 'boolean') S[f] = saved[k]; } catch { /* nothing saved yet */ }
 const saveLayers = () => store.set('layers', JSON.stringify(Object.fromEntries(Object.entries(LAYER_OPTS).map(([k, f]) => [k, S[f]]))));
 // A link straight to one item on the map, e.g. openeye.co.il/#ac-4x1234 or #ship-123456789 (like the leading sites do).
-const readLink = () => { const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc|airst)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; return !!m; };
+const readLink = () => { const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc|airst|airlv)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; return !!m; };
 readLink();
 // a link opened while the site is already open in this tab changes only the address after the #
 addEventListener('hashchange', () => { if (readLink()) openLink(); });
@@ -130,6 +130,36 @@ async function refreshAir() {
   if (fc) S.airFc = fc;
   if (ly) S.airLayers = ly.layers;
   drawAirSt(); applyAirImg(); applyLang(); render(); openLink();
+}
+// Live readings (our function 'airlive', which passes them on without storing them):
+//  official stations of the Ministry of Environmental Protection, through the World Air Quality Index project (WAQI),
+//  with the index on the US EPA scale; and volunteers' home particle sensors (Sensor.Community), whose PM2.5 reading
+//  is turned into the same index with the EPA's 2024 table, so both are coloured the same way.
+const AIRLIVE_URL = CFG.api.replace('/rest/v1', '/functions/v1/airlive');
+const AQI_COLS = ['#00E400', '#FFFF00', '#FF7E00', '#FF0000', '#8F3F97', '#7E0023'];
+const aqiCat = (v) => (v == null ? -1 : v <= 50 ? 0 : v <= 100 ? 1 : v <= 150 ? 2 : v <= 200 ? 3 : v <= 300 ? 4 : 5);
+function pm25Aqi(c) {
+  const T = [[0, 9, 0, 50], [9.1, 35.4, 51, 100], [35.5, 55.4, 101, 150], [55.5, 125.4, 151, 200], [125.5, 225.4, 201, 300], [225.5, 325.4, 301, 500]];
+  const x = Math.floor(c * 10) / 10;
+  const r = T.find((b) => x <= b[1]) || T[T.length - 1];
+  return Math.round(Math.min(500, ((r[3] - r[2]) / (r[1] - r[0])) * (Math.max(x, r[0]) - r[0]) + r[2]));
+}
+const airLvItems = () => {
+  const a = S.airLive; if (!a) return [];
+  return (a.waqi || []).filter((x) => x.aqi != null).map((x) => ({ ...x, id: 'w' + x.uid, kind: 'w' }))
+    .concat((a.sc || []).map((x) => ({ ...x, id: 's' + x.id, kind: 's', aqi: pm25Aqi(x.pm25) })));
+};
+async function refreshAirLive() {
+  try {
+    const r = await fetch(AIRLIVE_URL, { credentials: 'omit' });
+    if (r.ok) S.airLive = await r.json();
+  } catch { /* keep the last readings */ }
+  drawAirLive(); render(); openLink();
+}
+function drawAirLive() {
+  const m = S.map; if (!m || !m.getSource('airlive')) return;
+  m.getSource('airlive').setData({ type: 'FeatureCollection', features: airLvItems().map((x) => (
+    { type: 'Feature', geometry: { type: 'Point', coordinates: [x.lon, x.lat] }, properties: { id: x.id, kind: x.kind, aqi: x.aqi, col: AQI_COLS[aqiCat(x.aqi)] || '#999' } })) });
 }
 function drawAirSt() {
   const m = S.map; if (!m || !m.getSource('airst')) return;
@@ -485,6 +515,16 @@ function addOverlay() {
   m.addLayer({ id: 'airst', type: 'circle', source: 'airst',
     paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 3, 8, 5, 11, 7], 'circle-color': c.air, 'circle-opacity': 0.9,
       'circle-stroke-color': c.halo, 'circle-stroke-width': 1.2 } });
+  m.addSource('airlive', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'airlive-sel', type: 'circle', source: 'airlive', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 14, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
+  m.addLayer({ id: 'airlive', type: 'circle', source: 'airlive',
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, ['case', ['==', ['get', 'kind'], 'w'], 5, 3.5], 9, ['case', ['==', ['get', 'kind'], 'w'], 9, 6]],
+      'circle-color': ['get', 'col'], 'circle-opacity': 0.92, 'circle-stroke-color': ['case', ['==', ['get', 'kind'], 'w'], c.ink, c.halo],
+      'circle-stroke-width': ['case', ['==', ['get', 'kind'], 'w'], 1.4, 1] } });
+  m.addLayer({ id: 'airlive-num', type: 'symbol', source: 'airlive', minzoom: 8, filter: ['==', ['get', 'kind'], 'w'],
+    layout: { 'text-field': ['to-string', ['get', 'aqi']], 'text-font': ['Noto Sans Medium'], 'text-size': 10.5, 'text-offset': [0, 1.4], 'text-allow-overlap': false },
+    paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.4 } });
   m.addSource('quakes', { type: 'geojson', data: empty });
   m.addLayer({ id: 'quakes', type: 'circle', source: 'quakes',
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'mag'], 2.5, 5, 4, 11, 6, 24],
@@ -553,7 +593,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); drawAirSt(); tickSats(); drawTrail();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); drawAirSt(); drawAirLive(); tickSats(); drawTrail();
 }
 
 /* ---------- the selected aircraft: its path, following it, and a link to it ---------- */
@@ -600,15 +640,16 @@ function openLink() {
     : k.name === 'sat' ? S.sats.find((x) => String(x.id) === k.id) : k.name === 'quake' ? S.quakes.find((x) => String(x.id) === k.id)
     : k.name === 'fire' ? S.fires.find((x) => String(x.id) === k.id) : k.name === 'outage' ? S.outages.find((x) => String(x.id) === k.id)
     : k.name === 'conj' ? S.conj.find((x) => String(x.id) === k.id) : k.name === 'skyc' ? S.skies && (k.id === 'ALL' || S.skies.areas.some((x) => x.code === k.id))
-    : k.name === 'airst' ? S.airSt.find((x) => x.id === k.id) : null;
+    : k.name === 'airst' ? S.airSt.find((x) => x.id === k.id) : k.name === 'airlv' ? airLvItems().find((x) => x.id === k.id) : null;
   if (!ok) return;
   S.link = null;
   if (k.name === 'sat' && !S.showSats) { S.showSats = true; $('#opt-sats').checked = true; applyLayerOptions(); scanSats(); }
   if (k.name === 'conj' && !S.showConj) { S.showConj = true; $('#opt-conj').checked = true; }
   if (k.name === 'fire' && !S.showFires) { S.showFires = true; $('#opt-fires').checked = true; }
   if (k.name === 'airst' && !S.showAirSt) { S.showAirSt = true; $('#opt-airst').checked = true; }
+  if (k.name === 'airlv' && !S.showAirLive) { S.showAirLive = true; $('#opt-airlive').checked = true; }
   go(k.name === 'ac' ? { name: 'ac', hex: ok.hex, brief: true, from: { name: 'home' } } : { name: k.name, id: k.name === 'ship' ? String(ok.mmsi) : k.name === 'skyc' ? k.id : ok.id, brief: true, from: { name: 'home' } });
-  if (k.name === 'ac' || k.name === 'ship' || k.name === 'airst') flyTo(ok, k.name === 'airst' ? 9 : 7);
+  if (k.name === 'ac' || k.name === 'ship' || k.name === 'airst' || k.name === 'airlv') flyTo(ok, k.name.startsWith('air') ? 9 : 7);
 }
 async function copyLink() {
   const L = t(), url = location.origin + location.pathname + location.hash;
@@ -648,6 +689,8 @@ function applyLayerOptions() {
   m.setFilter('fire-sel', ['==', ['get', 'id'], S.view.name === 'fire' ? S.view.id : '']);
   for (const id of ['airst', 'airst-sel']) m.setLayoutProperty(id, 'visibility', S.showAirSt ? 'visible' : 'none');
   m.setFilter('airst-sel', ['==', ['get', 'id'], S.view.name === 'airst' ? S.view.id : '']);
+  for (const id of ['airlive', 'airlive-num', 'airlive-sel']) m.setLayoutProperty(id, 'visibility', S.showAirLive ? 'visible' : 'none');
+  m.setFilter('airlive-sel', ['==', ['get', 'id'], S.view.name === 'airlv' ? S.view.id : '']);
   applyImagery(); applyAirImg();
 }
 
@@ -756,7 +799,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
-const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc', 'airst'];
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc', 'airst', 'airlv'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -803,7 +846,8 @@ function initMap() {
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
       const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
       const sky = !ship && !sat && !qk && !fire && !cut ? pick('skies', box) : null;
-      const ast = !ship && !cj && !sat && !qk && !fire && !cut && !sky ? pick('airst', box) : null;
+      const alv = !ship && !cj && !sat && !qk && !fire && !cut && !sky ? pick('airlive', box) : null;
+      const ast = !ship && !cj && !sat && !qk && !fire && !cut && !sky && !alv ? pick('airst', box) : null;
       if (ship) go({ name: 'ship', id: ship.properties.id, brief: true, from });
       else if (cj) go({ name: 'conj', id: cj.properties.id, brief: true, from });
       else if (sat) go({ name: 'sat', id: sat.properties.id, brief: true, from });
@@ -811,6 +855,7 @@ function initMap() {
       else if (fire) go({ name: 'fire', id: fire.properties.id, brief: true, from });
       else if (cut) go({ name: 'outage', id: cut.properties.id, brief: true, from });
       else if (sky) go({ name: 'skyc', id: sky.properties.id, brief: true, from });
+      else if (alv) go({ name: 'airlv', id: alv.properties.id, brief: true, from });
       else if (ast) go({ name: 'airst', id: ast.properties.id, brief: true, from });
       else if (DETAIL_VIEWS.includes(S.view.name)) {
         const to = (S.view.brief ? S.view.from : null) || S.view.from || { name: 'home' };
@@ -825,7 +870,7 @@ function initMap() {
 
 // With a mouse: the pointer turns into a hand over anything that can be clicked, and a short label shows what it is
 // (the leading flight and ship maps do the same), so the map itself tells the user what is clickable.
-const HOVER_LAYERS = ['ac', 'ships', 'conj', 'sats', 'quakes', 'fires', 'outages', 'skies', 'airst'];
+const HOVER_LAYERS = ['ac', 'ships', 'conj', 'sats', 'quakes', 'fires', 'outages', 'skies', 'airlive', 'airst'];
 function hoverTip(p) {
   const m = S.map, tip = $('#tip');
   if (!p || !m) { tip.hidden = true; if (m) m.getCanvas().style.cursor = ''; return; }
@@ -853,6 +898,7 @@ function hoverText(f) {
     case 'outages': { const e = S.outages.find((x) => String(x.id) === String(id)); return e ? outagePlace(e) : L.outage; }
     case 'skies': return skyName(id);
     case 'conj': return L.conj;
+    case 'airlive': { const x = airLvItems().find((v) => v.id === String(id)); return x ? `${airLvName(x)}, ${L.aqiShort} ${x.aqi}` : L.airLive; }
     case 'airst': { const x = S.airSt.find((v) => v.id === String(id)); return x ? x.name : L.airSt; }
     default: return null;
   }
@@ -1163,6 +1209,10 @@ function viewAir() {
     out.push(h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${col};border-color:${c.line}` }), `${r.code ? airRegion(r) : r.name}: ${airLevel(r.level)}`));
   }
   out.push(h('h3', { class: 'sub' }, L.airOnMap));
+  const lv = airLvItems(), nw = lv.filter((x) => x.kind === 'w').length, ns = lv.length - nw;
+  out.push(row(S.showAirLive ? c.air : c.alt[2], L.airLive, [S.airLive ? L.airLvCount(nw, ns) : L.loading, S.showAirLive ? L.airLvShown : L.airLvHidden].join(' '), () => {
+    S.showAirLive = !S.showAirLive; $('#opt-airlive').checked = S.showAirLive; saveLayers(); applyLayerOptions(); drawLegend(); render();
+  }));
   out.push(row(S.showAirSt ? c.air : c.alt[2], L.optAirSt, S.showAirSt ? L.airStShown(S.airSt.length) : L.airStHidden(S.airSt.length), () => {
     S.showAirSt = !S.showAirSt; $('#opt-airst').checked = S.showAirSt; saveLayers(); applyLayerOptions(); drawLegend(); render();
   }));
@@ -1182,6 +1232,30 @@ function airImgName(k) {
   return L.airImg[k](day);
 }
 const AIR_WEATHER = ['WS', 'WD', 'TEMP', 'RH', 'PREC', 'BP'];
+const airLvName = (x) => (x.kind === 'w' ? x.name.replace(/,\s*Israel$/i, '') || t().airLvOfficial : t().airLvSensor);
+const airLvIndexLine = (x) => { const L = t(); return h('span', null, h('i', { class: 'swatch', style: `display:inline-block;vertical-align:-3px;margin-inline-end:6px;background:${AQI_COLS[aqiCat(x.aqi)]};border-color:${T().line}` }), `${L.aqiShort} ${x.aqi}: ${L.aqiCats[aqiCat(x.aqi)]}.`); };
+const airLvPm = (x) => { const L = t(); return [`${L.aqiPol.pm25}: ${L.ugm(x.pm25)}.`, x.pm10 != null ? `${L.aqiPol.pm10}: ${L.ugm(x.pm10)}.` : null].filter(Boolean).join(' '); };
+function viewAirLv(id) {
+  const L = t(), x = airLvItems().find((v) => v.id === id);
+  if (!x) return [detailHead(L.airLive), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (k, v) => { if (v != null && v !== '') facts.push(h('dt', null, k), h('dd', null, v)); };
+  add(L.aqiShort, airLvIndexLine(x));
+  if (x.kind === 's') { add(L.aqiPol.pm25, L.ugm(x.pm25)); if (x.pm10 != null) add(L.aqiPol.pm10, L.ugm(x.pm10)); }
+  if (x.kind === 'w') {
+    const d = S.airLvSt.get(x.uid);
+    if (d === undefined) {
+      S.airLvSt.set(x.uid, null);
+      fetch(AIRLIVE_URL + '?uid=' + x.uid, { credentials: 'omit' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && !j.error) { S.airLvSt.set(x.uid, j); render(); } }).catch(() => {});
+    }
+    if (d && d.pol) add(L.airLvMain, L.aqiPol[d.pol] || d.pol);
+    if (d) for (const [k, v] of Object.entries(d.iaqi)) if (L.aqiPol[k]) add(L.aqiPol[k], `${L.aqiShort} ${v}`);
+  }
+  add(L.fSeen, x.t ? L.ago(secAgo(x.t)) : null);
+  add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  return [detailHead(airLvName(x), x.kind === 'w' ? L.airLvOfficial : null), h('dl', { class: 'facts' }, facts),
+    h('p', { class: 'note' }, x.kind === 'w' ? L.airLvNoteW : L.airLvNoteS), h('p', { class: 'note' }, L.aqiNote)];
+}
 function viewAirSt(id) {
   const L = t(), x = S.airSt.find((v) => v.id === id);
   if (!x) return [detailHead(L.airSt), h('p', { class: 'note' }, L.gone)];
@@ -1335,7 +1409,7 @@ function render() {
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
     : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : v.name === 'skies' ? viewSkies() : v.name === 'skyc' ? viewSkyArea(v.id)
-    : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : v.name === 'air' ? viewAir() : v.name === 'airst' ? viewAirSt(v.id) : viewHome();
+    : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : v.name === 'air' ? viewAir() : v.name === 'airst' ? viewAirSt(v.id) : v.name === 'airlv' ? viewAirLv(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -1382,6 +1456,13 @@ function viewBrief(v) {
     if (!a) return null;
     title = [skyName(v.id), a.drop ? tag(L.skDrop, true) : null];
     lines.push(a.base == null ? L.skiesRowNoBase(a.now) : L.skiesRow(a.now, Math.round(a.base)));
+  } else if (v.name === 'airlv') {
+    const x = airLvItems().find((s) => s.id === v.id);
+    if (!x) return null;
+    title = [airLvName(x), x.kind === 'w' ? tag(L.airLvOfficial) : null];
+    lines.push(airLvIndexLine(x));
+    if (x.kind === 's') lines.push(airLvPm(x));
+    if (x.t) lines.push(`${L.fSeen}: ${L.ago(secAgo(x.t))}.`);
   } else if (v.name === 'airst') {
     const x = S.airSt.find((s) => s.id === v.id);
     if (!x) return null;
@@ -1475,6 +1556,7 @@ function drawLegend() {
   const ak = S.airImg !== 'off' ? airKey() : null;
   const grad = ak ? `linear-gradient(to ${L.dir === 'rtl' ? 'left' : 'right'},${ak.stops.map((s) => `rgb(${s.join(',')})`).join(',')})` : '';
   $('#legend').replaceChildren(
+    ...(S.showAirLive ? [h('span', { class: 'key-row air-key' }, L.aqiShort + ':', h('span', null, L.aqiCats[0]), ...AQI_COLS.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.aqiCats[5]))] : []),
     ...(ak ? [h('span', { class: 'key-row air-key' }, L.airShort[S.airImg] + ':', h('span', null, L.low), h('i', { class: 'grad', style: 'background:' + grad }), h('span', null, L.high))] : []),
     h('span', { class: 'key-row' }, L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high),
       items.length ? svg(open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6', 'chev') : null),
@@ -1591,6 +1673,7 @@ function wire() {
   $('#opt-outages').addEventListener('change', (e) => { S.showOutages = e.target.checked; applyLayerOptions(); });
   $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
   $('#opt-airst').addEventListener('change', (e) => { S.showAirSt = e.target.checked; applyLayerOptions(); render(); });
+  $('#opt-airlive').addEventListener('change', (e) => { S.showAirLive = e.target.checked; applyLayerOptions(); render(); });
   document.querySelectorAll('input[name=airimg]').forEach((r) => r.addEventListener('change', () => { if (r.checked) setAirImg(r.value); }));
   document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
   setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture
@@ -1618,7 +1701,7 @@ let secondaryStarted = false;
 function startSecondary() {
   if (secondaryStarted) return;
   secondaryStarted = true;
-  refreshSlow(); loadCatalogue(); refreshShips(); refreshAir();
+  refreshSlow(); loadCatalogue(); refreshShips(); refreshAir(); refreshAirLive();
 }
 setTimeout(startSecondary, 8000);   // in case the aircraft data is slow to arrive
 refresh();
@@ -1628,6 +1711,7 @@ setInterval(tickSats, 1000);
 setInterval(loadCatalogue, 3 * 3600 * 1000);
 setInterval(refreshShips, 60 * 1000);
 setInterval(() => { if (!document.hidden) refreshAir(); }, 30 * 60 * 1000);
+setInterval(() => { if (!document.hidden) refreshAirLive(); }, 5 * 60 * 1000);
 setInterval(scanSats, 10000);
 setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);
