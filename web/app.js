@@ -636,6 +636,7 @@ function drawAircraft() {
   for (const a of S.milw) push(a, isEmerg(a));   // military aircraft anywhere in the world
   for (const e of S.em) push(e, true);   // emergencies anywhere in the world
   m.getSource('ac').setData({ type: 'FeatureCollection', features: feats });
+  if (feats.length && !performance.getEntriesByName('oe-aircraft').length) m.once('render', () => performance.mark('oe-aircraft'));   // load-time measurement: first frame with aircraft
 }
 
 // Daily satellite photo of the whole Earth from NASA (GIBS service, VIIRS instrument on the NOAA-20 satellite).
@@ -715,7 +716,7 @@ function initMap() {
   m.on('style.load', addOverlay);
   m.on('moveend', () => { scanSats(); if (S.img === 'sharp' && sharpHere() !== sharpShown) applyImagery(); });
   // Until the first full drawing of the map, a small note says it is loading (on a slow phone connection this takes a few seconds).
-  m.once('idle', () => { $('#maploading').hidden = true; });
+  m.once('idle', () => { $('#maploading').hidden = true; performance.mark('oe-map-idle'); });
   setTimeout(() => { $('#maploading').hidden = true; }, 20000);
   m.on('dragstart', () => { if (S.follow) { S.follow = null; render(); } });   // moving the map by hand stops following an aircraft
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) m.on('mousemove', (ev) => hoverTip(ev.point));
