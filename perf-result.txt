@@ -1,61 +1,60 @@
 Biggest files on the first run:
-273 KB  at 672 ms  https://openeye.co.il/vendor/maplibre-gl.js
-147 KB  at 12219 ms  https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_debris.csv
-74 KB  at 8001 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/4864-5119.pbf
-71 KB  at 7967 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/1024-1279.pbf
-61 KB  at 7964 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/256-511.pbf
-59 KB  at 3801 ms  https://openeye.co.il/basemap-world.pmtiles
-58 KB  at 8009 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/4608-4863.pbf
-57 KB  at 2701 ms  https://openeye.co.il/ref/airlines.json
-56 KB  at 7978 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/1536-1791.pbf
-56 KB  at 7992 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/11520-11775.pbf
-56 KB  at 641 ms  https://openeye.co.il/fonts/Heebo.woff2
-55 KB  at 3803 ms  https://openeye.co.il/basemap-world.pmtiles
-54 KB  at 7971 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/512-767.pbf
-52 KB  at 7983 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Medium/1280-1535.pbf
-49 KB  at 4702 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Italic/0-255.pbf
-49 KB  at 7974 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/768-1023.pbf
-46 KB  at 4074 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Medium/0-255.pbf
-45 KB  at 7997 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/0-255.pbf
-45 KB  at 1018 ms  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
-45 KB  at 7988 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/64256-64511.pbf
+880 KB  at 11847 ms  https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_active.csv
+273 KB  at 1068 ms  https://openeye.co.il/vendor/maplibre-gl.js
+147 KB  at 10871 ms  https://raw.githubusercontent.com/elimarshak/tzofia/data/celestrak_debris.csv
+74 KB  at 8258 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/4864-5119.pbf
+70 KB  at 8239 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/1024-1279.pbf
+61 KB  at 8249 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/256-511.pbf
+59 KB  at 4373 ms  https://openeye.co.il/basemap-world.pmtiles
+58 KB  at 8242 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/4608-4863.pbf
+57 KB  at 3251 ms  https://openeye.co.il/ref/airlines.json
+56 KB  at 8245 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/1536-1791.pbf
+56 KB  at 8225 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/11520-11775.pbf
+56 KB  at 1394 ms  https://openeye.co.il/fonts/Heebo.woff2
+55 KB  at 4376 ms  https://openeye.co.il/basemap-world.pmtiles
+54 KB  at 8241 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/512-767.pbf
+52 KB  at 8211 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Medium/1280-1535.pbf
+49 KB  at 5741 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Italic/0-255.pbf
+49 KB  at 8212 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/768-1023.pbf
+46 KB  at 4643 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Medium/0-255.pbf
+45 KB  at 8203 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/0-255.pbf
+45 KB  at 8229 ms  https://openeye.co.il/assets/fonts/Noto%20Sans%20Regular/64256-64511.pbf
 
 Everything that arrived before the map finished drawing:
-287 ms  2 KB  https://openeye.co.il/
-375 ms  1 KB  https://openeye.co.il/config.js
-379 ms  2 KB  https://openeye.co.il/data.js
-380 ms  0 KB  https://openeye.co.il/early.js
-402 ms  3 KB  https://openeye.co.il/app.css
-404 ms  2 KB  https://openeye.co.il/regions.js
-407 ms  13 KB  https://openeye.co.il/i18n.js
-414 ms  10 KB  https://openeye.co.il/vendor/maplibre-gl.css
-489 ms  27 KB  https://openeye.co.il/app.js
-641 ms  56 KB  https://openeye.co.il/fonts/Heebo.woff2
-672 ms  273 KB  https://openeye.co.il/vendor/maplibre-gl.js
-997 ms  1 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/source_status?select=source,last_ok,last_error&source=eq.adsb
-998 ms  1 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/derived?select=key,data,computed_at&key=in.(gnss_grid)
-1002 ms  10 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
-1004 ms  3 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
-1005 ms  1 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,fi
-1018 ms  45 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
-1075 ms  8 KB  https://openeye.co.il/vendor/pmtiles.js
-1170 ms  7 KB  https://openeye.co.il/vendor/basemaps.js
-1250 ms  0 KB  https://openeye.co.il/basemap-info.js
-2686 ms  0 KB  blob:https://openeye.co.il/2d101cb5-dcd5-429c-ae07-e8ec975946cd
-2701 ms  57 KB  https://openeye.co.il/ref/airlines.json
-2708 ms  28 KB  https://openeye.co.il/assets/sprites/v4/light@2x.png
-2709 ms  1 KB  https://openeye.co.il/assets/sprites/v4/light@2x.json
-2936 ms  16 KB  https://openeye.co.il/basemap-region.pmtiles
-2938 ms  16 KB  https://openeye.co.il/basemap-world.pmtiles
-2939 ms  16 KB  https://openeye.co.il/basemap-detail.pmtiles
+691 ms  2 KB  https://openeye.co.il/
+796 ms  1 KB  https://openeye.co.il/config.js
+805 ms  3 KB  https://openeye.co.il/app.css
+823 ms  1 KB  https://openeye.co.il/data.js
+827 ms  13 KB  https://openeye.co.il/i18n.js
+831 ms  27 KB  https://openeye.co.il/app.js
+837 ms  10 KB  https://openeye.co.il/vendor/maplibre-gl.css
+921 ms  2 KB  https://openeye.co.il/regions.js
+923 ms  1 KB  https://openeye.co.il/early.js
+1068 ms  273 KB  https://openeye.co.il/vendor/maplibre-gl.js
+1394 ms  56 KB  https://openeye.co.il/fonts/Heebo.woff2
+1522 ms  8 KB  https://openeye.co.il/vendor/pmtiles.js
+1629 ms  7 KB  https://openeye.co.il/vendor/basemaps.js
+1704 ms  3 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
+1710 ms  0 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/source_status?select=source,last_ok,last_error&source=eq.adsb
+1712 ms  0 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,fi
+1716 ms  9 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
+1717 ms  1 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/derived?select=key,data,computed_at&key=in.(gnss_grid)
+1729 ms  0 KB  https://openeye.co.il/basemap-info.js
+3224 ms  0 KB  blob:https://openeye.co.il/3fb09e70-8e3d-4ef0-859c-76db418a77c9
+3231 ms  44 KB  https://wpnbzpulkyogdeuuqffh.supabase.co/rest/v1/aircraft_live?select=hex,flight,reg,ac_type,descr,operator,la
+3251 ms  57 KB  https://openeye.co.il/ref/airlines.json
+3254 ms  1 KB  https://openeye.co.il/assets/sprites/v4/light@2x.json
+3256 ms  28 KB  https://openeye.co.il/assets/sprites/v4/light@2x.png
+3502 ms  16 KB  https://openeye.co.il/basemap-region.pmtiles
+3504 ms  16 KB  https://openeye.co.il/basemap-world.pmtiles
 
 RESULTS (milliseconds from opening the address)
-┌─────────┬─────┬─────┬──────┬───────────────────┬──────────┬────────────┬─────────┬──────────┐
-│ (index) │ run │ fcp │ dcl  │ firstAircraftData │ mapDrawn │ kbUntilMap │ kbTotal │ requests │
-├─────────┼─────┼─────┼──────┼───────────────────┼──────────┼────────────┼─────────┼──────────┤
-│ 0       │ 1   │ 477 │ 1476 │ 1002              │ 3778     │ 600        │ 1785    │ 93       │
-│ 1       │ 2   │ 298 │ 1400 │ 897               │ 4112     │ 600        │ 959     │ 76       │
-│ 2       │ 3   │ 287 │ 1315 │ 845               │ 3628     │ 600        │ 1615    │ 76       │
-│ 3       │ 4   │ 414 │ 1497 │ 1016              │ 3873     │ 600        │ 1616    │ 76       │
-│ 4       │ 5   │ 294 │ 1347 │ 872               │ 3708     │ 601        │ 1616    │ 76       │
-└─────────┴─────┴─────┴──────┴───────────────────┴──────────┴────────────┴─────────┴──────────┘
+┌─────────┬─────┬─────┬──────┬───────────────────┬───────────────┬─────────┬──────────┬────────────────────────────────────────────────────────────────────────────────────┬────────────┬─────────┬──────────┐
+│ (index) │ run │ fcp │ dcl  │ firstAircraftData │ aircraftOnMap │ mapIdle │ mapDrawn │ waitErr                                                                            │ kbUntilMap │ kbTotal │ requests │
+├─────────┼─────┼─────┼──────┼───────────────────┼───────────────┼─────────┼──────────┼────────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────┼──────────┤
+│ 0       │ 1   │ 905 │ 1959 │ 1704              │ 2974          │ 0       │ 4353     │ 'Error: page.waitForFunction: EvalError: Refused to evaluate a string as JavaScri' │ 582        │ 2662    │ 94       │
+│ 1       │ 2   │ 334 │ 1484 │ 955               │ 2691          │ 0       │ 3882     │ 'Error: page.waitForFunction: EvalError: Refused to evaluate a string as JavaScri' │ 598        │ 1002    │ 77       │
+│ 2       │ 3   │ 324 │ 1379 │ 897               │ 2490          │ 0       │ 4045     │ 'Error: page.waitForFunction: EvalError: Refused to evaluate a string as JavaScri' │ 599        │ 1500    │ 87       │
+│ 3       │ 4   │ 572 │ 1401 │ 2648              │ 3023          │ 0       │ 3830     │ 'Error: page.waitForFunction: EvalError: Refused to evaluate a string as JavaScri' │ 601        │ 1614    │ 74       │
+│ 4       │ 5   │ 295 │ 1363 │ 490               │ 2361          │ 0       │ 3657     │ 'Error: page.waitForFunction: EvalError: Refused to evaluate a string as JavaScri' │ 602        │ 1633    │ 87       │
+└─────────┴─────┴─────┴──────┴───────────────────┴───────────────┴─────────┴──────────┴────────────────────────────────────────────────────────────────────────────────────┴────────────┴─────────┴──────────┘
