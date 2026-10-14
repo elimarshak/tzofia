@@ -1557,7 +1557,6 @@ function drawLegend() {
     S.showGnss ? sym(`background:${c.warn};opacity:.5`, L.gnss) : null,
     S.showSkies ? sym(`border:2px solid ${c.warn};border-radius:50%;background:none`, L.skies) : null,
     S.showShips ? sym(`background:${c.ship};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.ships) : null,
-    S.showShips && S.ships.some(homeShip) ? sym(`background:${c.shipHome};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.shipsHome) : null,
     S.showQuakes ? sym(`border:1.6px solid ${c.accent};border-radius:50%;background:none`, L.quakes) : null,
     S.showOutages ? sym(`border:2px solid ${c.ink};border-radius:50%;background:none`, L.outages) : null,
     S.showFires ? sym(`background:${c.fire};border-radius:50%;inline-size:8px;block-size:8px`, L.fires) : null,
