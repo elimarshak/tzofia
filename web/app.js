@@ -16,20 +16,21 @@ const S = {
   // Layers shown when the site opens. Like the leading live maps, it opens with the core picture (aircraft, ships and the
   // unusual signals) and leaves the dense layers (satellites, close approaches in space, thermal hotspots) for the user
   // to turn on. Whatever the user turns on or off is remembered on their device.
-  showAc: true, showLabels: true, showGnss: true, showSats: false, showQuakes: true, showShips: true, showFires: false, showOutages: true, showConj: false, showSkies: true,
+  showAc: true, showLabels: true, showGnss: true, showSats: false, showQuakes: true, showShips: true, showFires: false, showOutages: true, showConj: false, showSkies: true, showAirSt: false,
   follow: null, trail: null, link: null,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
   ac: [], near: [], far: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
+  airSt: [], airFc: null, airLayers: null, airImg: 'off',
   view: { name: 'home' },
   map: null,
 };
-const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies: 'showSkies', sats: 'showSats', conj: 'showConj', ships: 'showShips', quakes: 'showQuakes', fires: 'showFires', outages: 'showOutages' };
+const LAYER_OPTS = { ac: 'showAc', labels: 'showLabels', gnss: 'showGnss', skies: 'showSkies', sats: 'showSats', conj: 'showConj', ships: 'showShips', quakes: 'showQuakes', fires: 'showFires', outages: 'showOutages', airst: 'showAirSt' };
 try { const saved = JSON.parse(store.get('layers', '{}')); for (const [k, f] of Object.entries(LAYER_OPTS)) if (typeof saved[k] === 'boolean') S[f] = saved[k]; } catch { /* nothing saved yet */ }
 const saveLayers = () => store.set('layers', JSON.stringify(Object.fromEntries(Object.entries(LAYER_OPTS).map(([k, f]) => [k, S[f]]))));
 // A link straight to one item on the map, e.g. openeye.co.il/#ac-4x1234 or #ship-123456789 (like the leading sites do).
-const readLink = () => { const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; return !!m; };
+const readLink = () => { const m = /^#(ac|ship|sat|quake|fire|outage|conj|skyc|airst)-([\w.~-]{1,40})$/.exec(location.hash); if (m) S.link = { name: m[1], id: decodeURIComponent(m[2]) }; return !!m; };
 readLink();
 // a link opened while the site is already open in this tab changes only the address after the #
 addEventListener('hashchange', () => { if (readLink()) openLink(); });
@@ -117,6 +118,23 @@ async function refreshSlow() {
     if ((S.outages.length || S.skies) && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
   } catch { /* keep what we have */ }
   drawQuakes(); drawFires(); drawOutages(); drawSkies(); tickSats(); render();
+}
+
+/* ---------- air quality (every 30 minutes) ---------- */
+// Our own copies on the data branch (tools/fetch_air.py, tools/build_air_legends.py, every 2 hours):
+// the Ministry of Environmental Protection's monitoring stations and forecast, and which of NASA's pictures is newest.
+async function refreshAir() {
+  const get = async (name) => { try { const r = await fetch(DATA + name, { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [st, fc, ly] = await Promise.all([get('air_stations.json'), get('air_forecast.json'), get('air_layers.json')]);
+  if (st) S.airSt = st.stations.map((x) => ({ ...x, id: String(x.id) }));
+  if (fc) S.airFc = fc;
+  if (ly) S.airLayers = ly.layers;
+  drawAirSt(); applyAirImg(); applyLang(); render(); openLink();
+}
+function drawAirSt() {
+  const m = S.map; if (!m || !m.getSource('airst')) return;
+  m.getSource('airst').setData({ type: 'FeatureCollection', features: S.airSt.map((x) => (
+    { type: 'Feature', geometry: { type: 'Point', coordinates: [x.lon, x.lat] }, properties: { id: x.id } })) });
 }
 
 // Satellites: the whole public catalogue (our own copy, refreshed every 3 hours by our workflow) is loaded
@@ -461,6 +479,12 @@ function addOverlay() {
   m.addLayer({ id: 'gnss', type: 'fill', source: 'gnss',
     paint: { 'fill-color': c.warn, 'fill-opacity': ['case', ['==', ['get', 'level'], 2], 0.42, 0.17], 'fill-outline-color': c.warn } });
   const empty = { type: 'FeatureCollection', features: [] };
+  m.addSource('airst', { type: 'geojson', data: empty });
+  m.addLayer({ id: 'airst-sel', type: 'circle', source: 'airst', filter: ['==', ['get', 'id'], ''],
+    paint: { 'circle-radius': 11, 'circle-color': c.accent, 'circle-opacity': 0.22, 'circle-stroke-color': c.accent, 'circle-stroke-width': 2 } });
+  m.addLayer({ id: 'airst', type: 'circle', source: 'airst',
+    paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 3, 8, 5, 11, 7], 'circle-color': c.air, 'circle-opacity': 0.9,
+      'circle-stroke-color': c.halo, 'circle-stroke-width': 1.2 } });
   m.addSource('quakes', { type: 'geojson', data: empty });
   m.addLayer({ id: 'quakes', type: 'circle', source: 'quakes',
     paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'mag'], 2.5, 5, 4, 11, 6, 24],
@@ -529,7 +553,7 @@ function addOverlay() {
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); tickSats(); drawTrail();
+  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); drawAirSt(); tickSats(); drawTrail();
 }
 
 /* ---------- the selected aircraft: its path, following it, and a link to it ---------- */
@@ -575,14 +599,16 @@ function openLink() {
   const ok = k.name === 'ac' ? findAc(k.id) : k.name === 'ship' ? S.ships.find((s) => String(s.mmsi) === k.id)
     : k.name === 'sat' ? S.sats.find((x) => String(x.id) === k.id) : k.name === 'quake' ? S.quakes.find((x) => String(x.id) === k.id)
     : k.name === 'fire' ? S.fires.find((x) => String(x.id) === k.id) : k.name === 'outage' ? S.outages.find((x) => String(x.id) === k.id)
-    : k.name === 'conj' ? S.conj.find((x) => String(x.id) === k.id) : k.name === 'skyc' ? S.skies && (k.id === 'ALL' || S.skies.areas.some((x) => x.code === k.id)) : null;
+    : k.name === 'conj' ? S.conj.find((x) => String(x.id) === k.id) : k.name === 'skyc' ? S.skies && (k.id === 'ALL' || S.skies.areas.some((x) => x.code === k.id))
+    : k.name === 'airst' ? S.airSt.find((x) => x.id === k.id) : null;
   if (!ok) return;
   S.link = null;
   if (k.name === 'sat' && !S.showSats) { S.showSats = true; $('#opt-sats').checked = true; applyLayerOptions(); scanSats(); }
   if (k.name === 'conj' && !S.showConj) { S.showConj = true; $('#opt-conj').checked = true; }
   if (k.name === 'fire' && !S.showFires) { S.showFires = true; $('#opt-fires').checked = true; }
+  if (k.name === 'airst' && !S.showAirSt) { S.showAirSt = true; $('#opt-airst').checked = true; }
   go(k.name === 'ac' ? { name: 'ac', hex: ok.hex, brief: true, from: { name: 'home' } } : { name: k.name, id: k.name === 'ship' ? String(ok.mmsi) : k.name === 'skyc' ? k.id : ok.id, brief: true, from: { name: 'home' } });
-  if (k.name === 'ac' || k.name === 'ship') flyTo(ok, 7);
+  if (k.name === 'ac' || k.name === 'ship' || k.name === 'airst') flyTo(ok, k.name === 'airst' ? 9 : 7);
 }
 async function copyLink() {
   const L = t(), url = location.origin + location.pathname + location.hash;
@@ -620,7 +646,9 @@ function applyLayerOptions() {
   m.setFilter('conj-sel', ['==', ['get', 'id'], S.view.name === 'conj' ? S.view.id : '']);
   m.setFilter('ship-sel', ['==', ['get', 'id'], S.view.name === 'ship' ? S.view.id : '']);
   m.setFilter('fire-sel', ['==', ['get', 'id'], S.view.name === 'fire' ? S.view.id : '']);
-  applyImagery();
+  for (const id of ['airst', 'airst-sel']) m.setLayoutProperty(id, 'visibility', S.showAirSt ? 'visible' : 'none');
+  m.setFilter('airst-sel', ['==', ['get', 'id'], S.view.name === 'airst' ? S.view.id : '']);
+  applyImagery(); applyAirImg();
 }
 
 function drawAircraft() {
@@ -686,6 +714,37 @@ function applyImagery() {
   for (const l of layers) if (l.type === 'fill' && ids.has(l.source)) m.setLayoutProperty(l.id, 'visibility', hide ? 'none' : 'visible');
 }
 
+// Air pollution over the map, one picture at a time (menu 'שכבות'), drawn over the land and sea but under the place names:
+//  'no2', 'so2', 'dust' - NASA's daily pictures (GIBS): nitrogen dioxide and sulphur dioxide from the TROPOMI instrument
+//                         on Sentinel-5P, and the haze of dust and smoke (aerosol optical depth) from VIIRS on NOAA-20
+//  'pm25' - the CAMS air-quality forecast (Copernicus, ECMWF) of fine particles near the ground for the current hour,
+//           through our own function, since ECMWF's service does not let other sites use its tiles directly
+const CAMS_URL = CFG.api.replace('/rest/v1', '/functions/v1/cams');
+// the key of the CAMS picture ('Reds' style of ECMWF, 0 to 40 micrograms per cubic metre)
+const CAMS_KEY = { stops: [[255, 245, 240], [254, 224, 210], [252, 187, 161], [252, 146, 114], [251, 106, 74], [239, 59, 44], [203, 24, 29], [165, 15, 21], [103, 0, 13]], first: '0', last: '40', units: 'µg/m³' };
+const camsHour = () => { const d = new Date(); d.setUTCMinutes(0, 0, 0); return d.toISOString().replace('.000Z', 'Z'); };
+function airSource() {
+  if (S.airImg === 'pm25') return { key: 'pm25-' + camsHour(), type: 'raster', tileSize: 256, maxzoom: 8, bounds: [-25, 30, 45, 72],
+    tiles: [CAMS_URL + '?l=pm25&t=' + camsHour() + '&bbox={bbox-epsg-3857}'] };
+  const g = S.airLayers && S.airLayers[S.airImg];
+  return g ? { key: S.airImg + '-' + g.day, type: 'raster', tileSize: 256, maxzoom: g.maxzoom, tiles: [g.tiles] } : null;
+}
+const airKey = () => (S.airImg === 'pm25' ? CAMS_KEY : S.airLayers && S.airLayers[S.airImg] ? S.airLayers[S.airImg].key : null);
+let airImgKey = '';
+function applyAirImg() {
+  const m = S.map; if (!m || !m.getLayer('ac')) return;
+  const src = S.airImg !== 'off' ? airSource() : null;
+  if (m.getLayer('airimg') && (!src || src.key !== airImgKey)) { m.removeLayer('airimg'); m.removeSource('airimg'); }
+  if (src && !m.getSource('airimg')) {
+    const { key, ...def } = src; airImgKey = key;
+    m.addSource('airimg', def);
+    const label = m.getStyle().layers.find((l) => l.type === 'symbol');   // under the first place name of the base map
+    m.addLayer({ id: 'airimg', type: 'raster', source: 'airimg', paint: { 'raster-opacity': 0.75 } }, label ? label.id : undefined);
+  }
+  drawLegend();
+}
+setInterval(() => { if (S.airImg === 'pm25' && !document.hidden) applyAirImg(); }, 5 * 60 * 1000);   // the next hour of the forecast
+
 function drawGnss() {
   const m = S.map; if (!m || !m.getSource('gnss')) return;
   const g = S.gnss, dy = g ? g.dlat : 0, dx = g ? g.dlon : 0;
@@ -697,7 +756,7 @@ function drawGnss() {
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
 }
 
-const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc'];
+const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc', 'airst'];
 function initMap() {
   const protocol = new pmtiles.Protocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
@@ -744,6 +803,7 @@ function initMap() {
       const fire = !ship && !sat && !qk ? pick('fires', box) : null;
       const cut = !ship && !sat && !qk && !fire ? pick('outages', box) : null;
       const sky = !ship && !sat && !qk && !fire && !cut ? pick('skies', box) : null;
+      const ast = !ship && !cj && !sat && !qk && !fire && !cut && !sky ? pick('airst', box) : null;
       if (ship) go({ name: 'ship', id: ship.properties.id, brief: true, from });
       else if (cj) go({ name: 'conj', id: cj.properties.id, brief: true, from });
       else if (sat) go({ name: 'sat', id: sat.properties.id, brief: true, from });
@@ -751,6 +811,7 @@ function initMap() {
       else if (fire) go({ name: 'fire', id: fire.properties.id, brief: true, from });
       else if (cut) go({ name: 'outage', id: cut.properties.id, brief: true, from });
       else if (sky) go({ name: 'skyc', id: sky.properties.id, brief: true, from });
+      else if (ast) go({ name: 'airst', id: ast.properties.id, brief: true, from });
       else if (DETAIL_VIEWS.includes(S.view.name)) {
         const to = (S.view.brief ? S.view.from : null) || S.view.from || { name: 'home' };
         S.follow = null;
@@ -764,7 +825,7 @@ function initMap() {
 
 // With a mouse: the pointer turns into a hand over anything that can be clicked, and a short label shows what it is
 // (the leading flight and ship maps do the same), so the map itself tells the user what is clickable.
-const HOVER_LAYERS = ['ac', 'ships', 'conj', 'sats', 'quakes', 'fires', 'outages', 'skies'];
+const HOVER_LAYERS = ['ac', 'ships', 'conj', 'sats', 'quakes', 'fires', 'outages', 'skies', 'airst'];
 function hoverTip(p) {
   const m = S.map, tip = $('#tip');
   if (!p || !m) { tip.hidden = true; if (m) m.getCanvas().style.cursor = ''; return; }
@@ -792,6 +853,7 @@ function hoverText(f) {
     case 'outages': { const e = S.outages.find((x) => String(x.id) === String(id)); return e ? outagePlace(e) : L.outage; }
     case 'skies': return skyName(id);
     case 'conj': return L.conj;
+    case 'airst': { const x = S.airSt.find((v) => v.id === String(id)); return x ? x.name : L.airSt; }
     default: return null;
   }
 }
@@ -864,6 +926,7 @@ function viewHome() {
     row(S.quakes.length ? c.accent : c.alt[2], L.quakes, quakeSummary(), () => go({ name: 'quakes' })),
     row(S.outages.some((e) => !e.end) ? c.warn : c.alt[2], L.outages, outageSummary(), () => go({ name: 'outages' })),
     row(skiesFlagged().length ? c.warn : c.alt[2], L.skies, skiesSummary(), () => go({ name: 'skies' })),
+    row(airWarn() ? c.warn : c.alt[2], L.air, airSummary(), () => go({ name: 'air' })),
     row(c.alt[2], L.milw, L.milwCount(S.milw.length), () => go({ name: 'milw' })),
     row(S.imgOver.length ? c.accent : c.alt[2], L.imgSats, imgSummary(), () => go({ name: 'imgsats' })),
     row(S.conj.length ? c.warn : c.alt[2], L.conjs, conjSummary(), () => go({ name: 'conjs' })),
@@ -1046,6 +1109,97 @@ function viewSkyArea(code) {
   add(L.skDays, L.days(k.days));
   return [detailHead(skyName(code), a.drop ? L.skDrop : null), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.skiesNote)];
 }
+// The Ministry's forecast: the level for each region (one of its fixed words) and the texts by time of day.
+const AIR_LEVELS = ['נמוכה', 'בינונית', 'גבוהה', 'גבוהה מאוד'];
+const airRank = (lv) => AIR_LEVELS.indexOf(lv);
+const airLevel = (lv) => (S.lang === 'he' ? lv : t().airLevels[airRank(lv)] || lv);
+const airRegion = (r) => (S.lang === 'he' ? r.name : t().airRegions[r.code] || r.name);
+const airFresh = () => S.airFc && Date.now() - Date.parse(S.airFc.fetched_at) < 12 * 3600 * 1000;
+const airWarn = () => airFresh() && S.airFc.warning && S.airFc.warning.show;
+function airSummary() {
+  const L = t();
+  if (!S.airFc) return L.loading;
+  if (!airFresh()) return L.airStale;
+  if (airWarn()) return L.airWarnOn;
+  const regs = S.airFc.regions.filter((r) => r.level);
+  if (!regs.length) return L.airStale;
+  const count = {}; for (const r of regs) count[r.level] = (count[r.level] || 0) + 1;
+  const common = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
+  const top = regs.reduce((a, r) => (airRank(r.level) > airRank(a) ? r.level : a), common);
+  if (count[common] === regs.length) return L.airAll(airLevel(common));
+  const topNames = regs.filter((r) => r.level === top).map(airRegion);
+  if (count[common] * 2 <= regs.length) return L.airMixed(airLevel(top), topNames);
+  return top !== common ? L.airMost(airLevel(common), airLevel(top), topNames) : L.airMost(airLevel(common));
+}
+// the days of the forecast that have not passed yet (the Ministry's dates are dd/mm/yyyy, Israel time)
+function airDays() {
+  const today = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Jerusalem' }).split('/').reverse().join('');
+  return (S.airFc.days || []).filter((d) => d.date.split('/').reverse().join('') >= today && d.parts.some((p) => p.text));
+}
+const AIR_IMGS = ['no2', 'so2', 'dust', 'pm25'];
+function setAirImg(v) {
+  S.airImg = v;
+  document.querySelectorAll('input[name=airimg]').forEach((r) => { r.checked = r.value === v; });
+  applyAirImg(); render();
+}
+function viewAir() {
+  const L = t(), c = T(), f = S.airFc, he = (txt) => h('span', { lang: 'he', dir: 'rtl' }, txt);
+  const out = [header(L.air, { name: 'home' })];
+  if (!f) return out.concat(h('p', { class: 'note' }, L.loading));
+  if (!airFresh()) out.push(h('p', { class: 'note' }, L.airStale));
+  if (airWarn()) out.push(h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${c.warn}` }),
+    h('span', null, h('b', null, L.airWarnTitle(f.warning.date)), ' ', he(f.warning.text))));
+  out.push(h('h3', { class: 'sub' }, L.airFcTitle));
+  if (S.lang !== 'he') out.push(h('p', { class: 'note' }, L.airHeOnly));
+  for (const d of airDays()) {
+    out.push(h('p', { class: 'note', style: 'padding-bottom:2px', lang: 'he', dir: 'rtl' }, h('b', null, `${d.day} ${d.date}`)));
+    for (const p of d.parts.filter((x) => x.text)) out.push(h('p', { class: 'note', style: 'padding:0 0 6px', lang: 'he', dir: 'rtl' }, `${p.label}: ${p.text}`));
+  }
+  const regs = f.regions.filter((r) => r.level).slice().sort((a, b) => airRank(b.level) - airRank(a.level) || airRegion(a).localeCompare(airRegion(b), S.lang));
+  out.push(h('h3', { class: 'sub' }, L.airByRegion));
+  const same = regs.length > 1 && regs.every((r) => r.level === regs[0].level);
+  for (const r of same ? [{ ...regs[0], name: t().airAllRegions, code: '' }] : regs) {
+    const col = Array.isArray(r.color) ? `rgb(${r.color.slice(0, 3).join(',')})` : c.sub;
+    out.push(h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${col};border-color:${c.line}` }), `${r.code ? airRegion(r) : r.name}: ${airLevel(r.level)}`));
+  }
+  out.push(h('h3', { class: 'sub' }, L.airOnMap));
+  out.push(row(S.showAirSt ? c.air : c.alt[2], L.optAirSt, S.showAirSt ? L.airStShown(S.airSt.length) : L.airStHidden(S.airSt.length), () => {
+    S.showAirSt = !S.showAirSt; $('#opt-airst').checked = S.showAirSt; saveLayers(); applyLayerOptions(); drawLegend(); render();
+  }));
+  for (const k of AIR_IMGS) {
+    if (k !== 'pm25' && !(S.airLayers && S.airLayers[k])) continue;
+    const on = S.airImg === k;
+    out.push(row(on ? c.accent : c.alt[2], airImgName(k), on ? L.airImgOn : L.airImgAbout[k], () => setAirImg(on ? 'off' : k)));
+  }
+  out.push(h('p', { class: 'note' }, L.airNote));
+  return out;
+}
+function airImgName(k) {
+  const L = t(), g = S.airLayers && S.airLayers[k];
+  if (k === 'pm25') return L.airPm25;
+  const d = g ? g.day.split('-') : null;
+  const day = !d ? '' : S.lang === 'he' ? `${+d[2]}.${+d[1]}` : new Date(g.day + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+  return L.airImg[k](day);
+}
+const AIR_WEATHER = ['WS', 'WD', 'TEMP', 'RH', 'PREC', 'BP'];
+function viewAirSt(id) {
+  const L = t(), x = S.airSt.find((v) => v.id === id);
+  if (!x) return [detailHead(L.airSt), h('p', { class: 'note' }, L.gone)];
+  const facts = [];
+  const add = (k, v) => { if (v != null && v !== '' && !(Array.isArray(v) && !v.length)) facts.push(h('dt', null, k), h('dd', null, v)); };
+  add(L.asCity, x.city);
+  add(L.asPlace, [x.place, x.address].filter(Boolean).join(', '));
+  add(L.asRegion, x.region);
+  add(L.asOperator, x.operator);
+  add(L.asKind, S.lang === 'he' ? x.kind : x.kind_en || x.kind);
+  add(L.asArea, S.lang === 'he' ? x.area : x.area_en || x.area);
+  add(L.asYear, x.year);
+  add(L.asMeasures, x.pollutants.length ? x.pollutants.map((p) => L.airPol[p] || p).join(', ') : null);
+  add(L.asRemark, x.remark);
+  add(L.asWeather, x.weather.length ? x.weather.map((w) => L.airWx[w] || w).join(', ') : null);
+  add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}`));
+  return [detailHead(x.name, L.airSt), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.airStNote)];
+}
 function imgSummary() {
   const L = t();
   if (!S.sats.length) return L.loading;
@@ -1181,7 +1335,7 @@ function render() {
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
     : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
     : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : v.name === 'skies' ? viewSkies() : v.name === 'skyc' ? viewSkyArea(v.id)
-    : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : viewHome();
+    : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : v.name === 'air' ? viewAir() : v.name === 'airst' ? viewAirSt(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
   body.scrollTop = keep;
 }
@@ -1228,6 +1382,14 @@ function viewBrief(v) {
     if (!a) return null;
     title = [skyName(v.id), a.drop ? tag(L.skDrop, true) : null];
     lines.push(a.base == null ? L.skiesRowNoBase(a.now) : L.skiesRow(a.now, Math.round(a.base)));
+  } else if (v.name === 'airst') {
+    const x = S.airSt.find((s) => s.id === v.id);
+    if (!x) return null;
+    title = [x.name, tag(L.airSt)];
+    const where = [x.city, x.place].filter(Boolean).join(', ');
+    if (where) lines.push(where + '.');
+    if (x.pollutants.length) lines.push([L.asMeasures + ': ', ltr(x.pollutants.join(', ')), '.']);
+    if (x.operator) lines.push(`${L.asOperator}: ${x.operator}.`);
   } else if (v.name === 'conj') {
     const e = S.conj.find((x) => x.id === v.id);
     if (!e) return null;
@@ -1280,6 +1442,7 @@ function applyLang() {
   $('#btn-lang').textContent = L.otherLang;
   const dm = (n) => { const d = imgDate(n).split('-'); return `${+d[2]}.${+d[1]}`; };
   $('#img-d1').textContent = L.imgDay(dm(1), false); $('#img-d0').textContent = L.imgDay(dm(0), true);
+  for (const k of AIR_IMGS) { $('#air-' + k).textContent = airImgName(k); $('#air-' + k).closest('label').hidden = k !== 'pm25' && !(S.airLayers && S.airLayers[k]); }
   $('#btn-lang').setAttribute('lang', S.lang === 'he' ? 'en' : 'he');
   $('#grip').setAttribute('aria-label', L.toggleSheet);
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
@@ -1307,8 +1470,12 @@ function drawLegend() {
     S.showFires ? sym(`background:${c.fire};border-radius:50%;inline-size:8px;block-size:8px`, L.fires) : null,
     S.showSats ? sym(`background:${c.ink};border-radius:50%;inline-size:6px;block-size:6px`, L.sats) : null,
     S.showConj ? sym(`border:1.8px solid ${c.warn};border-radius:50%;background:none`, L.conjs) : null,
+    S.showAirSt ? sym(`background:${c.air};border-radius:50%;inline-size:8px;block-size:8px`, L.optAirSt) : null,
   ].filter(Boolean);
+  const ak = S.airImg !== 'off' ? airKey() : null;
+  const grad = ak ? `linear-gradient(to ${L.dir === 'rtl' ? 'left' : 'right'},${ak.stops.map((s) => `rgb(${s.join(',')})`).join(',')})` : '';
   $('#legend').replaceChildren(
+    ...(ak ? [h('span', { class: 'key-row air-key' }, L.airShort[S.airImg] + ':', h('span', null, L.low), h('i', { class: 'grad', style: 'background:' + grad }), h('span', null, L.high))] : []),
     h('span', { class: 'key-row' }, L.legend, h('span', null, L.low), ...c.alt.map((col) => h('i', { style: 'background:' + col })), h('span', null, L.high),
       items.length ? svg(open ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6', 'chev') : null),
     ...(open && items.length ? [h('span', { class: 'key-list' }, items)] : []));
@@ -1423,6 +1590,8 @@ function wire() {
   $('#opt-conj').addEventListener('change', (e) => { S.showConj = e.target.checked; applyLayerOptions(); });
   $('#opt-outages').addEventListener('change', (e) => { S.showOutages = e.target.checked; applyLayerOptions(); });
   $('#opt-fires').addEventListener('change', (e) => { S.showFires = e.target.checked; applyLayerOptions(); });
+  $('#opt-airst').addEventListener('change', (e) => { S.showAirSt = e.target.checked; applyLayerOptions(); render(); });
+  document.querySelectorAll('input[name=airimg]').forEach((r) => r.addEventListener('change', () => { if (r.checked) setAirImg(r.value); }));
   document.querySelectorAll('input[name=img]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { S.img = r.value; applyImagery(); } }));
   setInterval(() => { if (S.img === 'clouds' && !document.hidden) applyImagery(); }, 5 * 60 * 1000);   // picks up the next hour's picture
   document.querySelectorAll('input[name=theme]').forEach((r) => r.addEventListener('change', () => {
@@ -1449,7 +1618,7 @@ let secondaryStarted = false;
 function startSecondary() {
   if (secondaryStarted) return;
   secondaryStarted = true;
-  refreshSlow(); loadCatalogue(); refreshShips();
+  refreshSlow(); loadCatalogue(); refreshShips(); refreshAir();
 }
 setTimeout(startSecondary, 8000);   // in case the aircraft data is slow to arrive
 refresh();
@@ -1458,6 +1627,7 @@ setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
 setInterval(tickSats, 1000);
 setInterval(loadCatalogue, 3 * 3600 * 1000);
 setInterval(refreshShips, 60 * 1000);
+setInterval(() => { if (!document.hidden) refreshAir(); }, 30 * 60 * 1000);
 setInterval(scanSats, 10000);
 setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);

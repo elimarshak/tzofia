@@ -9,7 +9,7 @@ Files written into <data dir> (a file whose download failed keeps its previous c
   air_forecast.json  the Ministry's air-quality forecast: the level for each of 14 regions, the text for today and
                      tomorrow (morning, afternoon to evening, evening) and the Ministry's warning when it is on
 Every address is requested once per run; an error only skips that file."""
-import json, os, sys, urllib.request
+import json, os, re, sys, urllib.request
 from datetime import datetime, timezone
 from pyproj import Transformer
 
@@ -36,6 +36,14 @@ def save(name, obj):
     with open(os.path.join(OUT, name), 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
 
+POLLUTANTS = {'pm2.5': 'PM2.5', 'pm10': 'PM10', 'nox': 'NOx', 'no2': 'NO2', 'no': 'NO', 'so2': 'SO2', 'o3': 'O3', 'co': 'CO', 'benzene': 'Benzene'}
+POL_RE = re.compile(r'(?<![\w.])(PM2\.5|PM10|NOx|NO2|NO|SO2|O3|CO|Benzene)(?![\w.])', re.I)
+def pollutants(text):
+    # the list is a row of codes; a few rows add a remark in words, such as '(חלקיקים לא בהסמכה)', kept apart
+    codes = list(dict.fromkeys(POLLUTANTS[m.lower()] for m in POL_RE.findall(text)))
+    remark = re.sub(r'\s+', ' ', POL_RE.sub(' ', text)).strip(' ()')
+    return codes, remark
+
 def clean(v):
     v = '' if v is None else str(v).replace('_x000D_', '').strip()   # '_x000D_' is a line break left over from Excel
     return '' if v.lower() in ('null', 'none', 'nan') else v
@@ -51,13 +59,14 @@ if recs:
         lon, lat = to_wgs.transform(x, y)
         if not (29 < lat < 34 and 34 < lon < 36.5): continue   # a row with a broken position is left out
         year = clean(r.get('שנת הקמה')).split('.')[0]
+        pols, remark = pollutants(clean(r.get('מזהמי אוויר')))
         out.append({
             'id': r['_id'], 'name': clean(r.get('שם התחנה החדש')), 'old': clean(r.get('שם התחנה הישן')),
             'region': clean(r.get('אזור')), 'city': clean(r.get('ישוב')), 'place': clean(r.get('מיקום')), 'address': clean(r.get('כתובת')),
             'operator': clean(r.get('הגוף המנטר')).removesuffix(' iso').strip(),
             'kind': clean(r.get('סוג התחנה')), 'kind_en': clean(r.get('Station type')),
             'area': clean(r.get('סיווג אזור')), 'area_en': clean(r.get('Area type')),
-            'year': year, 'pollutants': clean(r.get('מזהמי אוויר')).split(), 'weather': clean(r.get('פרמטרים מטאורולוגיים')).split(),
+            'year': year, 'pollutants': pols, 'remark': remark, 'weather': clean(r.get('פרמטרים מטאורולוגיים')).split(),
             'lat': round(lat, 5), 'lon': round(lon, 5)})
     print(f'stations kept: {len(out)} of {len(recs)}')
     if out: save('air_stations.json', {'fetched_at': NOW, 'source': 'data.gov.il', 'stations': out})

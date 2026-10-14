@@ -89,6 +89,9 @@ dl.facts dd{font-weight:500}
 .key-row{display:flex;align-items:center;gap:6px}
 .key-row i{width:11px;height:11px;border-radius:2px}
 .key-row .chev{width:15px;height:15px}
+.key-row i.grad{width:72px;height:10px;border-radius:2px}
+.air-key{margin-bottom:5px;font-size:12.5px}
+.opt[hidden]{display:none}
 .key-list{display:grid;gap:7px;margin:9px 0 2px}
 .key-item{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:12.5px}
 .legend .sym{width:12px;height:12px;flex:none;display:inline-block;border-radius:2px}

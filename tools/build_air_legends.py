@@ -9,7 +9,7 @@ For each kind below, the first listed layer that exists there is kept, with:
 Written: <out>/air_layers.json, and <out>/air_layers_log.txt with what was found (for checking)."""
 import json, os, re, sys, urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 OUT = sys.argv[1]
 UA = 'tzofia/0.1 (+https://github.com/elimarshak/tzofia)'
@@ -90,6 +90,11 @@ for kind, (names, pattern) in KINDS.items():
             if pick is None or info['day'] > pick['day']: pick = info
     if not pick:
         log.append(f'{kind}: nothing usable'); continue
+    # these satellites pass over Israel around 11:00 UTC and the picture is ready a few hours later, so before 15:00 UTC
+    # today's picture has nothing over the region yet and yesterday's is shown
+    now = datetime.now(timezone.utc)
+    if pick['day'] == now.strftime('%Y-%m-%d') and now.hour < 15:
+        pick['day'] = (now - timedelta(days=1)).strftime('%Y-%m-%d')
     key = colour_key(pick['colormaps'])
     log.append(f'{kind}: {pick["id"]} day {pick["day"]} level {pick["level"]} key {"yes" if key else "no"}')
     out['layers'][kind] = {'id': pick['id'], 'day': pick['day'], 'maxzoom': pick['level'],
