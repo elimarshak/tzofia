@@ -113,6 +113,7 @@ async function refreshSlow() {
     S.outages = S.outagesOk ? o.data.events.slice().sort((a, b) => Date.parse(b.start) - Date.parse(a.start)) : [];
     const sk = rows.find((r) => r.key === 'skies');
     S.skies = fresh(sk, 30) ? sk.data : null;
+    try { S.alerts = (await fetch(CFG.api.replace('/rest/v1', '/functions/v1/push') + '?recent=1', { credentials: 'omit', cache: 'no-store' }).then((r) => r.json())).recent || []; } catch { /* the list is a bonus */ }
     if ((S.outages.length || S.skies) && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
   } catch { /* keep what we have */ }
   drawQuakes(); drawFires(); drawOutages(); drawSkies(); tickSats(); render();
@@ -1026,7 +1027,13 @@ function viewSkies() {
   const list = k ? [k.all, ...k.areas.filter((a) => a.now > 0 || (a.base || 0) > 0)] : [];
   const rows = list.map((a) => row(a.drop ? c.warn : a.code === 'ALL' ? c.accent : c.alt[2], skyName(a.code),
     a.base == null ? L.skiesRowNoBase(a.now) : L.skiesRow(a.now, Math.round(a.base)), () => showSkyArea(a)));
-  return [header(L.skies, { name: 'home' }), h('p', { class: 'note' }, skiesSummary()), h('p', { class: 'note' }, L.skiesNote), rows];
+  // the phone alerts sent in the last 48 hours, so an alert can be read again on the site
+  const recent = (S.alerts || []).filter((r) => r.topic === 'skies');
+  const when = (iso) => L.alertSent(new Date(iso));
+  const sent = recent.map((r) => { const txt = r[S.lang] || r.he; return row(c.warn, txt.title, `${when(r.at)} ${txt.body}`, () => showSkyArea({ code: String(r.tag || '').replace('skies-', '') })); });
+  return [header(L.skies, { name: 'home' }), h('p', { class: 'note' }, skiesSummary()),
+    h('h3', { class: 'sub' }, L.alertsTitle), sent.length ? sent : h('p', { class: 'note' }, L.alertsNone),
+    h('h3', { class: 'sub' }, L.alertsAreas), h('p', { class: 'note' }, L.skiesNote), rows];
 }
 function viewSkyArea(code) {
   const L = t(), k = S.skies, a = k && (code === 'ALL' ? k.all : k.areas.find((x) => x.code === code));

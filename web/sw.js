@@ -10,7 +10,8 @@ self.addEventListener('push', (e) => {
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-    for (const w of wins) if ('focus' in w) return w.focus();
-    return self.clients.openWindow(e.notification.data && e.notification.data.url ? e.notification.data.url : './');
+    const url = e.notification.data && e.notification.data.url ? e.notification.data.url : './';
+    for (const w of wins) if ('focus' in w) return ('navigate' in w ? w.navigate(url) : Promise.resolve()).then(() => w.focus());
+    return self.clients.openWindow(url);
   }));
 });

@@ -1,5 +1,6 @@
 // Tzofia: phone alerts sent from the site (Web Push).
 //   GET                                  -> { key }: the site's public key, which browsers need to subscribe
+//   GET ?recent=1                        -> { recent }: the alerts sent in the last 48 hours, shown on the site
 //   POST { action: 'subscribe', sub, topics, lang }   -> saves the subscription and sends a confirmation alert
 //   POST { action: 'unsubscribe', endpoint }          -> removes the subscription
 //   POST { action: 'dispatch' }                       -> sends the alerts waiting in ingest.push_queue
@@ -10,7 +11,7 @@ import webpush from "npm:web-push@3.6.7";
 
 const sql = postgres(Deno.env.get("SUPABASE_DB_URL")!, { prepare: false, max: 1 });
 const ORIGINS = ["https://elimarshak.github.io", "https://openeye.co.il", "https://www.openeye.co.il"];
-const SITE = "https://elimarshak.github.io/tzofia/";
+const SITE = "https://openeye.co.il/";
 const TOPICS = ["skies"];
 const PUSH_HOSTS = [/(^|\.)fcm\.googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)push\.apple\.com$/, /(^|\.)notify\.windows\.com$/];
 
@@ -35,6 +36,9 @@ async function keys() {
   return k as { public_key: string; private_key: string };
 }
 
+// a tap on an alert opens the site on the item it is about ('skies-CY' opens the emptying-skies card of Cyprus)
+const linkOf = (tag?: string) => (tag && tag.startsWith("skies-") ? `${SITE}#skyc-${tag.slice(6)}` : SITE);
+
 type Sub = { endpoint: string; p256dh: string; auth: string };
 async function send(s: Sub, payload: unknown, k: { public_key: string; private_key: string }) {
   try {
@@ -57,7 +61,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
   try {
     const k = await keys();
-    if (req.method === "GET") return reply({ key: k.public_key });
+    if (req.method === "GET") {
+      if (new URL(req.url).searchParams.get("recent")) {
+        const rows = await sql`select created_at, topic, payload from ingest.push_queue
+                               where created_at > now() - interval '48 hours' and sent_at is not null order by created_at desc limit 30`;
+        return reply({ recent: rows.map((r) => ({ at: r.created_at, topic: r.topic, tag: r.payload.tag ?? null, he: r.payload.he, en: r.payload.en })) });
+      }
+      return reply({ key: k.public_key });
+    }
     const b = await req.json().catch(() => ({}));
     if (b.action === "subscribe") {
       const s = b.sub ?? {}, endpoint = String(s.endpoint ?? ""), p256dh = String(s.keys?.p256dh ?? ""), auth = String(s.keys?.auth ?? "");
@@ -82,7 +93,7 @@ Deno.serve(async (req) => {
       for (const q of queue) {
         const subs = await sql`select endpoint, p256dh, auth, lang from ingest.push_subs where ${q.topic} = any(topics) and fails < 20`;
         let n = 0;
-        for (const s of subs) if (await send(s as unknown as Sub, { ...(q.payload[s.lang] ?? q.payload.he), url: q.payload.url ?? SITE, tag: q.payload.tag }, k)) n++;
+        for (const s of subs) if (await send(s as unknown as Sub, { ...(q.payload[s.lang] ?? q.payload.he), url: q.payload.url ?? linkOf(q.payload.tag), tag: q.payload.tag }, k)) n++;
         await sql`update ingest.push_queue set sent_at = now(), sent_count = ${n} where id = ${q.id}`;
         total += n;
       }
