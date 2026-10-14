@@ -7,6 +7,7 @@ export const CFG = {
   zoom: 4.7,
   bounds: [[-180, -65], [180, 80]], // the world file in the build workflow
   pollMs: 15000,
+  farPollMs: 60000,              // aircraft beyond about 460 km and up to about 4,000 km
   maxAgeSec: 180,                 // aircraft whose last position is older are not drawn
   staleSec: 180,                  // source considered silent after this
 };

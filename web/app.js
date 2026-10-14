@@ -20,7 +20,7 @@ const S = {
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
   sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
-  ac: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
+  ac: [], near: [], far: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   view: { name: 'home' },
   map: null,
 };
@@ -72,6 +72,31 @@ async function api(path) {
   } finally { clearTimeout(timer); }
 }
 
+// Aircraft out to about 4,000 km from Israel. The near ones (in_region, about 460 km) come every 15 seconds
+// with the rest of the live data; the far ones (in_wide and not in_region) every minute, page by page,
+// because the server hands out at most 1,000 rows per request.
+const mergeAc = () => {
+  const near = new Set(S.near.map((a) => a.hex));
+  S.ac = S.near.concat(S.far.filter((a) => !near.has(a.hex)));
+};
+async function apiPages(path, max) {
+  const out = [];
+  for (let off = 0; off < max; off += 1000) {
+    const part = await api(`${path}&order=hex&limit=1000&offset=${off}`);
+    out.push(...part);
+    if (part.length < 1000) break;
+  }
+  return out;
+}
+async function refreshFar() {
+  const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
+  try {
+    const far = await apiPages(`/aircraft_live?select=${LIVE_COLS}&in_wide=eq.true&in_region=eq.false&pos_time=gte.${since}&lat=not.is.null`, 8000);
+    S.far = far.map((a) => ({ ...a, far: true }));
+  } catch { return; }   // keep the last far picture; the near aircraft keep updating on their own
+  mergeAc(); drawAircraft(); render();
+}
+
 async function refresh() {
   const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
   try {
@@ -89,7 +114,7 @@ async function refresh() {
     // received more than once, at least a minute apart, from an aircraft with a known position.
     const confirmed = (e) => ['7500', '7600', '7700'].includes(e.squawk)
       || (e.lat != null && e.lon != null && Date.parse(e.last_seen) - Date.parse(e.first_seen) >= 60000);
-    S.ac = ac; S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
+    S.near = ac; mergeAc(); S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
   } catch {
     S.netErr = true;
   }
@@ -631,7 +656,7 @@ function drawAircraft() {
     if (a.lat == null || a.lon == null || seen.has(a.hex)) return;
     seen.add(a.hex);
     feats.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [a.lon, a.lat] },
-      properties: { hex: a.hex, label: callsign(a), band: em ? 'e' : band(a), track: a.track ?? 0, low: !em && lowAcc(a) ? 1 : 0, prio: em ? 0 : 1 } });
+      properties: { hex: a.hex, label: callsign(a), band: em ? 'e' : band(a), track: a.track ?? 0, low: !em && (a.far ? badFix(a) : lowAcc(a)) ? 1 : 0, prio: em ? 0 : 1 } });
   };
   for (const a of S.ac) push(a, isEmerg(a));
   for (const a of S.milw) push(a, isEmerg(a));   // military aircraft anywhere in the world
@@ -854,7 +879,7 @@ function header(title, backTo) {
 
 function viewHome() {
   const L = t(), c = T();
-  const low = S.ac.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
+  const low = S.near.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
   return [header(L.title),
     row(low || zones ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
     row(em ? c.warn : c.alt[2], L.emerg,
@@ -869,7 +894,7 @@ function viewHome() {
     row(c.alt[2], L.sky, L.skyCount(sky), () => go({ name: 'sky' }))];
 }
 function viewGnss() {
-  const L = t(); const list = S.ac.filter(lowAcc);
+  const L = t(); const list = S.near.filter(lowAcc);
   const zones = gnssZones().length, c = T();
   const key = (op, text) => h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${c.warn};opacity:${op}` }), text);
   return [header(L.gnss, { name: 'home' }),
@@ -1446,9 +1471,10 @@ refreshShips(); setInterval(refreshShips, 60 * 1000);
 setInterval(scanSats, 10000);
 setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);
+refreshFar(); let farTimer = setInterval(refreshFar, CFG.farPollMs);
 document.addEventListener('visibilitychange', () => {
-  clearInterval(timer);
-  if (!document.hidden) { refresh(); timer = setInterval(refresh, CFG.pollMs); }
+  clearInterval(timer); clearInterval(farTimer);
+  if (!document.hidden) { refresh(); timer = setInterval(refresh, CFG.pollMs); refreshFar(); farTimer = setInterval(refreshFar, CFG.farPollMs); }
 });
 setInterval(() => {   // keeps the "updated … ago" line honest without rebuilding the panel
   const f = document.querySelector('#sheet-body .fresh');
