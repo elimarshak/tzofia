@@ -1,6 +1,7 @@
 import { CFG, THEMES } from './config.js';
 import { STR } from './i18n.js';
 import { regionHe } from './regions.js';
+import { api, nearLoad, farLoad, takeFirst } from './data.js';
 
 /* global maplibregl, pmtiles, basemaps */
 
@@ -60,17 +61,7 @@ function svg(pathD, cls) {
 const chev = () => svg('m14 6-6 6 6 6', 'chev');
 
 /* ---------- data ---------- */
-const LIVE_COLS = 'hex,flight,reg,ac_type,descr,operator,lat,lon,alt_baro,alt_geom,on_ground,gs,track,baro_rate,geom_rate,squawk,emergency,nic,nac_p,mil,pos_time';
 
-async function api(path) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 10000);
-  try {
-    const r = await fetch(CFG.api + path, { headers: { apikey: CFG.key }, signal: ctl.signal, cache: 'no-store', credentials: 'omit' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.json();
-  } finally { clearTimeout(timer); }
-}
 
 // Aircraft out to about 4,000 km from Israel. The near ones (in_region, about 460 km) come every 15 seconds
 // with the rest of the live data; the far ones (in_wide and not in_region) every minute, page by page,
@@ -79,35 +70,17 @@ const mergeAc = () => {
   const near = new Set(S.near.map((a) => a.hex));
   S.ac = S.near.concat(S.far.filter((a) => !near.has(a.hex)));
 };
-async function apiPages(path, max) {
-  const out = [];
-  for (let off = 0; off < max; off += 1000) {
-    const part = await api(`${path}&order=hex&limit=1000&offset=${off}`);
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-}
 async function refreshFar() {
-  const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
   try {
-    const far = await apiPages(`/aircraft_live?select=${LIVE_COLS}&in_wide=eq.true&in_region=eq.false&pos_time=gte.${since}&lat=not.is.null`, 8000);
+    const far = await (takeFirst('far') || farLoad());
     S.far = far.map((a) => ({ ...a, far: true }));
   } catch { return; }   // keep the last far picture; the near aircraft keep updating on their own
   mergeAc(); drawAircraft(); render();
 }
 
 async function refresh() {
-  const since = new Date(Date.now() - CFG.maxAgeSec * 1000).toISOString();
   try {
-    const [ac, em, src, drv, milw] = await Promise.all([
-      api(`/aircraft_live?select=${LIVE_COLS}&in_region=eq.true&pos_time=gte.${since}&lat=not.is.null&limit=2000`),
-      api('/emergencies?select=hex,flight,reg,ac_type,squawk,emergency,first_seen,last_seen,lat,lon,alt_baro&active=eq.true&order=first_seen.desc&limit=200'),
-      api('/source_status?select=source,last_ok,last_error&source=eq.adsb.lol%2Fpoint'),
-      api('/derived?select=key,data,computed_at&key=in.(gnss_grid)'),
-      // military aircraft anywhere in the world (the source sends this list every two minutes, so it may be a little older)
-      api(`/aircraft_live?select=${LIVE_COLS}&mil=eq.true&in_region=eq.false&pos_time=gte.${new Date(Date.now() - 300000).toISOString()}&lat=not.is.null&limit=1500`),
-    ]);
+    const [ac, em, src, drv, milw] = await (takeFirst('near') || nearLoad());
     const g = drv.find((d) => d.key === 'gnss_grid');
     S.gnss = g && Date.now() - Date.parse(g.computed_at) < 10 * 60 * 1000 ? g.data : null;
     // An emergency is shown only when it is backed up: a 7500/7600/7700 code, or the emergency flag
@@ -115,6 +88,7 @@ async function refresh() {
     const confirmed = (e) => ['7500', '7600', '7700'].includes(e.squawk)
       || (e.lat != null && e.lon != null && Date.parse(e.last_seen) - Date.parse(e.first_seen) >= 60000);
     S.near = ac; mergeAc(); S.milw = milw.map((a) => ({ ...a, world: true })); S.em = em.filter(confirmed); S.src = src[0] || null; S.netErr = false; S.loaded = true;
+    if (!secondaryStarted) setTimeout(startSecondary, 3000);
   } catch {
     S.netErr = true;
   }
@@ -1461,13 +1435,21 @@ function wire() {
 applyTheme(); applyLang(); render();
 initMap(); wire(); pushInit();
 refJson('airlines.json').then((j) => { S.ref.airlines = j; render(); }).catch(() => { S.ref.airlines = {}; });
+// Satellites, ships, earthquakes, fires, internet outages and the emptying-skies check start a few seconds
+// after the aircraft are on the map, so they do not compete with the aircraft for the connection.
+let secondaryStarted = false;
+function startSecondary() {
+  if (secondaryStarted) return;
+  secondaryStarted = true;
+  refreshSlow(); loadCatalogue(); refreshShips();
+}
+setTimeout(startSecondary, 8000);   // in case the aircraft data is slow to arrive
 refresh();
-refreshSlow();
 { const k = setInterval(() => { if (S.link) openLink(); else clearInterval(k); }, 1500); setTimeout(() => clearInterval(k), 120000); }
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
 setInterval(tickSats, 1000);
-loadCatalogue(); setInterval(loadCatalogue, 3 * 3600 * 1000);
-refreshShips(); setInterval(refreshShips, 60 * 1000);
+setInterval(loadCatalogue, 3 * 3600 * 1000);
+setInterval(refreshShips, 60 * 1000);
 setInterval(scanSats, 10000);
 setInterval(() => { S.conj = S.conj.filter((e) => e.tca > Date.now()); drawConj(); }, 60 * 1000);
 let timer = setInterval(refresh, CFG.pollMs);

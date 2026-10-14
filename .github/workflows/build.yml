@@ -23,8 +23,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/vendor dist/assets
-          cp web/index.html web/app.css web/app.js web/config.js web/i18n.js web/regions.js web/icon.svg web/icon-192.png web/icon-512.png web/sw.js web/s web/manifest.webmanifest dist/
+          cp web/index.html web/app.css web/app.js web/config.js web/i18n.js web/regions.js web/data.js web/early.js web/icon.svg web/icon-192.png web/icon-512.png web/sw.js web/s web/manifest.webmanifest dist/
           cp -r web/fonts dist/fonts
+          # the font as a compressed web font (woff2), without the Hebrew presentation forms (U+FB00-FB4F) the site never uses
+          python3 -m venv /tmp/fv && /tmp/fv/bin/pip install -q fonttools==4.54.1 brotli==1.1.0
+          /tmp/fv/bin/pyftsubset web/fonts/Heebo.ttf --unicodes="U+0000-FAFF,U+FB50-FFFF" --layout-features='*' --flavor=woff2 --output-file=dist/fonts/Heebo.woff2
+          ls -la dist/fonts
           nm=web/node_modules
           cp $nm/maplibre-gl/dist/maplibre-gl.js $nm/maplibre-gl/dist/maplibre-gl.css dist/vendor/
           cp $nm/pmtiles/dist/pmtiles.js dist/vendor/
