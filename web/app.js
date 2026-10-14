@@ -561,7 +561,7 @@ function addOverlay() {
   m.addLayer({ id: 'ships', type: 'symbol', source: 'ships',
     layout: { 'icon-image': ['case', ['==', ['get', 'home'], 1], ['case', ['==', ['get', 'still'], 1], 'ship-h0', 'ship-h1'], ['==', ['get', 'still'], 1], 'ship-0', 'ship-1'],
       'icon-rotate': ['get', 'dir'], 'icon-rotation-alignment': 'map', 'symbol-sort-key': ['get', 'home'],
-      'icon-size': ['*', ['case', ['==', ['get', 'home'], 1], 1.45, 1], ['interpolate', ['linear'], ['zoom'], 4, 0.55, 8, 0.9, 11, 1.1]],
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 4, ['case', ['==', ['get', 'home'], 1], 0.8, 0.55], 8, ['case', ['==', ['get', 'home'], 1], 1.3, 0.9], 11, ['case', ['==', ['get', 'home'], 1], 1.6, 1.1]],
       'icon-allow-overlap': true, 'icon-ignore-placement': true } });
   m.addSource('sats', { type: 'geojson', data: empty });
   m.addLayer({ id: 'sat-sel', type: 'circle', source: 'sats', filter: ['==', ['get', 'id'], ''],
