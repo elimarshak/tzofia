@@ -2,9 +2,11 @@ name: satellites-catalogue
 # Keeps our own copy of public space data from CelesTrak on the data branch (see tools/fetch_space.py):
 # active satellites, debris of the big breakups, and the closest predicted approaches (SOCRATES).
 # CelesTrak asks for at most one download per update (they update every 2 hours) and no retries on errors.
+# The schedule wakes every hour but downloads only when our copy is close to 3 hours old, so a failed
+# download is tried again on its own an hour later (Ilya asked on 15.10.2026), never in a quick loop.
 on:
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,6 +22,12 @@ jobs:
           mkdir out
           # start from the previous copy, so a file whose download fails keeps its last version
           git fetch -q --depth 1 origin data && git --work-tree=out checkout FETCH_HEAD -- . || true
+          # a scheduled run skips when the last successful download is under 2 h 50 min old (a manual run always downloads)
+          if [ "${{ github.event_name }}" = schedule ] && [ -f out/fetched_at.txt ]; then
+            last=$(date -u -d "$(cat out/fetched_at.txt)" +%s 2>/dev/null || echo 0)
+            age=$(( $(date -u +%s) - last ))
+            if [ "$age" -lt 10200 ]; then echo "our copy is $((age / 60)) minutes old; nothing to download"; exit 0; fi
+          fi
           python3 tools/fetch_space.py out
           ls -l out
           cd out && rm -rf .git && git init -q -b data && git add -A
