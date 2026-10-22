@@ -61,7 +61,10 @@ for key, a in P["anchors"].items():
     for x in els:
         say("OSM", key, x["type"], x["id"], x.get("lat") or x["center"]["lat"], x.get("lon") or x["center"]["lon"],
             {k: v for k, v in x["tags"].items() if k.startswith("name") or k in ("place", "wikidata")})
-    if len(els) != 1: raise SystemExit(f"anchor {key}: {len(els)} matches, need exactly one")
+    if len(els) != 1:
+        allp = overpass(f'node["place"~"^(city|town|village|hamlet)$"]({s},{w},{n},{e});out;')
+        for x in allp: say("place in box", x["id"], x["lat"], x["lon"], x["tags"].get("name"), x["tags"].get("name:en"), x["tags"].get("name:ar"))
+        raise SystemExit(f"anchor {key}: {len(els)} matches, need exactly one")
     x = els[0]
     anchors[key] = {"osm": f'{x["type"]}/{x["id"]}', "lat": x.get("lat") or x["center"]["lat"], "lon": x.get("lon") or x["center"]["lon"], "tags": x["tags"]}
 

@@ -1,0 +1,32 @@
+name: hasufit-points
+# Temporary: fetches every 'חשופית' point in tools/hasufit/points, each on its own branch hasufit-point-<name>.
+on:
+  push:
+    branches: [hasufit-probe]
+    paths: ['tools/hasufit/points/**', 'tools/hasufit/fetch_point.py', '.github/workflows/hasufit-points.yml']
+permissions:
+  contents: write
+jobs:
+  point:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        point: [majdal-hadar, jubata, quneitra, khiam-hamames, markaba-houla, aitaroun-jaldeir, labbouneh, beaufort]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
+          pip install -q rasterio==1.4.3 numpy pillow pyproj
+          mkdir -p out
+          for try in 1 2 3; do
+            python tools/hasufit/fetch_point.py tools/hasufit/points/${{ matrix.point }}.json out >> out/run.txt 2>&1 && break
+            echo "attempt $try failed" >> out/run.txt; sleep 90
+          done
+          cd out && git init -q -b s && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "point ${{ matrix.point }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" s:hasufit-point-${{ matrix.point }}

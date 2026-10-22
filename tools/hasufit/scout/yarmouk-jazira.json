@@ -3,7 +3,7 @@
  "anchors": {
   "m": {
    "name_en": "^(Ma.?ariyah|Ma.?arriyah|Maariya|Maaria|Ma.?ariya)$",
-   "name_ar": "^معرية$",
+   "name_ar": "^معرية$|^المعرية$|^معربة$",
    "bbox": [
     32.68,
     35.8,

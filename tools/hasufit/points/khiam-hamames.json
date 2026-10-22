@@ -1,0 +1,35 @@
+{
+ "title_he": "גבעת חמאמיס, דרומית מזרחית לאל-ח'יאם",
+ "anchors": {
+  "k": {
+   "name_en": "^(Khiam|El Khiam|Al-Khiam|Al Khiyam|Khiyam|El Khiyam)$",
+   "name_ar": "^الخيام$",
+   "bbox": [
+    33.25,
+    35.55,
+    33.4,
+    35.7
+   ]
+  }
+ },
+ "press": [
+  "The Beiruter: Hamames hill near Khiam, one of the five posts",
+  "Al Jazeera 17.2.2025: Israel to stay in five locations in south Lebanon"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "offset_m": [
+  0,
+  0
+ ],
+ "zoom": {
+  "offset_m": [
+   1850,
+   -1450
+  ],
+  "half_m": 900
+ }
+}

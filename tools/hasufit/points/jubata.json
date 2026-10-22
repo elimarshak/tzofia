@@ -1,0 +1,35 @@
+{
+ "title_he": "ג'ובאתא אל-ח'שב, ליד קו ההפרדה",
+ "anchors": {
+  "jubata": {
+   "name_en": "^Jubata",
+   "name_ar": "^جباتا الخشب$",
+   "bbox": [
+    33.17,
+    35.78,
+    33.3,
+    35.92
+   ]
+  }
+ },
+ "press": [
+  "Middle East Eye: Jubata al-Khashab, largest base, in a forested area near the Purple Line",
+  "Arab News / SANA: the excavation line runs from Hadar toward Jubata al-Khashab"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "offset_m": [
+  0,
+  0
+ ],
+ "zoom": {
+  "offset_m": [
+   -1300,
+   1100
+  ],
+  "half_m": 900
+ }
+}
