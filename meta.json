@@ -1,0 +1,129 @@
+{
+ "point": {
+  "title_he": "ג'ובאתא אל-ח'שב, ליד קו ההפרדה",
+  "anchors": {
+   "jubata": {
+    "name_en": "^Jubata",
+    "name_ar": "^جباتا الخشب$",
+    "bbox": [
+     33.17,
+     35.78,
+     33.3,
+     35.92
+    ]
+   }
+  },
+  "press": [
+   "Middle East Eye: Jubata al-Khashab, largest base, in a forested area near the Purple Line",
+   "Arab News / SANA: the excavation line runs from Hadar toward Jubata al-Khashab"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "offset_m": [
+   0,
+   0
+  ],
+  "zoom": {
+   "offset_m": [
+    -1300,
+    1100
+   ],
+   "half_m": 900
+  }
+ },
+ "centre": {
+  "lat": 33.23570748906253,
+  "lon": 35.82017399723353,
+  "itm_e": 276846,
+  "itm_n": 793526
+ },
+ "anchors": {
+  "jubata": {
+   "osm": "node/728630392",
+   "lat": 33.2257594,
+   "lon": 35.8341343,
+   "tags": {
+    "alt_name:he": "ג'ובתא אל-ח'שב",
+    "name": "جباتا الخشب",
+    "name:ar": "جباتا الخشب",
+    "name:de": "Dschibata al-Chaschab",
+    "name:en": "Jubata al-Khashab",
+    "name:fr": "Djobata al-Khachab",
+    "name:he": "ג'בתא אל-ח'שב",
+    "name:ru": "Джубата-аль-Хашаб",
+    "place": "village",
+    "population": "3493",
+    "population:date": "2004",
+    "source:population": "المكتب المركزي للإحصاء"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   {
+    "id": "S2B_37SBS_20230922_0_L2A",
+    "datetime": "2023-09-22T08:31:00.537000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 3e-06,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_37SBS_20230922_0_L2A"
+   },
+   {
+    "id": "S2B_36SYB_20230922_0_L2A",
+    "datetime": "2023-09-22T08:31:03.064000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 4.124973,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20230922_0_L2A"
+   }
+  ],
+  "datetime": "2023-09-22T08:31:00.537000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2B_37SBS_20230922_0_L2A",
+   "S2B_37SBT_20230922_0_L2A",
+   "S2B_36SYB_20230922_0_L2A",
+   "S2B_36SYC_20230922_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2b"
+  ]
+ },
+ "after": {
+  "passes": [
+   {
+    "id": "S2B_37SBS_20261006_0_L2A",
+    "datetime": "2026-10-06T08:30:56.525000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 7.383477,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_37SBS_20261006_0_L2A"
+   },
+   {
+    "id": "S2B_36SYB_20261006_0_L2A",
+    "datetime": "2026-10-06T08:30:59.051000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 46.14253,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20261006_0_L2A"
+   }
+  ],
+  "datetime": "2026-10-06T08:30:56.525000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2B_37SBS_20261006_0_L2A",
+   "S2B_37SBT_20261006_0_L2A",
+   "S2B_36SYB_20261006_0_L2A",
+   "S2B_36SYC_20261006_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2b"
+  ]
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=33.23570748906253 +lon_0=35.82017399723353 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 10,
+  "half_width_m": 900,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ }
+}
