@@ -1,0 +1,19 @@
+OSM t node 6764556006 33.1163867 35.4715009 {'name': 'عيترون', 'name:ar': 'عيترون', 'name:en': 'Aitaroun', 'name:fr': 'Aitaroun', 'name:he': 'עייתרון', 'name:ml': 'ഐത്തറൂൺ', 'place': 'village', 'wikidata': 'Q410330'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-12 ['S2B_36SYB_20230912_1_L2A', 'S2B_36SYB_20230912_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.0469
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.7105
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-01 ['S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.8925
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.2893
+ try 2026-09-23 ['S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.0394
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A'] empty 0.0 cloud 0.0
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 504: Gateway Timeout
+overpass did not answer, trying again https://overpass.private.coffee/api/interpreter The read operation timed out
+overpass did not answer, trying again https://maps.mail.ru/osm/tools/overpass/api/interpreter HTTP Error 504: Gateway Time-out
+centre 33.0973948936079 35.487586371047406 ITM 245888 778053 places 200
+{"before": ["2023-09-12T08:31:02.908000Z", ["sentinel-2b"]], "after": ["2026-09-21T08:30:59.511000Z", ["sentinel-2c"]]}

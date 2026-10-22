@@ -1,0 +1,145 @@
+{
+ "point": {
+  "title_he": "ג'ל אל-דיר, דרומית מזרחית לעיתרון",
+  "anchors": {
+   "t": {
+    "name_en": "^(Aitaroun|Aytaroun|Ayta?r[uo]n|Aitaroun)$",
+    "name_ar": "^عيترون$",
+    "bbox": [
+     33.06,
+     35.42,
+     33.17,
+     35.53
+    ]
+   }
+  },
+  "offset_m": [
+   0,
+   -1500
+  ],
+  "press": [
+   "The Beiruter: Jal al-Deir south of Aitaroun, overlooking Avivim and Malkiya",
+   "Al Jazeera 17.2.2025: five locations"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "zoom": {
+   "offset_m": [
+    1500,
+    -600
+   ],
+   "half_m": 900
+  }
+ },
+ "centre": {
+  "lat": 33.0973948936079,
+  "lon": 35.487586371047406,
+  "itm_e": 245888,
+  "itm_n": 778053
+ },
+ "anchors": {
+  "t": {
+   "osm": "node/6764556006",
+   "lat": 33.1163867,
+   "lon": 35.4715009,
+   "tags": {
+    "alt_name": "Aaitaroun",
+    "alt_name:he": "עיתרון",
+    "name": "عيترون",
+    "name:ar": "عيترون",
+    "name:en": "Aitaroun",
+    "name:fr": "Aitaroun",
+    "name:he": "עייתרון",
+    "name:ml": "ഐത്തറൂൺ",
+    "place": "village",
+    "wikidata": "Q410330",
+    "wikipedia": "ar:عيترون"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   "S2B_36SYB_20230902_0_L2A",
+   "S2A_36SYB_20230907_0_L2A",
+   "S2B_36SYB_20230912_0_L2A",
+   "S2B_36SYB_20230912_1_L2A",
+   "S2A_36SYB_20230917_0_L2A",
+   "S2B_36SYB_20230922_0_L2A"
+  ],
+  "datetime": "2023-09-02T08:31:04.249000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2B_37SBS_20230912_1_L2A",
+   "S2B_36SYB_20230912_1_L2A",
+   "S2B_37SBS_20230912_0_L2A",
+   "S2B_36SYB_20230912_0_L2A",
+   "S2B_36SXB_20230912_1_L2A",
+   "S2B_36SXB_20230912_0_L2A",
+   "S2B_36SYC_20230912_1_L2A",
+   "S2B_37SBT_20230912_1_L2A",
+   "S2B_36SYC_20230912_0_L2A",
+   "S2B_37SBT_20230912_0_L2A",
+   "S2B_36SXC_20230912_1_L2A",
+   "S2B_36SXC_20230912_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2a",
+   "sentinel-2b"
+  ],
+  "composite_days": [
+   "2023-09-02",
+   "2023-09-07",
+   "2023-09-12",
+   "2023-09-17",
+   "2023-09-22"
+  ],
+  "method": "median composite of raw bands, joint stretch, 5 m cubic, unsharp mask"
+ },
+ "after": {
+  "passes": [
+   "S2C_36SYB_20261021_0_L2A",
+   "S2A_36SYB_20260923_1_L2A",
+   "S2C_36SYB_20260921_0_L2A",
+   "S2B_36SYB_20260916_0_L2A",
+   "S2A_36SYB_20260913_1_L2A"
+  ],
+  "datetime": "2026-10-21T08:30:58.680000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2C_37SBS_20260921_0_L2A",
+   "S2C_36SXC_20260921_0_L2A",
+   "S2C_37SBT_20260921_0_L2A",
+   "S2C_36SYB_20260921_0_L2A",
+   "S2C_36SYC_20260921_0_L2A",
+   "S2C_36SXB_20260921_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2a",
+   "sentinel-2b",
+   "sentinel-2c"
+  ],
+  "composite_days": [
+   "2026-09-13",
+   "2026-09-16",
+   "2026-09-21",
+   "2026-09-23",
+   "2026-10-21"
+  ],
+  "method": "median composite of raw bands, joint stretch, 5 m cubic, unsharp mask"
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=33.0973948936079 +lon_0=35.487586371047406 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 5,
+  "half_width_m": 900,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ },
+ "change": {
+  "method": "bare-soil index rise + vegetation drop + brightness rise, robust z > 4.5, areas >= 1500 m2",
+  "areas": 13,
+  "changed_m2": 96300
+ }
+}
