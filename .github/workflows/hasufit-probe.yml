@@ -3,6 +3,7 @@ name: hasufit-probe
 on:
   push:
     branches: [hasufit-probe]
+    paths: ['tools/hasufit/points/**', 'tools/hasufit/render.py', '.github/workflows/hasufit-probe.yml']
 concurrency: { group: hasufit-probe, cancel-in-progress: true }
 permissions:
   contents: write

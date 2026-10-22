@@ -1,0 +1,29 @@
+{
+ "title_he": "קוניטרה",
+ "anchors": {
+  "q": {
+   "name_en": "^(Quneitra|Al-Quneitra|Al Qunaytirah|Qunaytirah)$",
+   "name_ar": "^القنيطرة$",
+   "bbox": [
+    33.08,
+    35.76,
+    33.17,
+    35.87
+   ]
+  }
+ },
+ "press": [
+  "Middle East Eye: two bases above and below Quneitra city, on ruins of old Syrian compounds",
+  "France 24 Observers 7.2.2025: bases in the Golan buffer zone"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "scout": true,
+ "offset_m": [
+  0,
+  0
+ ]
+}

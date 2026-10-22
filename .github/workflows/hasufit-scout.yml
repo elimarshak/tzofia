@@ -1,0 +1,33 @@
+name: hasufit-scout
+# Temporary: one scouting window (6 x 6 km, before and after) per place reported in the press, each on its own branch.
+on:
+  push:
+    branches: [hasufit-probe]
+    paths: ['tools/hasufit/scout/**', '.github/workflows/hasufit-scout.yml']
+permissions:
+  contents: write
+jobs:
+  scout:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        point: [hadar-base, jubata, quneitra, yarmouk-jazira, khiam-hamames, markaba-houla, ramieh-blat, aitaroun-jaldeir, labbouneh, beaufort]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
+          pip install -q rasterio==1.4.3 numpy pillow pyproj
+          mkdir -p out
+          for try in 1 2 3; do
+            python tools/hasufit/fetch_point.py tools/hasufit/scout/${{ matrix.point }}.json out >> out/run.txt 2>&1 && break
+            echo "attempt $try failed" >> out/run.txt; sleep 90
+          done
+          cd out && git init -q -b s && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "scout ${{ matrix.point }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" s:hasufit-scout-${{ matrix.point }}
+          echo "::notice::${{ matrix.point }}: $(grep -E 'OSM|scout done|matches|refus' run.txt | tail -4 | tr '\n' ' ' | cut -c1-600)"

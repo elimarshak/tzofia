@@ -1,0 +1,29 @@
+{
+ "title_he": "מחנה אל-ג'זירה מעל הירמוך, מערבית למעריה",
+ "anchors": {
+  "m": {
+   "name_en": "^(Ma.?ariyah|Ma.?arriyah|Maariya|Maaria|Ma.?ariya)$",
+   "name_ar": "^معرية$",
+   "bbox": [
+    32.68,
+    35.8,
+    32.86,
+    36.02
+   ]
+  }
+ },
+ "offset_m": [
+  -1500,
+  0
+ ],
+ "press": [
+  "Middle East Eye: Al-Jazira barracks on a hilltop overlooking the Yarmouk and Ruqqad rivers",
+  "SANA via Liveuamap 17.6.2026: Israeli forces stationed at Al-Jazira barracks west of Ma'ariya"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "scout": true
+}

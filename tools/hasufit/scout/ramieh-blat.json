@@ -1,0 +1,29 @@
+{
+ "title_he": "ג'בל בלאט ליד רמיה",
+ "anchors": {
+  "r": {
+   "name_en": "^(Ramyah|Ramieh|Ramiyeh|Ramiyah|Rmeish)$",
+   "name_ar": "^رامية$",
+   "bbox": [
+    33.05,
+    35.24,
+    33.15,
+    35.37
+   ]
+  }
+ },
+ "press": [
+  "The Beiruter: Jabal Blat near Ramieh",
+  "Al Jazeera 17.2.2025: five locations"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "scout": true,
+ "offset_m": [
+  0,
+  0
+ ]
+}

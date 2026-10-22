@@ -1,0 +1,29 @@
+{
+ "title_he": "רכס הבופור",
+ "anchors": {
+  "a": {
+   "name_en": "^(Arnoun|Arnun)$",
+   "name_ar": "^أرنون$",
+   "bbox": [
+    33.28,
+    35.48,
+    33.37,
+    35.58
+   ]
+  }
+ },
+ "press": [
+  "Middle East Eye: Beaufort Castle and ridge, concrete bunkers (IDF photo 31.5.2026 via Reuters)",
+  "Reuters 31.5.2026"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "scout": true,
+ "offset_m": [
+  0,
+  0
+ ]
+}

@@ -47,7 +47,11 @@ def _overpass(q):
 anchors = {}
 for key, a in P["anchors"].items():
     s, w, n, e = a["bbox"]
-    els = overpass(f'(nwr["place"]["name:en"~"{a["name_en"]}",i]({s},{w},{n},{e});nwr["place"]["name"~"{a["name_en"]}",i]({s},{w},{n},{e}););out center;')
+    parts = [f'nwr["place"]["name:en"~"{a["name_en"]}",i]({s},{w},{n},{e});', f'nwr["place"]["name"~"{a["name_en"]}",i]({s},{w},{n},{e});']
+    if a.get("name_ar"):
+        parts += [f'nwr["place"]["name:ar"~"{a["name_ar"]}"]({s},{w},{n},{e});', f'nwr["place"]["name"~"{a["name_ar"]}"]({s},{w},{n},{e});']
+    els = overpass("(" + "".join(parts) + ");out center;")
+    els = [x for x in els if x["tags"].get("place") in ("city", "town", "village", "hamlet", "suburb", "neighbourhood", "locality")]
     els = list({(x["type"], x["id"]): x for x in els}.values())
     # one place mapped twice (a node and an area with the same wikidata): keep the node
     by = {}
@@ -123,9 +127,10 @@ for label, (frm, to), newest in [("before", P["before"], False), ("after", P.get
     day, a, cloud = best(frm, to, label, newest)
     Image.fromarray(np.moveaxis(a, 0, -1)).save(f"{OUT}/{label}.png")
     d0 = day[0]["properties"]["datetime"][:10]
-    wide_day = sorted([i for i in items(d0, d0, r=.3) if i["properties"].get("platform") == day[0]["properties"].get("platform")],
+    wide_day = [] if P.get("scout") else sorted([i for i in items(d0, d0, r=.3) if i["properties"].get("platform") == day[0]["properties"].get("platform")],
                       key=lambda i: i["properties"].get("eo:cloud_cover", 100))
-    Image.fromarray(np.moveaxis(window(wide_day, OV_HALF, OV_PX, overview=1), 0, -1)).save(f"{OUT}/{label}_wide.png")
+    if not P.get("scout"):
+        Image.fromarray(np.moveaxis(window(wide_day, OV_HALF, OV_PX, overview=1), 0, -1)).save(f"{OUT}/{label}_wide.png")
     meta[label] = {"passes": [{"id": i["id"], "datetime": i["properties"]["datetime"], "platform": i["properties"].get("platform"),
                                "cloud_cover_tile": i["properties"].get("eo:cloud_cover"),
                                "self": next((l["href"] for l in i["links"] if l["rel"] == "self"), None)} for i in day]}
@@ -141,6 +146,8 @@ bn = (b - b.mean((0, 1))) / (b.std((0, 1)) + 1e-6); an = (a - a.mean((0, 1))) / 
 ch = np.sqrt(((an - bn) ** 2).sum(2)); ch = np.clip(ch / np.percentile(ch, 99.5) * 255, 0, 255).astype(np.uint8)
 Image.fromarray(ch).save(f"{OUT}/change.png")
 
+if P.get("scout"):
+    json.dump(meta, open(f"{OUT}/meta.json", "w"), ensure_ascii=False, indent=1); say("scout done", lat, lon); sys.exit(0)
 # towns and villages in the wide view, from OpenStreetMap, for the corner square
 dlat, dlon = OV_HALF / 110574, OV_HALF / (111320 * math.cos(math.radians(qlat)))
 pl = overpass(f'node["place"~"^(city|town|village)$"]({qlat-dlat},{qlon-dlon},{qlat+dlat},{qlon+dlon});out;')

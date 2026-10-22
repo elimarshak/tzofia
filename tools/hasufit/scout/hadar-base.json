@@ -1,0 +1,29 @@
+{
+ "title_he": "בסיס צפונית לחאדר",
+ "anchors": {
+  "hadar": {
+   "name_en": "^(Hadar|Hader|Hadr)$",
+   "name_ar": "^حضر$",
+   "bbox": [
+    33.22,
+    35.78,
+    33.36,
+    35.95
+   ]
+  }
+ },
+ "offset_m": [
+  0,
+  1500
+ ],
+ "press": [
+  "Middle East Eye: Hader base on a hilltop north of Hader village, about 500 m from an UNDOF base",
+  "Arab News / SANA 4.10.2026: excavation from the outskirts of Hadar"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "scout": true
+}
