@@ -37,8 +37,9 @@ export const nearLoad = () => Promise.all([
   api(`/aircraft_live?select=${LIVE_COLS}&mil=eq.true&in_region=eq.false&pos_time=gte.${ago(300)}&lat=not.is.null&limit=1500`),
 ]);
 
-// Aircraft beyond about 460 km and up to about 4,000 km, every minute.
-export const farLoad = () => apiPages(`/aircraft_live?select=${LIVE_COLS}&in_wide=eq.true&in_region=eq.false&pos_time=gte.${ago(CFG.maxAgeSec)}&lat=not.is.null`, 8000);
+// Aircraft beyond about 460 km and up to about 4,000 km, every minute (the source sends them every two minutes,
+// so a position may be up to about four minutes old).
+export const farLoad = () => apiPages(`/aircraft_live?select=${LIVE_COLS}&in_wide=eq.true&in_region=eq.false&pos_time=gte.${ago(240)}&lat=not.is.null`, 8000);
 
 // The first round is started by early.js as soon as the page begins loading, while the map library is still
 // downloading. app.js takes each answer once; every later round is a fresh request.
