@@ -59,7 +59,7 @@ def stack(frm, to, newest):
         scl = warp(day, "scl", PX, nearest=True, dtype=np.uint8)
         bad = np.isin(scl, (0, 3, 8, 9, 10, 11))
         if bad.mean() > 0.05: say(" skip", d, round(float(bad.mean()), 3)); continue
-        rgb = np.stack([warp(day, b, PX) for b in ("red", "green", "blue")])
+        rgb = np.stack([warp(day, b, PX) for b in ("red", "green", "blue", "nir", "swir16")])
         rgb[:, bad] = np.nan
         layers.append(rgb); used.append(day)
         say(" use", d, [i["id"] for i in day], "masked", round(float(bad.mean()), 4))
@@ -79,6 +79,33 @@ for label, ((frm, to), newest) in periods.items():
 
 # keep the measurements themselves next to the pictures, so the stretch can be checked or redone
 for label, a in raw.items(): np.save(f"{OUT}/{label}_raw.npy", np.nan_to_num(a).astype(np.uint16))
+bands = raw; raw = {k: v[:3] for k, v in bands.items()}
+
+# where the ground changed: newly bare or dug soil shows as a rise in the bare-soil index
+# BSI = ((SWIR + red) - (NIR + blue)) / ((SWIR + red) + (NIR + blue)), together with a drop in vegetation (NDVI)
+def idx(b):
+    r, g, bl, n, sw = [x.astype(np.float64) for x in b]
+    bsi = ((sw + r) - (n + bl)) / ((sw + r) + (n + bl) + 1e-6)
+    ndvi = (n - r) / (n + r + 1e-6)
+    return bsi, ndvi, (r + g + bl) / 3
+b0, v0, l0 = idx(bands["before"]); b1, v1, l1 = idx(bands["after"])
+dbsi, dndvi, dl = b1 - b0, v1 - v0, (l1 - l0) / (np.nanmedian(l0) + 1e-6)
+# a threshold from the window's own spread: changes stronger than 3 robust standard deviations
+def robust_z(x):
+    m = np.nanmedian(x); s = 1.4826 * np.nanmedian(np.abs(x - m)) + 1e-9
+    return (x - m) / s
+z = np.nan_to_num(robust_z(dbsi)) + np.nan_to_num(np.clip(-robust_z(dndvi), 0, None)) * 0.5 + np.nan_to_num(np.clip(robust_z(dl), 0, None)) * 0.5
+mask = z > 4.5
+# drop specks: keep only connected areas of at least MIN_AREA square metres (single pixels are noise, not works)
+from scipy import ndimage
+MIN_AREA = 1500
+lab, n = ndimage.label(ndimage.binary_opening(mask, iterations=1))
+sizes = ndimage.sum(mask, lab, range(1, n + 1)) * PX * PX
+keep = np.isin(lab, [i + 1 for i, a in enumerate(sizes) if a >= MIN_AREA])
+Image.fromarray((keep * 255).astype(np.uint8)).save(f"{OUT}/change_mask.png")
+meta["change"] = {"method": "bare-soil index rise + vegetation drop + brightness rise, robust z > 4.5, areas >= 1500 m2",
+                  "areas": int(len([a for a in sizes if a >= MIN_AREA])), "changed_m2": int(keep.sum() * PX * PX)}
+say("change areas", meta["change"])
 # one stretch for both periods and all three bands together (a per-band stretch shifts the colours),
 # from the 0.5th and 99.7th percentiles of all valid measurements
 both = np.concatenate([raw["before"].ravel(), raw["after"].ravel()])

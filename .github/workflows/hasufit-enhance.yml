@@ -21,7 +21,7 @@ jobs:
       - shell: bash
         run: |
           set +e
-          pip install -q rasterio==1.4.3 numpy pillow
+          pip install -q rasterio==1.4.3 numpy pillow scipy
           git clone -q --depth 1 -b hasufit-point-${{ matrix.point }} "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" src
           rm -rf src/.git
           timeout 1500 python tools/hasufit/enhance_point.py src out > run.txt 2>&1; echo "exit $?" >> run.txt
