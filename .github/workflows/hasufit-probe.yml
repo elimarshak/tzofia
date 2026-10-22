@@ -3,6 +3,7 @@ name: hasufit-probe
 on:
   push:
     branches: [hasufit-probe]
+concurrency: { group: hasufit-probe, cancel-in-progress: true }
 permissions:
   contents: write
 jobs:
@@ -16,7 +17,7 @@ jobs:
         run: |
           set +e
           mkdir out
-          pip install -q rasterio==1.4.3 numpy pillow > out/pip.txt 2>&1; echo "pip exit $?" >> out/pip.txt
+          pip install -q rasterio==1.4.3 numpy pillow pyproj > out/pip.txt 2>&1; echo "pip exit $?" >> out/pip.txt
           python tools/hasufit/probe.py > out/sources.txt 2>&1; echo "probe exit $?" >> out/sources.txt
           python tools/hasufit/fetch_example.py out > out/example-log.txt 2>&1; echo "example exit $?" >> out/example-log.txt
           cd out && git init -q -b hasufit-out && git add -A

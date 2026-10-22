@@ -30,7 +30,9 @@ herm = [e for e in els if re.search("hermon|חרמון|الشيخ", " ".join(str
 for e in sorted(els, key=lambda e: -float(re.sub("[^0-9.]", "", e["tags"].get("ele", "0")) or 0))[:12]:
     say("OSM peak", e["id"], e["lat"], e["lon"], {k: v for k, v in e["tags"].items() if k.startswith("name") or k in ("ele", "wikidata")})
 place = max(herm, key=lambda e: float(re.sub("[^0-9.]", "", e["tags"].get("ele", "0")) or 0))
-json.dump({"osm_node": place["id"], "lat": place["lat"], "lon": place["lon"], "tags": place["tags"]}, open(f"{OUT}/place.json", "w"), ensure_ascii=False, indent=1)
+from pyproj import Transformer
+itm = Transformer.from_crs("EPSG:4326", "EPSG:2039", always_xy=True).transform(place["lon"], place["lat"])
+json.dump({"osm_node": place["id"], "lat": place["lat"], "lon": place["lon"], "itm_e": round(itm[0]), "itm_n": round(itm[1]), "tags": place["tags"]}, open(f"{OUT}/place.json", "w"), ensure_ascii=False, indent=1)
 lat, lon = place["lat"], place["lon"]
 say("chosen place", place["id"], lat, lon, place["tags"].get("name"), place["tags"].get("name:he"), place["tags"].get("ele"))
 
