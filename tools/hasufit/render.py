@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 IN, OUT = sys.argv[1], sys.argv[2]
 FONT = sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(__file__), "../../web/fonts/Heebo.ttf")
-LOGO = sys.argv[4] if len(sys.argv) > 4 else os.path.join(IN, "../logo.png")
+LOGO = sys.argv[4] if len(sys.argv) > 4 else os.path.join(os.path.dirname(__file__), "civilpress-logo.webp")   # the site's current header logo
 os.makedirs(OUT, exist_ok=True)
 
 meta = json.load(open(f"{IN}/meta.json"))
@@ -76,7 +76,8 @@ def north_and_scale(img):
     d.text((ax, ay + 40), "צפון", font=font(16, "Bold"), fill=INK, anchor="ma", direction="rtl", language="he")
 
 def inset(label):
-    wide = Image.open(f"{IN}/{label}_wide.png").convert("RGB")
+    # the wide view is the same picture in both panels (the 'before' day), so clouds of one day do not hide the map
+    wide = Image.open(f"{IN}/before_wide.png").convert("RGB")
     s = INSET / wide.width
     sq = wide.resize((INSET, INSET), Image.LANCZOS)
     d = ImageDraw.Draw(sq, "RGBA")
@@ -143,7 +144,7 @@ def legend(d, x_right, y, width):
         (f"נקודת הציון של מרכז התמונה: {lat:.5f} מעלות צפון, {lon:.5f} מעלות מזרח", f),
         (f"נקודת הציון של מרכז התמונה ברשת ישראל החדשה: {place['itm_e']} מזרח, {place['itm_n']} צפון", f),
         (f"כל תמונה מראה שטח של {km} על {km} קילומטרים. הצפון נמצא בראש התמונה.", f),
-        ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה.", f),
+        ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה. בשני הצדדים הריבוע הקטן לקוח מצילום ה'לפני'.", f),
         ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות: OpenStreetMap.", f),
     ]
     for i, (t, ff) in enumerate(lines):
