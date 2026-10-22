@@ -1,0 +1,2976 @@
+[
+ {
+  "id": 275283320,
+  "lat": 33.1723656,
+  "lon": 35.6101218,
+  "tags": {
+   "name": "כפר בלום",
+   "name:ar": "كفار بلوم",
+   "name:cs": "Kfar Blum",
+   "name:en": "Kfar Blum",
+   "name:fr": "Kfar Blum",
+   "name:he": "כפר בלום",
+   "place": "village",
+   "population": "677",
+   "wikidata": "Q1019478"
+  }
+ },
+ {
+  "id": 275589917,
+  "lat": 33.2477885,
+  "lon": 35.5486672,
+  "tags": {
+   "name": "משגב עם",
+   "name:cs": "Misgav Am",
+   "name:en": "Misgav Am",
+   "name:en1": "Misgav 'Am",
+   "name:fr": "Misgav Am",
+   "name:he": "משגב עם",
+   "place": "village",
+   "population": "329",
+   "wikidata": "Q2776880"
+  }
+ },
+ {
+  "id": 278473113,
+  "lat": 33.2303715,
+  "lon": 35.6392634,
+  "tags": {
+   "name": "דפנה",
+   "name:cs": "Dafna",
+   "name:de": "Dafna",
+   "name:en": "Dafna",
+   "name:fr": "Dafna",
+   "name:he": "דפנה",
+   "place": "village",
+   "population": "936",
+   "wikidata": "Q545232"
+  }
+ },
+ {
+  "id": 278473656,
+  "lat": 33.1787718,
+  "lon": 35.620776,
+  "tags": {
+   "name": "עמיר",
+   "name:ar": "عمير",
+   "name:cs": "Amir",
+   "name:en": "Amir",
+   "name:fr": "Amir",
+   "name:he": "עמיר",
+   "name:ru": "Амир",
+   "place": "village",
+   "population": "542",
+   "wikidata": "Q471949"
+  }
+ },
+ {
+  "id": 278473946,
+  "lat": 33.2083012,
+  "lon": 35.6069281,
+  "tags": {
+   "name": "בית הלל",
+   "name:cs": "Bejt Hilel",
+   "name:en": "Beit Hillel",
+   "name:fr": "Beit Hillel",
+   "name:he": "בית הלל",
+   "name:ru": "Бейт-Гилель",
+   "place": "village",
+   "population": "799",
+   "wikidata": "Q2890411"
+  }
+ },
+ {
+  "id": 278474014,
+  "lat": 33.2400913,
+  "lon": 35.6530878,
+  "tags": {
+   "name": "דן",
+   "name:cs": "Dan",
+   "name:de": "Dan",
+   "name:en": "Dan",
+   "name:en1": "Metsudat Menahem Ussishkin Bet",
+   "name:en2": "Tell el Qady",
+   "name:fr": "Dan",
+   "name:he": "דן",
+   "place": "village",
+   "population": "705",
+   "wikidata": "Q991372"
+  }
+ },
+ {
+  "id": 278474109,
+  "lat": 33.195939,
+  "lon": 35.5446083,
+  "tags": {
+   "name": "מנרה",
+   "name:cs": "Manara",
+   "name:de": "Manara",
+   "name:en": "Manara",
+   "name:fr": "Manara",
+   "name:he": "מנרה",
+   "name:ru": "Менара",
+   "place": "village",
+   "population": "244",
+   "wikidata": "Q2890256"
+  }
+ },
+ {
+  "id": 278475660,
+  "lat": 33.163887,
+  "lon": 35.6591721,
+  "tags": {
+   "name": "שמיר",
+   "name:cs": "Šamir",
+   "name:en": "Shamir",
+   "name:fr": "Shamir",
+   "name:he": "שמיר",
+   "place": "village",
+   "population": "895",
+   "wikidata": "Q2889024"
+  }
+ },
+ {
+  "id": 278475683,
+  "lat": 33.160576,
+  "lon": 35.5965774,
+  "tags": {
+   "name": "נאות מרדכי",
+   "name:cs": "Ne'ot Mordechaj",
+   "name:en": "Neot Mordekhay",
+   "name:fr": "Néot-Mordéhaï",
+   "name:he": "נאות מרדכי",
+   "place": "village",
+   "population": "561",
+   "wikidata": "Q2916678"
+  }
+ },
+ {
+  "id": 278475691,
+  "lat": 33.2074733,
+  "lon": 35.5707828,
+  "tags": {
+   "name": "קרית שמונה",
+   "name:ar": "كريات شمونة",
+   "name:cs": "Kirjat Šmona",
+   "name:de": "Kirjat Schmona",
+   "name:el": "Κιριάτ Σμονά",
+   "name:en": "Kiryat Shmona",
+   "name:en1": "Al Khalisa",
+   "name:en2": "El Khalisa",
+   "name:en3": "Halasa",
+   "name:en4": "Halsa",
+   "name:en5": "Khalasah",
+   "name:en6": "Kiryat Shemoneh",
+   "name:en7": "Qiryat Shemonah",
+   "name:en8": "Qiryat Shmona",
+   "name:en9": "Qiryat Shemona",
+   "name:es": "Qiryat Shemona",
+   "name:eu": "Kiryat Shmona",
+   "name:fa": "کریات‌شمونا",
+   "name:fr": "Qiryat Shemona",
+   "name:he": "קרית שמונה",
+   "name:hi": "किर्यत शमोना",
+   "name:hr": "Kirjat Šmona",
+   "name:ml": "കിർയാത്ത് ശ്മോണ",
+   "name:pl": "Kirjat Szemona",
+   "name:ru": "Кирьят-Шмона",
+   "name:sl": "Kirjat Šmona",
+   "name:sr": "Кирјат Шмона",
+   "name:uk": "Кір'ят-Шмона",
+   "name:ur": "کریات شمونہ",
+   "place": "town",
+   "population": "22100",
+   "wikidata": "Q327413"
+  }
+ },
+ {
+  "id": 278476381,
+  "lat": 33.2272088,
+  "lon": 35.6463364,
+  "tags": {
+   "name": "שאר ישוב",
+   "name:de": "Shear Yashuv",
+   "name:en": "Shaar Yashuv",
+   "name:en1": "She'ar Yashuv",
+   "name:fr": "She'ar Yashuv",
+   "name:he": "שאר ישוב",
+   "place": "village",
+   "population": "671",
+   "wikidata": "Q2890054"
+  }
+ },
+ {
+  "id": 278476840,
+  "lat": 33.1946879,
+  "lon": 35.657851,
+  "tags": {
+   "name": "כפר סאלד",
+   "name:cs": "Kfar Szold",
+   "name:de": "Kfar Sold",
+   "name:en": "Kfar Szold",
+   "name:en1": "Kefar Sold",
+   "name:fr": "Kfar Szold",
+   "name:he": "כפר סאלד",
+   "name:ru": "Кфар-Сольд",
+   "place": "village",
+   "population": "589",
+   "wikidata": "Q1001622"
+  }
+ },
+ {
+  "id": 278477827,
+  "lat": 33.2148047,
+  "lon": 35.5444859,
+  "tags": {
+   "name": "מרגליות",
+   "name:cs": "Margalijot",
+   "name:de": "Margaliyyot",
+   "name:en": "Margaliyyot",
+   "name:en1": "Hunin",
+   "name:en2": "Margaliyot",
+   "name:en3": "Merghelyout",
+   "name:fr": "Margaliyot",
+   "name:he": "מרגליות",
+   "name:ru": "Маргалиот",
+   "place": "village",
+   "population": "407",
+   "wikidata": "Q2916868"
+  }
+ },
+ {
+  "id": 278478005,
+  "lat": 33.1869061,
+  "lon": 35.6245075,
+  "tags": {
+   "name": "שדה נחמיה",
+   "name:ar": "سديه نحميا",
+   "name:cs": "Sde Nechemja",
+   "name:en": "Sede Nehemia",
+   "name:fr": "Sde Nehemia",
+   "name:he": "שדה נחמיה",
+   "place": "village",
+   "population": "1159",
+   "wikidata": "Q2777785"
+  }
+ },
+ {
+  "id": 278478639,
+  "lat": 33.2211258,
+  "lon": 35.6230745,
+  "tags": {
+   "name": "הגושרים",
+   "name:cs": "ha-Gošrim",
+   "name:de": "Hagoshrim",
+   "name:en": "HaGoshrim",
+   "name:en1": "HaGosherim",
+   "name:en2": "Nehalim",
+   "name:fr": "Hagoshrim",
+   "name:he": "הגושרים",
+   "place": "village",
+   "population": "749",
+   "wikidata": "Q2890599"
+  }
+ },
+ {
+  "id": 331347646,
+  "lat": 33.2410034,
+  "lon": 35.6781947,
+  "tags": {
+   "name": "שניר",
+   "name:cs": "Snir",
+   "name:de": "Snir",
+   "name:en": "Snir",
+   "name:fr": "Snir",
+   "name:he": "שניר",
+   "name:ru": "Снир",
+   "place": "village",
+   "population": "543",
+   "wikidata": "Q2777017"
+  }
+ },
+ {
+  "id": 404335599,
+  "lat": 33.2312137,
+  "lon": 35.7574829,
+  "tags": {
+   "name": "مسعدة",
+   "name:ar": "مسعدة",
+   "name:de": "Mas'ade",
+   "name:en": "Mas'ade",
+   "name:fr": "Mas'ade",
+   "name:he": "מסעדה",
+   "name:ml": "മസാദ",
+   "name:ru": "Масаде",
+   "place": "village",
+   "wikidata": "Q2655013"
+  }
+ },
+ {
+  "id": 529861003,
+  "lat": 33.2055219,
+  "lon": 35.407732,
+  "tags": {
+   "name": "السلطانية",
+   "name:ar": "السلطانية",
+   "name:de": "As-Sultaniyya",
+   "name:en": "As Sultaniyah",
+   "name:fr": "Soultaniyeh",
+   "name:he": "א-סולטאניה",
+   "place": "village",
+   "wikidata": "Q12188471"
+  }
+ },
+ {
+  "id": 529910717,
+  "lat": 33.2489966,
+  "lon": 35.5189761,
+  "tags": {
+   "name": "رب الثلاثين",
+   "name:ar": "رب الثلاثين",
+   "name:de": "Rabb Et Talatine",
+   "name:en": "Rabb Et Talatine",
+   "name:fr": "Rab El Thalathine",
+   "name:he": "רב א-ת'לאת'ין",
+   "name:ml": "റബ്ബുൽ തലാത്തീൻ",
+   "place": "village"
+  }
+ },
+ {
+  "id": 529910721,
+  "lat": 33.1540427,
+  "lon": 35.5048596,
+  "tags": {
+   "name": "محيبيب",
+   "name:ar": "محيبيب",
+   "name:de": "Mhaibib",
+   "name:en": "Mhaibib",
+   "name:fr": "Mhaibib",
+   "name:he": "מוחייביב",
+   "place": "village",
+   "wikidata": "Q11786505"
+  }
+ },
+ {
+  "id": 529910723,
+  "lat": 33.1592022,
+  "lon": 35.4267386,
+  "tags": {
+   "name": "بيت ياحون",
+   "name:ar": "بيت ياحون",
+   "name:de": "Beit Yahoun",
+   "name:en": "Beit Yahoun",
+   "name:fr": "Beit Yahoun",
+   "name:he": "בית יהון",
+   "place": "village",
+   "wikidata": "Q12200516"
+  }
+ },
+ {
+  "id": 529910730,
+  "lat": 33.1924455,
+  "lon": 35.4629222,
+  "tags": {
+   "name": "شقرا",
+   "name:ar": "شقرا",
+   "name:de": "Chaqra",
+   "name:en": "Chaqra",
+   "name:fr": "Chaqra",
+   "name:he": "שקרא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 529910747,
+  "lat": 33.243953,
+  "lon": 35.4909218,
+  "tags": {
+   "name": "بني حيان",
+   "name:ar": "بني حيان",
+   "name:de": "Bani Haiyane",
+   "name:en": "Bani Haiyane",
+   "name:fr": "Bani Haiyane",
+   "name:he": "בני חיאן",
+   "place": "village"
+  }
+ },
+ {
+  "id": 564338215,
+  "lat": 33.1972906,
+  "lon": 35.4109158,
+  "tags": {
+   "name": "الحارة",
+   "name:ar": "الحارة",
+   "name:de": "Al-Hara",
+   "name:en": "Al Hara",
+   "name:fr": "El Hara",
+   "place": "village"
+  }
+ },
+ {
+  "id": 1102281755,
+  "lat": 33.3812029,
+  "lon": 35.4825346,
+  "tags": {
+   "name": "النبطية",
+   "name:ar": "النبطية",
+   "name:cs": "Nabatíja",
+   "name:de": "Nabatäa",
+   "name:el": "Ναμπατίγια",
+   "name:en": "Nabatieh",
+   "name:es": "Nabatieh",
+   "name:fa": "نبطیه",
+   "name:fr": "Nabatieh",
+   "name:he": "א-נבטיה",
+   "name:hi": "नबटिया",
+   "name:hr": "Nabateja",
+   "name:hy": "Նաբաթիե",
+   "name:lt": "Nabatija",
+   "name:ml": "നബത്തിയ",
+   "name:ru": "Эн-Набатия",
+   "name:sr": "Набатија",
+   "name:tr": "Nebatiye",
+   "name:uk": "Набатія",
+   "name:ur": "نبطیہ",
+   "place": "city",
+   "wikidata": "Q26134"
+  }
+ },
+ {
+  "id": 1652291739,
+  "lat": 33.2619578,
+  "lon": 35.7407856,
+  "tags": {
+   "name": "נווה אטי\"ב",
+   "name:ar": "نيفي أطيف",
+   "name:de": "Neve Ativ",
+   "name:en": "Neve Ativ",
+   "name:fr": "Neve Ativ",
+   "name:he": "נווה אטי\"ב",
+   "name:ml": "ജുബാത്ത",
+   "place": "village",
+   "wikidata": "Q2975755"
+  }
+ },
+ {
+  "id": 1652294180,
+  "lat": 33.2452094,
+  "lon": 35.7510271,
+  "tags": {
+   "name": "נמרוד",
+   "name:ar": "نمرود",
+   "name:de": "Nimrod",
+   "name:en": "Nimrod",
+   "name:fr": "Nimrod",
+   "name:he": "נמרוד",
+   "place": "village",
+   "population": "18",
+   "wikidata": "Q2466712"
+  }
+ },
+ {
+  "id": 1657258955,
+  "lat": 33.1943741,
+  "lon": 35.7483145,
+  "tags": {
+   "name": "אודם",
+   "name:cs": "Odem",
+   "name:de": "Odem",
+   "name:en": "Odem",
+   "name:fr": "Odem",
+   "name:he": "אודם",
+   "name:nn": "Odem",
+   "name:pl": "Odem",
+   "name:ru": "Одем",
+   "name:ur": "اودیم",
+   "name:vi": "Odem",
+   "place": "village",
+   "population": "150",
+   "wikidata": "Q598371"
+  }
+ },
+ {
+  "id": 1657260022,
+  "lat": 33.1796457,
+  "lon": 35.7721224,
+  "tags": {
+   "name": "אל-רום",
+   "name:cs": "El Rom",
+   "name:en": "El Rom",
+   "name:fr": "El Rom",
+   "name:he": "אל-רום",
+   "name:nn": "El Rom",
+   "name:pl": "El-Rom",
+   "name:ru": "Эль-Ром",
+   "name:ur": "الروم",
+   "name:vi": "El Rom",
+   "place": "village",
+   "population": "274",
+   "wikidata": "Q2889939"
+  }
+ },
+ {
+  "id": 1657261912,
+  "lat": 33.20076,
+  "lon": 35.7779892,
+  "tags": {
+   "name": "بقعاثا",
+   "name:ar": "بقعاثا",
+   "name:en": "Buq'atha",
+   "name:fr": "Buq'atha",
+   "name:he": "בוקעאתא",
+   "name:ml": "ബുക്കാസ",
+   "name:ru": "Буката",
+   "place": "village",
+   "population": "5300",
+   "wikidata": "Q2915523"
+  }
+ },
+ {
+  "id": 2707899268,
+  "lat": 33.3618797,
+  "lon": 35.4986586,
+  "tags": {
+   "name": "النبطيه الفوقا",
+   "name:ar": "النبطيه الفوقا",
+   "name:de": "Nabatieh El Fawqa",
+   "name:en": "Nabatieh El Fawqa",
+   "name:fr": "Nabatieh El Fawqa",
+   "name:he": "א-נבטיה אל-פוקא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 2866107524,
+  "lat": 33.2684288,
+  "lon": 35.769371,
+  "tags": {
+   "name": "مجدل شمس",
+   "name:ar": "مجدل شمس",
+   "name:azb": "مجدل شمس",
+   "name:ca": "Majdal Shams",
+   "name:cs": "Madždal Šams",
+   "name:de": "Madschdal Schams",
+   "name:en": "Majdal Shams",
+   "name:es": "Majdal Shams",
+   "name:fa": "مجدل شمس",
+   "name:fi": "Majdal Shams",
+   "name:fr": "Majdal Shams",
+   "name:he": "מג'דל שמס",
+   "name:id": "Majdal Shams",
+   "name:ks": "مجدل شمس",
+   "name:ml": "മജ്ദൽ ഷംസ്",
+   "name:nn": "Majdal Shams",
+   "name:pl": "Madżdal Szams",
+   "name:ru": "Мадждаль-Шамс",
+   "name:ur": "مجدل شمس",
+   "place": "village",
+   "wikidata": "Q670612"
+  }
+ },
+ {
+  "id": 2866107525,
+  "lat": 33.2360284,
+  "lon": 35.731055,
+  "tags": {
+   "name": "عين قنية",
+   "name:ar": "عين قنية",
+   "name:cs": "Ejn Kinije",
+   "name:de": "Ein Qiniyye",
+   "name:en": "Ein Qiniyye",
+   "name:fr": "Ein Qiniyye",
+   "name:he": "עין קנייא",
+   "name:ml": "ഐൻ-ഖിനിയ്യ",
+   "name:nn": "Ein Qiniyye",
+   "name:pl": "En Kinijje",
+   "name:ru": "Эйн-Киния",
+   "name:vi": "Ein Qiniyye",
+   "place": "village",
+   "population": "1988",
+   "wikidata": "Q2917274"
+  }
+ },
+ {
+  "id": 3058564252,
+  "lat": 33.2417843,
+  "lon": 35.5749608,
+  "tags": {
+   "name": "כפר גלעדי",
+   "name:de": "Kfar Giladi",
+   "name:en": "Kfar Giladi",
+   "name:fr": "Kfar-Guiladi",
+   "name:he": "כפר גלעדי",
+   "name:ru": "Кфар-Гилади",
+   "place": "village",
+   "population": "653",
+   "wikidata": "Q1487392"
+  }
+ },
+ {
+  "id": 3058564253,
+  "lat": 33.2474176,
+  "lon": 35.5974916,
+  "tags": {
+   "name": "כפר יובל",
+   "name:cs": "Kfar Juval",
+   "name:de": "Kfar Yuval",
+   "name:en": "Kfar Yuval",
+   "name:fr": "Kfar Yuval",
+   "name:he": "כפר יובל",
+   "name:ru": "Кфар-Юваль",
+   "place": "village",
+   "population": "634",
+   "wikidata": "Q2890790"
+  }
+ },
+ {
+  "id": 3058564254,
+  "lat": 33.2397998,
+  "lon": 35.6078756,
+  "tags": {
+   "name": "מעיין ברוך",
+   "name:cs": "Ma'ajan Baruch",
+   "name:de": "Ma'ayan Baruch",
+   "name:en": "Ma'ayan Baruch",
+   "name:fr": "Ma'ayan Baruch",
+   "name:he": "מעיין ברוך",
+   "place": "village",
+   "population": "653",
+   "wikidata": "Q2889835"
+  }
+ },
+ {
+  "id": 3058579969,
+  "lat": 33.2799815,
+  "lon": 35.5779451,
+  "tags": {
+   "name": "מטולה",
+   "name:ar": "المطلة",
+   "name:de": "Metulla",
+   "name:en": "Metula",
+   "name:es": "Metula",
+   "name:fr": "Metoula",
+   "name:he": "מטולה",
+   "name:ml": "അൽ-മുത്തല്ല",
+   "name:ru": "Метула",
+   "name:sl": "Metula",
+   "place": "village",
+   "population": "1589",
+   "wikidata": "Q1011497"
+  }
+ },
+ {
+  "id": 4460876529,
+  "lat": 33.175473,
+  "lon": 35.441914,
+  "tags": {
+   "name": "برعشيت",
+   "name:ar": "برعشيت",
+   "name:de": "Baraachit",
+   "name:en": "Barashit",
+   "name:fr": "Baraachit",
+   "name:he": "ברעשית",
+   "place": "village",
+   "wikidata": "Q22683514"
+  }
+ },
+ {
+  "id": 4672294477,
+  "lat": 33.2721727,
+  "lon": 35.6239112,
+  "tags": {
+   "name": "الغجر",
+   "name:ar": "الغجر",
+   "name:azb": "غجر",
+   "name:cs": "Ghadžar",
+   "name:en": "Ghajar",
+   "name:eo": "Ghaĝar",
+   "name:fa": "غجر",
+   "name:fr": "Ghajar",
+   "name:he": "ע'ג'ר",
+   "name:hyw": "Ղաժար",
+   "name:ml": "ഗജർ",
+   "name:pl": "Ghadżar",
+   "name:ru": "Гаджар",
+   "name:ur": "غجر",
+   "place": "village",
+   "wikidata": "Q1261045"
+  }
+ },
+ {
+  "id": 4802502307,
+  "lat": 33.3617043,
+  "lon": 35.402686,
+  "tags": {
+   "name": "عبا",
+   "name:ar": "عبا",
+   "name:de": "Aabba",
+   "name:en": "Aabba",
+   "name:fr": "Aabba",
+   "name:he": "עבא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 4812430106,
+  "lat": 33.409165,
+  "lon": 35.4812705,
+  "tags": {
+   "name": "حبوش",
+   "name:ar": "حبوش",
+   "name:en": "Habboush",
+   "name:fr": "Habbouch",
+   "name:he": "חבוש",
+   "name:ml": "ഹബ്ബൂഷ്",
+   "place": "town"
+  }
+ },
+ {
+  "id": 5037422633,
+  "lat": 33.1932575,
+  "lon": 35.4117998,
+  "tags": {
+   "name": "تبنين",
+   "name:ar": "تبنين",
+   "name:de": "Tibnin",
+   "name:en": "Tibnine",
+   "name:fr": "Tebnine",
+   "name:he": "תבנין",
+   "name:ml": "തിബ്നീൻ",
+   "place": "town",
+   "wikidata": "Q2733823"
+  }
+ },
+ {
+  "id": 5037435456,
+  "lat": 33.2101829,
+  "lon": 35.5187344,
+  "tags": {
+   "name": "حولا",
+   "name:ar": "حولا",
+   "name:de": "Hula",
+   "name:en": "Hula",
+   "name:fr": "Hula",
+   "name:he": "חולא",
+   "name:ml": "ഹൂല",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5155716446,
+  "lat": 33.2920997,
+  "lon": 35.5002379,
+  "tags": {
+   "name": "دير سريان",
+   "name:ar": "دير سريان",
+   "name:de": "Deir Siriane",
+   "name:en": "Deir Siriane",
+   "name:fr": "Deir Siriane",
+   "name:he": "דיר סיריאן",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5155720617,
+  "lat": 33.2749784,
+  "lon": 35.5205286,
+  "tags": {
+   "name": "الطيبة",
+   "name:ar": "الطيبة",
+   "name:en": "Et Taibeh",
+   "name:fr": "Et Taibeh",
+   "name:he": "טייבה",
+   "name:ml": "തൈബ",
+   "place": "town",
+   "population": "3000",
+   "wikidata": "Q9161495"
+  }
+ },
+ {
+  "id": 5157508270,
+  "lat": 33.3499782,
+  "lon": 35.5111384,
+  "tags": {
+   "name": "كفر تبنيت",
+   "name:ar": "كفر تبنيت",
+   "name:de": "Kafr Tibnit",
+   "name:en": "Kafr Tibnit",
+   "name:fr": "Kfar Tebnit",
+   "name:he": "כפר תיבנית",
+   "place": "village",
+   "wikidata": "Q12235666"
+  }
+ },
+ {
+  "id": 5273978140,
+  "lat": 33.4389263,
+  "lon": 35.5632591,
+  "tags": {
+   "name": "ريحان",
+   "name:ar": "ريحان",
+   "name:en": "Rihan",
+   "name:fr": "Rihan",
+   "name:he": "ריחן",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5288416669,
+  "lat": 33.4734986,
+  "lon": 35.8015547,
+  "tags": {
+   "name": "تنورة",
+   "name:ar": "تنورة",
+   "name:de": "Tannoura",
+   "name:en": "Tannoura",
+   "name:fr": "Tannoura",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5288420441,
+  "lat": 33.4944064,
+  "lon": 35.8199774,
+  "tags": {
+   "name": "بكيفا",
+   "name:ar": "بكيفا",
+   "name:de": "Bakkifa",
+   "name:en": "Bakkifa",
+   "name:fr": "Bakkifa",
+   "place": "village",
+   "wikidata": "Q12195805"
+  }
+ },
+ {
+  "id": 5288430207,
+  "lat": 33.4889521,
+  "lon": 35.7551976,
+  "tags": {
+   "name": "النبعات",
+   "name:ar": "النبعات",
+   "name:de": "Nabaat",
+   "name:en": "Nabaat",
+   "name:fr": "Nabaat",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5288450721,
+  "lat": 33.495841,
+  "lon": 35.7466015,
+  "tags": {
+   "name": "ثلثاتة",
+   "name:ar": "ثلثاتة",
+   "name:de": "Toultata",
+   "name:en": "Toultata",
+   "name:fr": "Toultata",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5345647299,
+  "lat": 33.3883164,
+  "lon": 35.5402846,
+  "tags": {
+   "name": "جرمق",
+   "name:ar": "جرمق",
+   "name:en": "Jarmaq",
+   "name:fr": "Jarmaq",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5394567339,
+  "lat": 33.4939236,
+  "lon": 35.5850987,
+  "tags": {
+   "name": "كفر حونة",
+   "name:ar": "كفر حونة",
+   "name:de": "Kfarhouna",
+   "name:en": "Kfarhouna",
+   "name:fr": "Kfarhouna",
+   "name:he": "כפר חונה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5463226434,
+  "lat": 33.2626526,
+  "lon": 35.6193188,
+  "tags": {
+   "name": "ميسات",
+   "name:ar": "ميسات",
+   "name:de": "Maisat",
+   "name:en": "Maisat",
+   "name:fr": "Maisat",
+   "name:he": "מייסת",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5519291336,
+  "lat": 33.3444753,
+  "lon": 35.7494258,
+  "tags": {
+   "name": "شبعا",
+   "name:ar": "شبعا",
+   "name:de": "Shebaa",
+   "name:en": "Shebaa",
+   "name:es": "Saba",
+   "name:fr": "Chebaa",
+   "name:he": "שבעא",
+   "name:it": "Cheba",
+   "name:pt": "Sabá",
+   "name:ru": "Шебаа",
+   "place": "village",
+   "wikidata": "Q2232190"
+  }
+ },
+ {
+  "id": 5519544294,
+  "lat": 33.1699525,
+  "lon": 35.5241964,
+  "tags": {
+   "name": "ميس الجبل",
+   "name:ar": "ميس الجبل",
+   "name:en": "Meiss Ej Jabal",
+   "name:fr": "Meiss El Jabal",
+   "name:he": "מיס אל-ג'בל",
+   "name:ml": "മെയ്സ് അൽ ജബൽ",
+   "name:pl": "Majs al-Dżabal",
+   "place": "town",
+   "wikidata": "Q6810333"
+  }
+ },
+ {
+  "id": 5521352152,
+  "lat": 33.3710683,
+  "lon": 35.6673999,
+  "tags": {
+   "name": "الفرديس",
+   "name:ar": "الفرديس",
+   "name:de": "Fardis",
+   "name:en": "Fardis",
+   "name:fr": "Fardis",
+   "name:he": "פרדיס",
+   "place": "village",
+   "wikidata": "Q12190904"
+  }
+ },
+ {
+  "id": 5521352568,
+  "lat": 33.3681176,
+  "lon": 35.6961725,
+  "tags": {
+   "name": "الهبارية",
+   "name:ar": "الهبارية",
+   "name:en": "Hebbariye",
+   "name:fr": "Hebbariye",
+   "name:he": "הברייה",
+   "place": "village",
+   "wikidata": "Q5695359"
+  }
+ },
+ {
+  "id": 5605013079,
+  "lat": 33.3592529,
+  "lon": 35.5902134,
+  "tags": {
+   "name": "مرجعيون",
+   "name:ar": "مرجعيون",
+   "name:de": "Mardsch Uyun",
+   "name:el": "Μαρζαγιούν",
+   "name:en": "Marjayoun",
+   "name:es": "Marjayún",
+   "name:et": "Marji‘yūn",
+   "name:fa": "مرجعیون، لبنان",
+   "name:fi": "Marjayoun",
+   "name:fr": "Marjayoun",
+   "name:he": "מרג' עיון",
+   "name:it": "Marjayoun",
+   "name:ml": "മർജായൂൺ",
+   "name:nb": "Marjayoun",
+   "name:nl": "Marjeyoun",
+   "name:nn": "Marjeyoun",
+   "name:pl": "Mardż Ujun",
+   "name:ru": "Марджъуюн",
+   "name:sr": "Марџ Ујун",
+   "name:sv": "Marjayun",
+   "name:uk": "Марджаюн",
+   "name:zh": "邁爾季歐雲",
+   "place": "town",
+   "population": "5000",
+   "wikidata": "Q25659"
+  }
+ },
+ {
+  "id": 5729019387,
+  "lat": 33.3698001,
+  "lon": 35.5939154,
+  "tags": {
+   "name": "دبين",
+   "name:ar": "دبين",
+   "name:en": "Dibbin",
+   "name:fr": "Dibbin",
+   "name:he": "דיבין",
+   "place": "village",
+   "wikidata": "Q12211468"
+  }
+ },
+ {
+  "id": 5782432417,
+  "lat": 33.3964734,
+  "lon": 35.6811724,
+  "tags": {
+   "name": "حاصبيا",
+   "name:ar": "حاصبيا",
+   "name:de": "Hasbaya",
+   "name:en": "Hasbaya",
+   "name:fr": "Hasbaya",
+   "name:he": "חאצביא",
+   "name:ml": "ഹാസ്ബയ",
+   "place": "town",
+   "wikidata": "Q594026"
+  }
+ },
+ {
+  "id": 5799850348,
+  "lat": 33.5021232,
+  "lon": 35.6423478,
+  "tags": {
+   "name": "عين التينة",
+   "name:ar": "عين التينة",
+   "name:de": "Ain At-Tina",
+   "name:en": "Ain At Tina",
+   "name:fr": "Ain El Tineh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5809851762,
+  "lat": 33.4840472,
+  "lon": 35.8024631,
+  "tags": {
+   "name": "بيت لاهيا",
+   "name:ar": "بيت لاهيا",
+   "name:de": "Beit Lahia",
+   "name:en": "Beit Lahia",
+   "name:fr": "Beit Lahia",
+   "place": "village",
+   "wikidata": "Q803986"
+  }
+ },
+ {
+  "id": 5866296361,
+  "lat": 33.4014021,
+  "lon": 35.7058968,
+  "tags": {
+   "name": "عين قنيا",
+   "name:ar": "عين قنيا",
+   "name:de": "Ain Qinya",
+   "name:en": "Ain Qinya",
+   "name:fr": "Ain Qinya",
+   "name:he": "עין קניא",
+   "place": "village",
+   "wikidata": "Q12229145"
+  }
+ },
+ {
+  "id": 5866296362,
+  "lat": 33.3947537,
+  "lon": 35.7145115,
+  "tags": {
+   "name": "شويا",
+   "name:ar": "شويا",
+   "name:en": "Chouya",
+   "name:fr": "Chouya",
+   "name:he": "שוויא",
+   "place": "village",
+   "wikidata": "Q12219284"
+  }
+ },
+ {
+  "id": 5866578737,
+  "lat": 33.334772,
+  "lon": 35.5708924,
+  "tags": {
+   "name": "القليعة",
+   "name:ar": "القليعة",
+   "name:de": "Al Qulaia",
+   "name:en": "Klayaa",
+   "name:es": "Klayaa",
+   "name:fr": "Klayaa",
+   "name:he": "קליעה",
+   "name:ml": "ഖുലയ",
+   "place": "village",
+   "wikidata": "Q3926508"
+  }
+ },
+ {
+  "id": 5866582498,
+  "lat": 33.3230471,
+  "lon": 35.5631656,
+  "tags": {
+   "name": "برج الملوك",
+   "name:ar": "برج الملوك",
+   "name:en": "Burj Al Muluk",
+   "name:es": "Burj Al Muluk",
+   "name:fr": "Burj Al Muluk",
+   "name:he": "בורג' אל-מולוכ",
+   "name:ml": "ബുർജ് അൽ-മുലൂക്ക്",
+   "place": "village",
+   "wikidata": "Q12197879"
+  }
+ },
+ {
+  "id": 5866585232,
+  "lat": 33.3020815,
+  "lon": 35.5467215,
+  "tags": {
+   "name": "دير ميماس",
+   "name:ar": "دير ميماس",
+   "name:en": "Dayr Mimas",
+   "name:fr": "Deir Mimas",
+   "name:he": "דיר מימאס",
+   "name:ml": "ദെയ്ർ മീമാസ്",
+   "place": "village",
+   "wikidata": "Q2919903"
+  }
+ },
+ {
+  "id": 5876921963,
+  "lat": 33.3484623,
+  "lon": 35.4772269,
+  "tags": {
+   "name": "ميفدون",
+   "name:ar": "ميفدون",
+   "name:de": "Mayfadoun",
+   "name:en": "Mayfadoun",
+   "name:fr": "Mayfadoun",
+   "name:he": "מיפדון",
+   "name:ml": "മൈഫദൂൺ",
+   "place": "village",
+   "wikidata": "Q12246843"
+  }
+ },
+ {
+  "id": 5879590636,
+  "lat": 33.488087,
+  "lon": 35.4740804,
+  "tags": {
+   "name": "جرنايا",
+   "name:ar": "جرنايا",
+   "name:en": "Jurnaya",
+   "name:fr": "Jernaya",
+   "place": "village",
+   "wikidata": "Q12205204"
+  }
+ },
+ {
+  "id": 5879591075,
+  "lat": 33.3742285,
+  "lon": 35.4430582,
+  "tags": {
+   "name": "حاروف",
+   "name:ar": "حاروف",
+   "name:de": "Haruf",
+   "name:en": "Harouf",
+   "name:fr": "Harouf",
+   "name:he": "חארוף",
+   "name:ml": "ഹാറൂഫ്",
+   "place": "village",
+   "wikidata": "Q5662979"
+  }
+ },
+ {
+  "id": 5879708207,
+  "lat": 33.4402001,
+  "lon": 35.6036357,
+  "tags": {
+   "name": "القطراني",
+   "name:ar": "القطراني",
+   "name:de": "Qatrani",
+   "name:en": "Qatrani",
+   "name:fr": "Qatrani",
+   "place": "village",
+   "wikidata": "Q12191385"
+  }
+ },
+ {
+  "id": 5879713300,
+  "lat": 33.2947191,
+  "lon": 35.4278612,
+  "tags": {
+   "name": "فرون",
+   "name:ar": "فرون",
+   "name:de": "Froun",
+   "name:en": "Froun",
+   "name:fr": "Froun",
+   "name:he": "פארון",
+   "place": "village",
+   "wikidata": "Q12230659"
+  }
+ },
+ {
+  "id": 5944431742,
+  "lat": 33.4618484,
+  "lon": 35.5744169,
+  "tags": {
+   "name": "عرمتى",
+   "name:ar": "عرمتى",
+   "name:en": "Aramta",
+   "name:fr": "Aramta",
+   "place": "village",
+   "wikidata": "Q12224739"
+  }
+ },
+ {
+  "id": 5944664498,
+  "lat": 33.4587999,
+  "lon": 35.6707199,
+  "tags": {
+   "name": "زلاية",
+   "name:ar": "زلاية",
+   "name:de": "Zillaya",
+   "name:en": "Zillaya",
+   "name:fr": "Zillaya",
+   "place": "village"
+  }
+ },
+ {
+  "id": 5992248085,
+  "lat": 33.3272226,
+  "lon": 35.6089702,
+  "tags": {
+   "name": "الخيام",
+   "name:ar": "الخيام",
+   "name:en": "Khiam",
+   "name:fr": "Khiam",
+   "name:he": "אל-ח'יאם",
+   "name:ml": "ഖിയാം",
+   "place": "village",
+   "wikidata": "Q1075081"
+  }
+ },
+ {
+  "id": 6051781777,
+  "lat": 33.4603412,
+  "lon": 35.4150377,
+  "tags": {
+   "name": "إركي",
+   "name:ar": "إركي",
+   "name:en": "Erkay",
+   "name:fr": "Erkay",
+   "place": "village",
+   "wikidata": "Q12182138"
+  }
+ },
+ {
+  "id": 6051788003,
+  "lat": 33.504197,
+  "lon": 35.4517632,
+  "tags": {
+   "name": "كفر حتى",
+   "name:ar": "كفر حتى",
+   "name:de": "Kafr Hatta",
+   "name:en": "Kafr Hatta",
+   "name:fr": "Kfar Hatta",
+   "name:he": "כפר חתא",
+   "place": "village",
+   "wikidata": "Q46489397"
+  }
+ },
+ {
+  "id": 6051796122,
+  "lat": 33.5007599,
+  "lon": 35.4320305,
+  "tags": {
+   "name": "عنقون",
+   "name:ar": "عنقون",
+   "name:de": "Aanqoun",
+   "name:en": "Aanqoun",
+   "name:fr": "Aanqoun",
+   "place": "village",
+   "wikidata": "Q3618296"
+  }
+ },
+ {
+  "id": 6051797857,
+  "lat": 33.4834001,
+  "lon": 35.4212612,
+  "tags": {
+   "name": "بنعفول",
+   "name:ar": "بنعفول",
+   "name:de": "Bnaafoul",
+   "name:en": "Bnaafoul",
+   "name:fr": "Bnaafoul",
+   "place": "village",
+   "wikidata": "Q12199329"
+  }
+ },
+ {
+  "id": 6088773842,
+  "lat": 33.4830374,
+  "lon": 35.4566541,
+  "tags": {
+   "name": "عرب الجل",
+   "name:ar": "عرب الجل",
+   "name:en": "Aarab Ej Jall",
+   "name:fr": "Aarab Ej Jall",
+   "place": "village",
+   "wikidata": "Q12224603"
+  }
+ },
+ {
+  "id": 6088776739,
+  "lat": 33.5019243,
+  "lon": 35.4785343,
+  "tags": {
+   "name": "كفر ملكي",
+   "name:ar": "كفر ملكي",
+   "name:de": "Kafr Maliki",
+   "name:en": "Kafr Maliki",
+   "name:fr": "Kfar Melki",
+   "place": "village",
+   "wikidata": "Q6398704"
+  }
+ },
+ {
+  "id": 6090970285,
+  "lat": 33.4664178,
+  "lon": 35.4057575,
+  "tags": {
+   "name": "خزيز",
+   "name:ar": "خزيز",
+   "name:en": "Khzaiz",
+   "name:fr": "Khzaiz",
+   "place": "village",
+   "wikidata": "Q12210458"
+  }
+ },
+ {
+  "id": 6090973423,
+  "lat": 33.494055,
+  "lon": 35.4698891,
+  "tags": {
+   "name": "كفر شلال",
+   "name:ar": "كفر شلال",
+   "name:en": "Kafr Shallal",
+   "name:fr": "Kfar Chellal",
+   "place": "village",
+   "wikidata": "Q12235689"
+  }
+ },
+ {
+  "id": 6090973782,
+  "lat": 33.496882,
+  "lon": 35.4627022,
+  "tags": {
+   "name": "كفر بيت",
+   "name:ar": "كفر بيت",
+   "name:de": "Kafr Bait",
+   "name:en": "Kafr Bayt",
+   "name:fr": "Kfar Beit",
+   "place": "village",
+   "wikidata": "Q12235324"
+  }
+ },
+ {
+  "id": 6111461954,
+  "lat": 33.4878671,
+  "lon": 35.4413581,
+  "tags": {
+   "name": "عرب طبايا",
+   "name:ar": "عرب طبايا",
+   "name:en": "Tabbaya",
+   "name:fr": "Tabbaya",
+   "place": "village",
+   "wikidata": "Q7672980"
+  }
+ },
+ {
+  "id": 6128290969,
+  "lat": 33.147916,
+  "lon": 35.4313657,
+  "tags": {
+   "name": "كونين",
+   "name:ar": "كونين",
+   "name:en": "Kounine",
+   "name:fr": "Kounine",
+   "name:he": "כונין",
+   "place": "village",
+   "wikidata": "Q12236637"
+  }
+ },
+ {
+  "id": 6133790293,
+  "lat": 33.4042717,
+  "lon": 35.6922328,
+  "tags": {
+   "name": "زغلة",
+   "name:ar": "زغلة",
+   "name:de": "Zaghla",
+   "name:en": "Zaghla",
+   "name:fr": "Zaghla",
+   "place": "village",
+   "wikidata": "Q12214400"
+  }
+ },
+ {
+  "id": 6222599606,
+  "lat": 33.4456121,
+  "lon": 35.5166044,
+  "tags": {
+   "name": "جرجوع",
+   "name:ar": "جرجوع",
+   "name:en": "Jarjouaa",
+   "name:fr": "Jarjouaa",
+   "name:he": "ג'רג'וע",
+   "place": "village",
+   "wikidata": "Q6160266"
+  }
+ },
+ {
+  "id": 6236982823,
+  "lat": 33.4488759,
+  "lon": 35.4676559,
+  "tags": {
+   "name": "حميلة",
+   "name:ar": "حميلة",
+   "name:en": "Hmaileh",
+   "name:fr": "Hmaileh",
+   "place": "village",
+   "wikidata": "Q12208947"
+  }
+ },
+ {
+  "id": 6236983178,
+  "lat": 33.4669747,
+  "lon": 35.4746137,
+  "tags": {
+   "name": "صربا",
+   "name:ar": "صربا",
+   "name:en": "Sarba",
+   "name:fr": "Sarba",
+   "place": "village",
+   "wikidata": "Q12219953"
+  }
+ },
+ {
+  "id": 6236986393,
+  "lat": 33.4455407,
+  "lon": 35.401723,
+  "tags": {
+   "name": "زفتا",
+   "name:ar": "زفتا",
+   "name:en": "Zefta",
+   "name:fr": "Zefta",
+   "name:he": "זפתא",
+   "place": "village",
+   "wikidata": "Q12214403"
+  }
+ },
+ {
+  "id": 6278799031,
+  "lat": 33.5067272,
+  "lon": 35.7953668,
+  "tags": {
+   "name": "مرج السماح",
+   "name:ar": "مرج السماح",
+   "name:de": "Marj Al Samah",
+   "name:en": "Marj Al Samah",
+   "name:fr": "Marj Al Samah",
+   "place": "village",
+   "wikidata": "Q12242051"
+  }
+ },
+ {
+  "id": 6326360839,
+  "lat": 33.2572715,
+  "lon": 35.398605,
+  "tags": {
+   "name": "دير كيفا",
+   "name:ar": "دير كيفا",
+   "name:de": "Deir Kifa",
+   "name:en": "Deir Kifa",
+   "name:fr": "Deir Kifa",
+   "name:he": "דיר כיפא",
+   "place": "village",
+   "wikidata": "Q12212399"
+  }
+ },
+ {
+  "id": 6332819641,
+  "lat": 33.2825105,
+  "lon": 35.3992192,
+  "tags": {
+   "name": "صريفا",
+   "name:ar": "صريفا",
+   "name:de": "Srifa",
+   "name:en": "Srifa",
+   "name:fr": "Srifa",
+   "name:he": "סריפא",
+   "place": "village",
+   "wikidata": "Q4118368"
+  }
+ },
+ {
+  "id": 6383185441,
+  "lat": 33.3259445,
+  "lon": 35.3999629,
+  "tags": {
+   "name": "كفر صير",
+   "name:ar": "كفر صير",
+   "name:de": "Kfar Sir",
+   "name:en": "Kfar Sir",
+   "name:fr": "Kfar Sir",
+   "name:he": "כפר סיר",
+   "place": "village",
+   "wikidata": "Q12235688"
+  }
+ },
+ {
+  "id": 6468739470,
+  "lat": 33.3840943,
+  "lon": 35.6854279,
+  "tags": {
+   "name": "عين جرفا",
+   "name:ar": "عين جرفا",
+   "name:en": "Ayn Jarfa",
+   "name:fr": "Ayn Jarfa",
+   "place": "village",
+   "wikidata": "Q12229083"
+  }
+ },
+ {
+  "id": 6496311723,
+  "lat": 33.3983237,
+  "lon": 35.4517936,
+  "tags": {
+   "name": "الكفور",
+   "name:ar": "الكفور",
+   "name:de": "Kfour",
+   "name:en": "Kfour",
+   "name:fr": "Kfour",
+   "place": "village",
+   "wikidata": "Q12191801"
+  }
+ },
+ {
+  "id": 6496311724,
+  "lat": 33.3895063,
+  "lon": 35.4445962,
+  "tags": {
+   "name": "تول",
+   "name:ar": "تول",
+   "name:de": "Toul",
+   "name:en": "Toul",
+   "name:fr": "Toul",
+   "name:he": "תול",
+   "place": "village",
+   "wikidata": "Q12203490"
+  }
+ },
+ {
+  "id": 6496319441,
+  "lat": 33.3765834,
+  "lon": 35.4620874,
+  "tags": {
+   "name": "زبدين",
+   "name:ar": "زبدين",
+   "name:en": "Zebdine",
+   "name:fr": "Zebdine",
+   "name:he": "זבדין",
+   "place": "village",
+   "wikidata": "Q12214281"
+  }
+ },
+ {
+  "id": 6496331585,
+  "lat": 33.3529729,
+  "lon": 35.4621667,
+  "tags": {
+   "name": "شوكين",
+   "name:ar": "شوكين",
+   "name:en": "Shoukine",
+   "name:fr": "Choukine",
+   "name:he": "שוכין",
+   "place": "village",
+   "wikidata": "Q20388616"
+  }
+ },
+ {
+  "id": 6496343542,
+  "lat": 33.364832,
+  "lon": 35.4276104,
+  "tags": {
+   "name": "جبشيت",
+   "name:ar": "جبشيت",
+   "name:de": "Jibchit",
+   "name:en": "Jibchit",
+   "name:fr": "Jibchit",
+   "name:he": "ג'בשית",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6496343543,
+  "lat": 33.3880921,
+  "lon": 35.419919,
+  "tags": {
+   "name": "الدوير",
+   "name:ar": "الدوير",
+   "name:de": "Doueir",
+   "name:en": "Doueir",
+   "name:fr": "Doueir",
+   "name:he": "א-דוויר",
+   "place": "village",
+   "wikidata": "Q12187494"
+  }
+ },
+ {
+  "id": 6504119239,
+  "lat": 33.2481955,
+  "lon": 35.4434689,
+  "tags": {
+   "name": "تولين",
+   "name:ar": "تولين",
+   "name:en": "Touline",
+   "name:fr": "Touline",
+   "name:he": "טולין",
+   "place": "village",
+   "wikidata": "Q12203497"
+  }
+ },
+ {
+  "id": 6504121584,
+  "lat": 33.2731133,
+  "lon": 35.4226712,
+  "tags": {
+   "name": "طويري",
+   "name:ar": "طويري",
+   "name:de": "Touairi",
+   "name:en": "Touairi",
+   "name:fr": "Touairi",
+   "place": "village",
+   "wikidata": "Q12221964"
+  }
+ },
+ {
+  "id": 6504121590,
+  "lat": 33.2463365,
+  "lon": 35.4633638,
+  "tags": {
+   "name": "قبريخا",
+   "name:ar": "قبريخا",
+   "name:en": "Qabrikha",
+   "name:fr": "Kabrika",
+   "name:he": "קבריח'א",
+   "place": "village",
+   "wikidata": "Q12232138"
+  }
+ },
+ {
+  "id": 6504821769,
+  "lat": 33.4867517,
+  "lon": 35.672858,
+  "tags": {
+   "name": "يحمر",
+   "name:ar": "يحمر",
+   "name:de": "Yohmor",
+   "name:en": "Yohmor",
+   "name:fr": "Yohmor",
+   "name:he": "יוחמור",
+   "place": "village",
+   "wikidata": "Q16904120"
+  }
+ },
+ {
+  "id": 6504822791,
+  "lat": 33.4813909,
+  "lon": 35.7234029,
+  "tags": {
+   "name": "لبايا",
+   "name:ar": "لبايا",
+   "name:de": "Libbaya",
+   "name:en": "Libbaya",
+   "name:fr": "Libbaya",
+   "name:he": "ליבאיא",
+   "place": "village",
+   "wikidata": "Q6540385"
+  }
+ },
+ {
+  "id": 6534448243,
+  "lat": 33.4074135,
+  "lon": 35.5564358,
+  "tags": {
+   "name": "العيشية",
+   "name:ar": "العيشية",
+   "name:en": "Aaichiyeh",
+   "name:fr": "Aaichiyeh",
+   "name:he": "עישייה",
+   "place": "village",
+   "wikidata": "Q4699179"
+  }
+ },
+ {
+  "id": 6563036958,
+  "lat": 33.4211306,
+  "lon": 35.7089797,
+  "tags": {
+   "name": "بطحانيه",
+   "name:ar": "بطحانيه",
+   "name:en": "Bathaniyeh",
+   "name:fr": "Bathaniyeh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563036959,
+  "lat": 33.419412,
+  "lon": 35.7135525,
+  "tags": {
+   "name": "ميمس",
+   "name:ar": "ميمس",
+   "name:en": "Mimes",
+   "name:fr": "Mimes",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563036960,
+  "lat": 33.4127302,
+  "lon": 35.7271887,
+  "tags": {
+   "name": "عين طنطا",
+   "name:ar": "عين طنطا",
+   "name:en": "Ain Tanta",
+   "name:fr": "Ain Tanta",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563036961,
+  "lat": 33.4175924,
+  "lon": 35.7386047,
+  "tags": {
+   "name": "الخلوات",
+   "name:ar": "الخلوات",
+   "name:en": "Khalwat",
+   "name:fr": "Khalwat",
+   "place": "village",
+   "wikidata": "Q12210723"
+  }
+ },
+ {
+  "id": 6563036962,
+  "lat": 33.430136,
+  "lon": 35.7393653,
+  "tags": {
+   "name": "الكفير",
+   "name:ar": "الكفير",
+   "name:en": "Kfeir",
+   "name:fr": "Kfeir",
+   "place": "village",
+   "wikidata": "Q8973272"
+  }
+ },
+ {
+  "id": 6563036963,
+  "lat": 33.4361761,
+  "lon": 35.7789321,
+  "tags": {
+   "name": "عين عطا",
+   "name:ar": "عين عطا",
+   "name:en": "Ain Aata",
+   "name:fr": "Ain Aata",
+   "place": "village",
+   "wikidata": "Q4697322"
+  }
+ },
+ {
+  "id": 6563058307,
+  "lat": 33.4692667,
+  "lon": 35.7472867,
+  "tags": {
+   "name": "مرج الزهور",
+   "name:ar": "مرج الزهور",
+   "name:en": "Marj El Zhour",
+   "name:fr": "Marj El Zhour",
+   "name:he": "מרג' א-זוהור",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563058308,
+  "lat": 33.4768963,
+  "lon": 35.7547892,
+  "tags": {
+   "name": "حوش القنعبة",
+   "name:ar": "حوش القنعبة",
+   "name:de": "Haouch El Qenaabeh",
+   "name:en": "Haouch El Qenaabeh",
+   "name:fr": "Haouch El Qenaabeh",
+   "place": "village",
+   "wikidata": "Q12209103"
+  }
+ },
+ {
+  "id": 6563058309,
+  "lat": 33.4698296,
+  "lon": 35.7704477,
+  "tags": {
+   "name": "مزرعة جعفر",
+   "name:ar": "مزرعة جعفر",
+   "name:en": "Mazraat Jaafar",
+   "name:fr": "Mazraat Jaafar",
+   "place": "village",
+   "wikidata": "Q12242477"
+  }
+ },
+ {
+  "id": 6563058310,
+  "lat": 33.4562143,
+  "lon": 35.782803,
+  "tags": {
+   "name": "عين حرشة",
+   "name:ar": "عين حرشة",
+   "name:en": "Ain Hirsha",
+   "name:fr": "Ain Hircha",
+   "place": "village",
+   "wikidata": "Q4697343"
+  }
+ },
+ {
+  "id": 6563058311,
+  "lat": 33.4802602,
+  "lon": 35.7714756,
+  "tags": {
+   "name": "قنابة",
+   "name:ar": "قنابة",
+   "name:de": "Qnabeh",
+   "name:en": "Qnabeh",
+   "name:fr": "Qnabeh",
+   "place": "village",
+   "wikidata": "Q729496"
+  }
+ },
+ {
+  "id": 6563281903,
+  "lat": 33.3431727,
+  "lon": 35.677966,
+  "tags": {
+   "name": "كفر حمام",
+   "name:ar": "كفر حمام",
+   "name:en": "Kfarhamam",
+   "name:fr": "Kfarhamam",
+   "name:he": "כפר חמאם",
+   "place": "village",
+   "wikidata": "Q6398697"
+  }
+ },
+ {
+  "id": 6563281904,
+  "lat": 33.3541728,
+  "lon": 35.6674818,
+  "tags": {
+   "name": "راشيا الفخار",
+   "name:ar": "راشيا الفخار",
+   "name:en": "Rachaya Al Foukhar",
+   "name:fr": "Rachaya Al Foukhar",
+   "name:he": "ראשיא אל-פוח'אר",
+   "name:ml": "റാഷയ അൽ ഫുഖാർ",
+   "place": "village",
+   "wikidata": "Q4119138"
+  }
+ },
+ {
+  "id": 6563281905,
+  "lat": 33.3276656,
+  "lon": 35.6927339,
+  "tags": {
+   "name": "كفر شوبا",
+   "name:ar": "كفر شوبا",
+   "name:de": "Kfar Chouba",
+   "name:en": "Kfar Chouba",
+   "name:fr": "Kfar Chouba",
+   "name:he": "כפר שובא",
+   "name:ml": "കഫർ ഷൂബ",
+   "place": "village",
+   "wikidata": "Q3195897"
+  }
+ },
+ {
+  "id": 6563281906,
+  "lat": 33.3261406,
+  "lon": 35.661932,
+  "tags": {
+   "name": "مزرعة إسلامية",
+   "name:ar": "مزرعة إسلامية",
+   "name:de": "Mazraat El Salamia",
+   "name:en": "Mazraat El Salamia",
+   "name:fr": "Mazraat El Slamiyeh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563281941,
+  "lat": 33.3141477,
+  "lon": 35.6632289,
+  "tags": {
+   "name": "حلتا",
+   "name:ar": "حلتا",
+   "name:en": "Halta",
+   "name:fr": "Halta",
+   "name:he": "חלתא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563281942,
+  "lat": 33.3824818,
+  "lon": 35.6624228,
+  "tags": {
+   "name": "أبو قمحة",
+   "name:ar": "أبو قمحة",
+   "name:en": "Abou Qamha",
+   "name:fr": "Abou Qamha",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563281943,
+  "lat": 33.3865056,
+  "lon": 35.6794136,
+  "tags": {
+   "name": "خلوة البياضة",
+   "name:ar": "خلوة البياضة",
+   "name:en": "Khalwat El Biyada",
+   "name:fr": "Khalwat El Biyada",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293490,
+  "lat": 33.3205142,
+  "lon": 35.6417397,
+  "tags": {
+   "name": "الماري",
+   "name:ar": "الماري",
+   "name:de": "Al Mari",
+   "name:en": "Al Mari",
+   "name:fr": "Al Mari",
+   "name:he": "מארי",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293491,
+  "lat": 33.3094816,
+  "lon": 35.654607,
+  "tags": {
+   "name": "دحيرجات",
+   "name:ar": "دحيرجات",
+   "name:en": "Dehayrjate",
+   "name:fr": "Dehayrjate",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293512,
+  "lat": 33.3387029,
+  "lon": 35.644718,
+  "tags": {
+   "name": "الخريبة",
+   "name:ar": "الخريبة",
+   "name:de": "Khraibeh",
+   "name:en": "Khraibeh",
+   "name:fr": "Khraibeh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293530,
+  "lat": 33.284315,
+  "lon": 35.6576115,
+  "tags": {
+   "name": "المجيدية",
+   "name:ar": "المجيدية",
+   "name:de": "El Majidiye",
+   "name:en": "El Majidiye",
+   "name:fr": "El Majidiye",
+   "name:he": "אל מג'ידייה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293531,
+  "lat": 33.2965997,
+  "lon": 35.6226769,
+  "tags": {
+   "name": "عين عرب",
+   "name:ar": "عين عرب",
+   "name:de": "Ain Aarab",
+   "name:en": "Ain Aarab",
+   "name:fr": "Aïn Aarab",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293532,
+  "lat": 33.2931975,
+  "lon": 35.6309738,
+  "tags": {
+   "name": "الصليب",
+   "name:ar": "الصليب",
+   "name:de": "Slaiyeb",
+   "name:en": "Slaiyeb",
+   "name:fr": "Slaïyeb",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293545,
+  "lat": 33.2721014,
+  "lon": 35.5968229,
+  "tags": {
+   "name": "عمرة",
+   "name:ar": "عمرة",
+   "name:de": "Aamra",
+   "name:en": "Aamra",
+   "name:fr": "Aamra",
+   "name:he": "עמרא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6563293549,
+  "lat": 33.273997,
+  "lon": 35.614619,
+  "tags": {
+   "name": "عرب اللويزة",
+   "name:ar": "عرب اللويزة",
+   "name:de": "Aarab El Louaizeh",
+   "name:en": "Aarab El Louaizeh",
+   "name:fr": "Aarab El Louaizeh",
+   "name:he": "ערב א-לויזה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6591986608,
+  "lat": 33.4081128,
+  "lon": 35.635741,
+  "tags": {
+   "name": "برغز",
+   "name:ar": "برغز",
+   "name:en": "Berghoz",
+   "name:fr": "Berghoz",
+   "place": "village",
+   "wikidata": "Q12197973"
+  }
+ },
+ {
+  "id": 6592000205,
+  "lat": 33.4298889,
+  "lon": 35.6458702,
+  "tags": {
+   "name": "دلافي",
+   "name:ar": "دلافي",
+   "name:de": "Dlafy",
+   "name:en": "Dlafy",
+   "name:fr": "Dlafy",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6592001891,
+  "lat": 33.3974249,
+  "lon": 35.6422939,
+  "tags": {
+   "name": "كوكبا",
+   "name:ar": "كوكبا",
+   "name:de": "Kawkaba",
+   "name:en": "Kawkaba",
+   "name:fr": "Kawkaba",
+   "name:he": "כאוכבא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6592006820,
+  "lat": 33.3293581,
+  "lon": 35.5254346,
+  "tags": {
+   "name": "أرنون",
+   "name:ar": "أرنون",
+   "name:de": "Arnoun",
+   "name:en": "Arnoun",
+   "name:fr": "Arnoun",
+   "name:he": "ארנון",
+   "name:ml": "അർനൂൺ",
+   "place": "village",
+   "wikidata": "Q2903572"
+  }
+ },
+ {
+  "id": 6592007432,
+  "lat": 33.3841125,
+  "lon": 35.6003068,
+  "tags": {
+   "name": "بلاط",
+   "name:ar": "بلاط",
+   "name:en": "Blat",
+   "name:fr": "Blat",
+   "name:he": "בלאט",
+   "name:ml": "ബിലാത്ത്",
+   "place": "village",
+   "wikidata": "Q12198932"
+  }
+ },
+ {
+  "id": 6613004639,
+  "lat": 33.4322905,
+  "lon": 35.535542,
+  "tags": {
+   "name": "سجد",
+   "name:ar": "سجد",
+   "name:en": "Sejoud",
+   "name:fr": "Sejoud",
+   "name:he": "סוג'וד",
+   "place": "village",
+   "wikidata": "Q12215473"
+  }
+ },
+ {
+  "id": 6629963827,
+  "lat": 33.4733169,
+  "lon": 35.5113747,
+  "tags": {
+   "name": "عين قانا",
+   "name:ar": "عين قانا",
+   "name:en": "Ain Qana",
+   "name:fr": "Ain Qana",
+   "name:he": "עין קאנא",
+   "place": "village",
+   "wikidata": "Q4697357"
+  }
+ },
+ {
+  "id": 6630006732,
+  "lat": 33.3443223,
+  "lon": 35.4322777,
+  "tags": {
+   "name": "كفر دجان",
+   "name:ar": "كفر دجان",
+   "name:de": "Kfar Dajal",
+   "name:en": "Kfar Dajal",
+   "name:fr": "Kfar Dajal",
+   "place": "village",
+   "wikidata": "Q12235680"
+  }
+ },
+ {
+  "id": 6632269174,
+  "lat": 33.423802,
+  "lon": 35.5078195,
+  "tags": {
+   "name": "عرب صاليم",
+   "name:ar": "عرب صاليم",
+   "name:en": "Arab Salim",
+   "name:fr": "Arab Salim",
+   "name:he": "ערבסאלים",
+   "place": "village",
+   "wikidata": "Q772068"
+  }
+ },
+ {
+  "id": 6641317582,
+  "lat": 33.5079646,
+  "lon": 35.4960471,
+  "tags": {
+   "name": "سفنتا",
+   "name:ar": "سفنتا",
+   "name:en": "Sfenta",
+   "name:fr": "Sfenta",
+   "place": "village",
+   "wikidata": "Q12216196"
+  }
+ },
+ {
+  "id": 6655684861,
+  "lat": 33.4687816,
+  "lon": 35.5583366,
+  "tags": {
+   "name": "مليخ",
+   "name:ar": "مليخ",
+   "name:de": "Mlikh",
+   "name:en": "Mlikh",
+   "name:fr": "Mlikh",
+   "place": "village",
+   "wikidata": "Q55623483"
+  }
+ },
+ {
+  "id": 6763873961,
+  "lat": 33.2250248,
+  "lon": 35.4640313,
+  "tags": {
+   "name": "مجدل سلم",
+   "name:ar": "مجدل سلم",
+   "name:en": "Majdel Selm",
+   "name:fr": "Majdel Selm",
+   "name:he": "מג'דל סלם",
+   "place": "village",
+   "wikidata": "Q12238822"
+  }
+ },
+ {
+  "id": 6763960170,
+  "lat": 33.2339621,
+  "lon": 35.5162191,
+  "tags": {
+   "name": "مركبا",
+   "name:ar": "مركبا",
+   "name:en": "Markaba",
+   "name:fr": "Markaba",
+   "name:he": "מרכבא",
+   "name:ml": "മർക്കബ",
+   "place": "village",
+   "wikidata": "Q3123728"
+  }
+ },
+ {
+  "id": 6763962183,
+  "lat": 33.2324576,
+  "lon": 35.4192914,
+  "tags": {
+   "name": "خربة سلم",
+   "name:ar": "خربة سلم",
+   "name:en": "Kherbet Selm",
+   "name:fr": "Kherbet Selm",
+   "name:he": "ח'רבת סלם",
+   "place": "village",
+   "wikidata": "Q6401756"
+  }
+ },
+ {
+  "id": 6765244500,
+  "lat": 33.4858799,
+  "lon": 35.5159324,
+  "tags": {
+   "name": "جباع",
+   "name:ar": "جباع",
+   "name:en": "Jbaa",
+   "name:fr": "Jbaa",
+   "name:he": "ג'באע",
+   "place": "village",
+   "wikidata": "Q6168626"
+  }
+ },
+ {
+  "id": 6765247505,
+  "lat": 33.5009749,
+  "lon": 35.5129044,
+  "tags": {
+   "name": "بصليا",
+   "name:ar": "بصليا",
+   "name:en": "Bouslaiya",
+   "name:fr": "Bouslaiya",
+   "place": "village",
+   "wikidata": "Q12198572"
+  }
+ },
+ {
+  "id": 6816154276,
+  "lat": 33.233582,
+  "lon": 35.4379313,
+  "tags": {
+   "name": "صوانة",
+   "name:ar": "صوانة",
+   "name:en": "Souaneh",
+   "name:fr": "Souaneh",
+   "name:he": "סוואנה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6918512325,
+  "lat": 33.4623082,
+  "lon": 35.4426241,
+  "tags": {
+   "name": "رومين",
+   "name:ar": "رومين",
+   "name:en": "Roumine",
+   "name:fr": "Roumine",
+   "place": "village",
+   "wikidata": "Q12213932"
+  }
+ },
+ {
+  "id": 6918537439,
+  "lat": 33.4552818,
+  "lon": 35.4300177,
+  "tags": {
+   "name": "عزة",
+   "name:ar": "عزة",
+   "name:en": "Aazze",
+   "name:fr": "Aazze",
+   "place": "village",
+   "wikidata": "Q12224986"
+  }
+ },
+ {
+  "id": 6921705016,
+  "lat": 33.4674989,
+  "lon": 35.640729,
+  "tags": {
+   "name": "ميدون",
+   "name:ar": "ميدون",
+   "name:de": "Meidoun",
+   "name:en": "Meidoun",
+   "name:fr": "Meidoun",
+   "name:he": "מיידון",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6963030902,
+  "lat": 33.2717232,
+  "lon": 35.4324974,
+  "tags": {
+   "name": "الغندورية",
+   "name:ar": "الغندورية",
+   "name:en": "Ghanduriyah",
+   "name:fr": "Ghanduriyah",
+   "name:he": "ע'נדוריה",
+   "place": "village",
+   "wikidata": "Q12190765"
+  }
+ },
+ {
+  "id": 6967797617,
+  "lat": 33.2295017,
+  "lon": 35.4889937,
+  "tags": {
+   "name": "طلوسة",
+   "name:ar": "طلوسة",
+   "name:en": "Tallousa",
+   "name:fr": "Tallousa",
+   "name:he": "טלוסה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 6985869210,
+  "lat": 33.2796335,
+  "lon": 35.6389191,
+  "tags": {
+   "name": "خربة الدوير",
+   "name:ar": "خربة الدوير",
+   "name:de": "Khirbet Ed Dwayr",
+   "name:en": "Khirbet Ed Dwayr",
+   "name:fr": "Khirbet Ed Dwayr",
+   "name:he": "חרבת אד-דויר",
+   "place": "village",
+   "wikidata": "Q12210342"
+  }
+ },
+ {
+  "id": 7022425463,
+  "lat": 33.2708563,
+  "lon": 35.4642963,
+  "tags": {
+   "name": "القنطرة",
+   "name:ar": "القنطرة",
+   "name:en": "Qantara",
+   "name:fr": "Qantara",
+   "name:he": "קנטרה",
+   "place": "village",
+   "wikidata": "Q11734989"
+  }
+ },
+ {
+  "id": 7022428666,
+  "lat": 33.2929606,
+  "lon": 35.4566574,
+  "tags": {
+   "name": "القصير",
+   "name:ar": "القصير",
+   "name:en": "El Qoussair",
+   "name:fr": "El Qoussair",
+   "name:he": "קוסיר",
+   "place": "village",
+   "wikidata": "Q12191356"
+  }
+ },
+ {
+  "id": 7022485587,
+  "lat": 33.2910952,
+  "lon": 35.598557,
+  "tags": {
+   "name": "مزرعة سرادا",
+   "name:ar": "مزرعة سرادا",
+   "name:de": "Mazraat Sarada",
+   "name:en": "Mazraat Sarada",
+   "name:fr": "Mazraat Sarada",
+   "name:he": "מזרעת סרדא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7022485588,
+  "lat": 33.3123651,
+  "lon": 35.5177474,
+  "tags": {
+   "name": "يحمر",
+   "name:ar": "يحمر",
+   "name:de": "Yohmor",
+   "name:en": "Yohmor",
+   "name:fr": "Yohmor",
+   "name:he": "יוחמור",
+   "place": "village",
+   "wikidata": "Q8054497"
+  }
+ },
+ {
+  "id": 7026122872,
+  "lat": 33.3897276,
+  "lon": 35.501783,
+  "tags": {
+   "name": "كفر رمان",
+   "name:ar": "كفر رمان",
+   "name:de": "Kafr Rumman",
+   "name:en": "Kafr Rumman",
+   "name:fr": "Kfar Roummane",
+   "name:he": "כפר רומאן",
+   "name:ml": "കഫർ റുമ്മാൻ",
+   "place": "village",
+   "wikidata": "Q12235683"
+  }
+ },
+ {
+  "id": 7027478340,
+  "lat": 33.3572834,
+  "lon": 35.4984669,
+  "tags": {
+   "name": "منزلة",
+   "name:ar": "منزلة",
+   "name:de": "Manzala",
+   "name:en": "Manzala",
+   "name:fr": "Manzleh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7131798946,
+  "lat": 33.2827128,
+  "lon": 35.5587551,
+  "tags": {
+   "name": "كفر كلا",
+   "name:ar": "كفر كلا",
+   "name:de": "Kafr Kila",
+   "name:en": "Kafr Kila",
+   "name:es": "Kafr Kila",
+   "name:fr": "Kfar Kila",
+   "name:he": "כפר כילא",
+   "name:ml": "കഫർ കില",
+   "place": "village",
+   "wikidata": "Q2916160"
+  }
+ },
+ {
+  "id": 7131798947,
+  "lat": 33.2577624,
+  "lon": 35.5466828,
+  "tags": {
+   "name": "عديسة",
+   "name:ar": "عديسة",
+   "name:de": "Odaisseh",
+   "name:en": "Odaisseh",
+   "name:es": "Odaisseh",
+   "name:fr": "Odaisseh",
+   "name:he": "אל-עדייסה",
+   "name:ml": "ഒദൈസ",
+   "place": "village",
+   "wikidata": "Q3355793"
+  }
+ },
+ {
+  "id": 7377118283,
+  "lat": 33.4740534,
+  "lon": 35.5194825,
+  "tags": {
+   "name": "عين بوسوار",
+   "name:ar": "عين بوسوار",
+   "name:en": "Ain Bousouar",
+   "name:fr": "Ain Bousouar",
+   "name:he": "עין בוסוואר",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7398583995,
+  "lat": 33.4279285,
+  "lon": 35.6003356,
+  "tags": {
+   "name": "شبيل",
+   "name:ar": "شبيل",
+   "name:en": "Shbeil",
+   "name:fr": "Chbeil",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7406292205,
+  "lat": 33.4809679,
+  "lon": 35.4010983,
+  "tags": {
+   "name": "قنيطرة",
+   "name:ar": "قنيطرة",
+   "name:en": "Qnaitra",
+   "name:fr": "Qnaitra",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7416743328,
+  "lat": 33.3019088,
+  "lon": 35.4701951,
+  "tags": {
+   "name": "علمان‎",
+   "name:ar": "علمان‎",
+   "name:en": "Aalmane",
+   "name:fr": "Aalmane",
+   "name:he": "עלמאן",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7559612041,
+  "lat": 33.2781192,
+  "lon": 35.483457,
+  "tags": {
+   "name": "عدشيت‎",
+   "name:ar": "عدشيت‎",
+   "name:en": "Aadchit",
+   "name:fr": "Aadchit",
+   "name:he": "עדשית",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7567620202,
+  "lat": 33.4818997,
+  "lon": 35.4983616,
+  "tags": {
+   "name": "كفر فيلا",
+   "name:ar": "كفر فيلا",
+   "name:en": "Kfar Fila",
+   "name:fr": "Kfar Fila",
+   "name:he": "כפר פילא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7575280382,
+  "lat": 33.4753702,
+  "lon": 35.4336605,
+  "tags": {
+   "name": "حومين التحتا",
+   "name:ar": "حومين التحتا",
+   "name:en": "Houmin El Tahta",
+   "name:fr": "Houmin El Tahta",
+   "name:he": "חומין א-תחתא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7612108411,
+  "lat": 33.4343174,
+  "lon": 35.6571399,
+  "tags": {
+   "name": "قلايا",
+   "name:ar": "قلايا",
+   "name:en": "Qillaya",
+   "name:fr": "Qillaya",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7647660861,
+  "lat": 33.2473787,
+  "lon": 35.4182804,
+  "tags": {
+   "name": "قلويه",
+   "name:ar": "قلويه",
+   "name:en": "Qalaouiye",
+   "name:fr": "Qalaouiye",
+   "name:he": "קלאוויה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7647676522,
+  "lat": 33.2592455,
+  "lon": 35.4227415,
+  "tags": {
+   "name": "برج قلويه",
+   "name:ar": "برج قلويه",
+   "name:en": "Borj Qalaouiye",
+   "name:fr": "Borj Qalaouiye",
+   "name:he": "בורג' קלאוויה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7647689803,
+  "lat": 33.207931,
+  "lon": 35.4391833,
+  "tags": {
+   "name": "جميجمة",
+   "name:ar": "جميجمة",
+   "name:en": "Jmayjmeh",
+   "name:fr": "Jmayjmeh",
+   "name:he": "ג'ומייג'מה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7659488618,
+  "lat": 33.4339583,
+  "lon": 35.6253228,
+  "tags": {
+   "name": "سريرة",
+   "name:ar": "سريرة",
+   "name:en": "Sriri",
+   "name:fr": "Sriri",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7662264545,
+  "lat": 33.3998156,
+  "lon": 35.5920539,
+  "tags": {
+   "name": "وردية",
+   "name:ar": "وردية",
+   "name:en": "Ouardiye",
+   "name:fr": "Ouardiye",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7667992027,
+  "lat": 33.4859286,
+  "lon": 35.3978043,
+  "tags": {
+   "name": "جنجلايا",
+   "name:ar": "جنجلايا",
+   "name:en": "Jinjlaya",
+   "name:fr": "Jinjlaya",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7674842727,
+  "lat": 33.4250348,
+  "lon": 35.4016595,
+  "tags": {
+   "name": "نميرية",
+   "name:ar": "نميرية",
+   "name:en": "Nmairiye",
+   "name:fr": "Nmairiye",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7674878763,
+  "lat": 33.4048225,
+  "lon": 35.418916,
+  "tags": {
+   "name": "شرقية",
+   "name:ar": "شرقية",
+   "name:en": "Charqiye",
+   "name:fr": "Charqiye",
+   "name:he": "שרקיה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7708088272,
+  "lat": 33.174813,
+  "lon": 35.4044447,
+  "tags": {
+   "name": "عيتا الجبل الزط",
+   "name:ar": "عيتا الجبل الزط",
+   "name:en": "Aayta Ej Jabal",
+   "name:fr": "Aayta Ej Jabal",
+   "name:he": "עייתא אל-ג'בל",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7708102668,
+  "lat": 33.3578209,
+  "lon": 35.6259365,
+  "tags": {
+   "name": "إبل السقي",
+   "name:ar": "إبل السقي",
+   "name:en": "Ibl Es Saqi",
+   "name:fr": "Ibl Es Saqi",
+   "name:he": "אבל א-סקי",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7738283993,
+  "lat": 33.3324389,
+  "lon": 35.3957898,
+  "tags": {
+   "name": "قصيبة",
+   "name:ar": "قصيبة",
+   "name:en": "Qsaibe",
+   "name:fr": "Qsaibe",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7759144158,
+  "lat": 33.1990722,
+  "lon": 35.431557,
+  "tags": {
+   "name": "صفد البطيخ",
+   "name:ar": "صفد البطيخ",
+   "name:en": "Safad El Battikh",
+   "name:fr": "Safad El Battikh",
+   "name:he": "ספד אל-בטיח'",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7759205831,
+  "lat": 33.3300758,
+  "lon": 35.4244862,
+  "tags": {
+   "name": "قعقعية الجسر",
+   "name:ar": "قعقعية الجسر",
+   "name:en": "Qaaqaait El Jisr",
+   "name:fr": "Qaaqaait El Jisr",
+   "name:he": "קעקעית אל-ג'סר",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7759215254,
+  "lat": 33.4318864,
+  "lon": 35.4591236,
+  "tags": {
+   "name": "دير الزهراني",
+   "name:ar": "دير الزهراني",
+   "name:en": "Deir El Zahrani",
+   "name:fr": "Deir El Zahrani",
+   "name:he": "דיר א-זהראני",
+   "place": "village"
+  }
+ },
+ {
+  "id": 7774021812,
+  "lat": 33.3243607,
+  "lon": 35.4937577,
+  "tags": {
+   "name": "الحمرا",
+   "name:ar": "الحمرا",
+   "name:en": "El Hamra",
+   "name:fr": "El Hamra",
+   "place": "village"
+  }
+ },
+ {
+  "id": 8985698508,
+  "lat": 33.4006217,
+  "lon": 35.534656,
+  "tags": {
+   "name": "العرقوب",
+   "name:ar": "العرقوب",
+   "name:en": "Arqoub",
+   "name:fr": "Arqoub",
+   "place": "village"
+  }
+ },
+ {
+  "id": 8985725772,
+  "lat": 33.3868449,
+  "lon": 35.552364,
+  "tags": {
+   "name": "محمودية",
+   "name:ar": "محمودية",
+   "name:en": "Mahmoudiya",
+   "name:fr": "Mahmoudiya",
+   "place": "village"
+  }
+ },
+ {
+  "id": 9675804332,
+  "lat": 33.3237019,
+  "lon": 35.4730994,
+  "tags": {
+   "name": "زوطر الشرقية",
+   "name:ar": "زوطر الشرقية",
+   "name:en": "Zawtar El Sharqiyeh",
+   "name:fr": "Zaoutar Ech Charqiyeh",
+   "name:he": "זוטר א-שרקיה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 9675813070,
+  "lat": 33.3225991,
+  "lon": 35.4596775,
+  "tags": {
+   "name": "زوطر الغربية",
+   "name:ar": "زوطر الغربية",
+   "name:en": "Zawtar El Gharbiyeh",
+   "name:fr": "Zaoutar El Gharbiyeh",
+   "name:he": "זוטר אל-גרבייה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 9876393249,
+  "lat": 33.4453543,
+  "lon": 35.4873579,
+  "tags": {
+   "name": "حومين الفوقا",
+   "name:ar": "حومين الفوقا",
+   "name:en": "Houmine El Faouqa",
+   "name:fr": "Houmine El Faouqa",
+   "name:he": "חומין אל-פוקא",
+   "place": "village"
+  }
+ },
+ {
+  "id": 10759227381,
+  "lat": 33.345497,
+  "lon": 35.4134846,
+  "tags": {
+   "name": "عدشيت الشقيف",
+   "name:ar": "عدشيت الشقيف",
+   "name:en": "Aadchit El Chqif",
+   "name:fr": "Aadchit El Chqif",
+   "name:he": "עדשית א-שקיף",
+   "name:ml": "അദ്ഷീത് അഷ്-ഷഖീഫ്",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12021208726,
+  "lat": 33.2733724,
+  "lon": 35.4019725,
+  "tags": {
+   "name": "نيحا صور",
+   "name:ar": "نيحا صور",
+   "name:en": "Niha Sour",
+   "name:fr": "Niha Sour",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12173760765,
+  "lat": 33.3949787,
+  "lon": 35.4756045,
+  "tags": {
+   "name": "كفر جوز",
+   "name:ar": "كفر جوز",
+   "name:en": "Kfarjaouz",
+   "name:fr": "Kfarjaouz",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12173762575,
+  "lat": 33.4322203,
+  "lon": 35.4218531,
+  "tags": {
+   "name": "بفروة",
+   "name:ar": "بفروة",
+   "name:en": "Bfaroueh",
+   "name:fr": "Bfaroueh",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12303064452,
+  "lat": 33.4208037,
+  "lon": 35.4840481,
+  "tags": {
+   "name": "مزرعة البياض",
+   "name:ar": "مزرعة البياض",
+   "name:en": "Mazraat El Bayad",
+   "name:fr": "Mazraat El Bayad",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12307766433,
+  "lat": 33.4814423,
+  "lon": 35.4449415,
+  "tags": {
+   "name": "مزرعة عرب سكر",
+   "name:ar": "مزرعة عرب سكر",
+   "name:en": "Mazraat Aarab Soukkar",
+   "name:fr": "Mazraat Aarab Soukkar",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12380534588,
+  "lat": 33.4420777,
+  "lon": 35.6505865,
+  "tags": {
+   "name": "لوسيا",
+   "name:ar": "لوسيا",
+   "name:en": "Loussia",
+   "name:fr": "Loussia",
+   "place": "village"
+  }
+ },
+ {
+  "id": 12426508396,
+  "lat": 33.3658307,
+  "lon": 35.5123722,
+  "tags": {
+   "name": "علي الطاهر",
+   "name:ar": "علي الطاهر",
+   "name:en": "Aali Et Taher",
+   "name:fr": "Aali Et Taher",
+   "name:he": "עלי טאהר",
+   "place": "village"
+  }
+ },
+ {
+  "id": 13364185541,
+  "lat": 33.4612711,
+  "lon": 35.5360923,
+  "tags": {
+   "name": "اللويزة",
+   "name:ar": "اللويزة",
+   "name:en": "Lwaiza",
+   "name:fr": "Lwaiza",
+   "name:he": "לואייזה",
+   "place": "village"
+  }
+ },
+ {
+  "id": 13897443487,
+  "lat": 33.2941533,
+  "lon": 35.5638492,
+  "tags": {
+   "name": "Houra",
+   "name:en": "Houra",
+   "name:fr": "Houra",
+   "place": "village"
+  }
+ }
+]
