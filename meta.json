@@ -1,0 +1,150 @@
+{
+ "point": {
+  "title_he": "העיר קוניטרה",
+  "anchors": {
+   "q": {
+    "name_en": "^(Quneitra|Al-Quneitra|Al Qunaytirah|Qunaytirah)$",
+    "name_ar": "^القنيطرة$",
+    "bbox": [
+     33.08,
+     35.76,
+     33.17,
+     35.87
+    ]
+   }
+  },
+  "press": [
+   "Middle East Eye: two bases above and below Quneitra city, on ruins of old Syrian compounds",
+   "France 24 Observers 7.2.2025: bases in the Golan buffer zone"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "offset_m": [
+   0,
+   0
+  ],
+  "zoom": {
+   "offset_m": [
+    400,
+    350
+   ],
+   "half_m": 900
+  }
+ },
+ "centre": {
+  "lat": 33.12760220106535,
+  "lon": 35.827301314560756,
+  "itm_e": 277582,
+  "itm_n": 781540
+ },
+ "anchors": {
+  "q": {
+   "osm": "node/567053507",
+   "lat": 33.1244369,
+   "lon": 35.8230108,
+   "tags": {
+    "alt_name": "Qunaytirah",
+    "alt_name:cs": "Malý Most",
+    "name": "القنيطرة",
+    "name:ar": "القنيطرة",
+    "name:az": "Əl-Qüneytirə",
+    "name:be": "Эль-Кунейтра",
+    "name:cs": "Kunejtra",
+    "name:de": "al-Kuneitra",
+    "name:el": "Κουνέιτρα",
+    "name:en": "Al-Quneitra",
+    "name:fa": "قنیطرہ",
+    "name:fr": "Qouneitra",
+    "name:he": "קוניטרה",
+    "name:hr": "Kunejtra",
+    "name:hy": "Ալ-Կունեյտրա",
+    "name:ja": "アル゠クネイトラ",
+    "name:ko": "알쿠네이트라",
+    "name:lt": "Kuneitra",
+    "name:ml": "ഖുനൈത്ര",
+    "name:pl": "Al-Kunajtira",
+    "name:ru": "Аль-Кунайтра",
+    "name:sl": "Kunejtra",
+    "name:sr": "Кунејтра",
+    "name:tr": "Kuneytire",
+    "name:uk": "Ель-Кунейтра",
+    "name:ur": "قنیطرہ",
+    "name:zh": "库奈特拉",
+    "place": "city",
+    "population": "153",
+    "population:date": "2004",
+    "source:population": "المكتب المركزي للإحصاء",
+    "wikidata": "Q576368",
+    "wikipedia": "en:Quneitra"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   {
+    "id": "S2B_37SBS_20230922_0_L2A",
+    "datetime": "2023-09-22T08:31:00.537000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 3e-06,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_37SBS_20230922_0_L2A"
+   },
+   {
+    "id": "S2B_36SYB_20230922_0_L2A",
+    "datetime": "2023-09-22T08:31:03.064000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 4.124973,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20230922_0_L2A"
+   }
+  ],
+  "datetime": "2023-09-22T08:31:00.537000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2B_37SBS_20230922_0_L2A",
+   "S2B_37SBT_20230922_0_L2A",
+   "S2B_36SYB_20230922_0_L2A",
+   "S2B_36SYC_20230922_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2b"
+  ]
+ },
+ "after": {
+  "passes": [
+   {
+    "id": "S2C_36SYB_20261011_0_L2A",
+    "datetime": "2026-10-11T08:31:00.886000Z",
+    "platform": "sentinel-2c",
+    "cloud_cover_tile": 47.8172,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_36SYB_20261011_0_L2A"
+   },
+   {
+    "id": "S2C_37SBS_20261011_0_L2A",
+    "datetime": "2026-10-11T08:30:58.341000Z",
+    "platform": "sentinel-2c",
+    "cloud_cover_tile": 60.228103,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_37SBS_20261011_0_L2A"
+   }
+  ],
+  "datetime": "2026-10-11T08:31:00.886000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2C_36SYC_20261011_0_L2A",
+   "S2C_37SBT_20261011_0_L2A",
+   "S2C_36SYB_20261011_0_L2A",
+   "S2C_37SBS_20261011_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2c"
+  ]
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=33.12760220106535 +lon_0=35.827301314560756 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 10,
+  "half_width_m": 900,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ }
+}
