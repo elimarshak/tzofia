@@ -7,11 +7,12 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 IN, OUT = sys.argv[1], sys.argv[2]
 FONT = sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(__file__), "../../web/fonts/Heebo.ttf")
-LOGO = sys.argv[4] if len(sys.argv) > 4 else os.path.join(IN, "logo0.png")
+LOGO = sys.argv[4] if len(sys.argv) > 4 else os.path.join(IN, "../logo.png")
 os.makedirs(OUT, exist_ok=True)
 
-place = json.load(open(f"{IN}/place.json"))
 meta = json.load(open(f"{IN}/meta.json"))
+place = {"lat": meta["centre"]["lat"], "lon": meta["centre"]["lon"], "itm_e": meta["centre"]["itm_e"], "itm_n": meta["centre"]["itm_n"],
+         "tags": {"name:he": meta["point"]["title_he"]}}
 towns = json.load(open(f"{IN}/places.json")) if os.path.exists(f"{IN}/places.json") else []
 G = meta["grid"]
 
@@ -130,9 +131,9 @@ km = round(2 * G["half_width_m"] / 1000)
 def legend(d, x_right, y, width):
     f, fb = font(21), font(21, "Bold")
     lines = [
-        (f"המקום המצולם: {name}" + (f", פסגה בגובה {int(float(ele)):,} מטרים" if ele else ""), fb),
-        (f"נ״צ במעלות: {lat:.5f} צפון, {lon:.5f} מזרח", f),
-        (f"נ״צ ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון", f),
+        (f"המקום המצולם: {name}", fb),
+        (f"נ״צ של מרכז התמונה במעלות: {lat:.5f} צפון, {lon:.5f} מזרח", f),
+        (f"נ״צ של מרכז התמונה ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון", f),
         (f"כל תמונה מראה שטח של {km} על {km} קילומטרים, מלמעלה. הצפון בראש התמונה.", f),
         ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה בתוכו היא השטח שבתמונה הגדולה.", f),
         ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות והנ״צ: המפה הפתוחה OpenStreetMap.", f),
@@ -149,8 +150,8 @@ W = PAD * 2 + PANEL * 2 + GAP
 H = 2000
 sheet = Image.new("RGB", (W, H), PAPER)
 d = ImageDraw.Draw(sheet)
-rtl(d, (W - PAD, PAD), name, font(44, "Bold"))
-rtl(d, (W - PAD, PAD + 62), f"תמונה מלמעלה לפני ואחרי, {km} על {km} קילומטרים", font(24), fill=SUB)
+rtl(d, (W - PAD, PAD), name, font(40, "Bold"))
+rtl(d, (W - PAD, PAD + 62), f"צילום לוויין מלמעלה, לפני ואחרי. שטח של {km} על {km} קילומטרים.", font(24), fill=SUB)
 top = PAD + 118
 right_x = W - PAD - PANEL
 sheet.paste(panel("before"), (right_x, top))
@@ -167,14 +168,14 @@ def frame(label):
     fw = PANEL + PAD * 2
     fr = Image.new("RGB", (fw, 2000), PAPER)
     dd = ImageDraw.Draw(fr)
-    rtl(dd, (fw - PAD, PAD), name, font(40, "Bold"))
+    rtl(dd, (fw - PAD, PAD), name, font(30, "Bold"))
     fr.paste(panel(label), (PAD, PAD + 64))
     caption(dd, fw - PAD, PAD + 64 + PANEL + 16, label, PANEL)
     dd.line((PAD, PAD + 64 + PANEL + 192, fw - PAD, PAD + 64 + PANEL + 192), fill=LINE, width=2)
     f, fs = font(19), font(15)
     ys = PAD + 64 + PANEL + 206
-    for i, t in enumerate([f"המקום המצולם: {name}", f"נ״צ במעלות: {lat:.5f} צפון, {lon:.5f} מזרח",
-                           f"נ״צ ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון",
+    for i, t in enumerate([f"נ״צ של מרכז התמונה במעלות: {lat:.5f} צפון, {lon:.5f} מזרח",
+                           f"נ״צ של מרכז התמונה ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון",
                            f"שטח של {km} על {km} קילומטרים, מלמעלה. הצפון בראש התמונה."]):
         rtl(dd, (fw - PAD, ys + i * 28), t, f)
     ltr(dd, (fw - PAD, ys + 4 * 28 + 4), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. © OpenStreetMap contributors.", fs, fill=SUB)

@@ -24,14 +24,15 @@ def get(url, data=None, headers=None, timeout=180):
     h = {"User-Agent": "openeye.co.il hasufit (non-commercial)"}; h.update(headers or {})
     return urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=timeout).read()
 
+MIRRORS = [OVERPASS, "https://overpass.private.coffee/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"]
 def overpass(q):
     import time
-    for wait in (0, 30, 60, 120):
+    for attempt, wait in enumerate((0, 20, 40, 60, 90, 120)):
         time.sleep(wait)
-        try: return json.loads(get(OVERPASS, urllib.parse.urlencode({"data": "[out:json][timeout:90];" + q}).encode()))["elements"]
-        except urllib.error.HTTPError as e:
-            if e.code not in (429, 504): raise
-            say("overpass busy, waiting", e.code)
+        url = MIRRORS[attempt % len(MIRRORS)]
+        try: return json.loads(get(url, urllib.parse.urlencode({"data": "[out:json][timeout:90];" + q}).encode()))["elements"]
+        except Exception as e:
+            say("overpass did not answer, trying again", url, str(e)[:80])
     raise SystemExit("overpass kept refusing")
 
 # 1. anchors from OpenStreetMap
