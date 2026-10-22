@@ -67,8 +67,14 @@ lon0 = sum(a["lon"] for a in anchors.values()) / len(anchors)
 de, dn = P.get("offset_m", [0, 0])
 lat = lat0 + dn / 110574
 lon = lon0 + de / (111320 * math.cos(math.radians(lat0)))
-itm = Transformer.from_crs("EPSG:4326", "EPSG:2039", always_xy=True).transform(lon, lat)
 HALF = P["half_m"]
+# a close-up inside the point: the pictures are centred on it, the OpenStreetMap queries keep the point's own centre
+qlat, qlon = lat, lon
+if "zoom" in P:
+    ze, zn = P["zoom"]["offset_m"]
+    lat, lon = lat + zn / 110574, lon + ze / (111320 * math.cos(math.radians(lat)))
+    HALF = P["zoom"]["half_m"]
+itm = Transformer.from_crs("EPSG:4326", "EPSG:2039", always_xy=True).transform(lon, lat)
 dst_crs = f"+proj=tmerc +lat_0={lat} +lon_0={lon} +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 
 # 2. pictures
@@ -136,8 +142,8 @@ ch = np.sqrt(((an - bn) ** 2).sum(2)); ch = np.clip(ch / np.percentile(ch, 99.5)
 Image.fromarray(ch).save(f"{OUT}/change.png")
 
 # towns and villages in the wide view, from OpenStreetMap, for the corner square
-dlat, dlon = OV_HALF / 110574, OV_HALF / (111320 * math.cos(math.radians(lat)))
-pl = overpass(f'node["place"~"^(city|town|village)$"]({lat-dlat},{lon-dlon},{lat+dlat},{lon+dlon});out;')
+dlat, dlon = OV_HALF / 110574, OV_HALF / (111320 * math.cos(math.radians(qlat)))
+pl = overpass(f'node["place"~"^(city|town|village)$"]({qlat-dlat},{qlon-dlon},{qlat+dlat},{qlon+dlon});out;')
 json.dump([{"id": e["id"], "lat": e["lat"], "lon": e["lon"], "tags": {k: v for k, v in e["tags"].items() if k.startswith("name") or k in ("place", "population", "wikidata")}} for e in pl],
           open(f"{OUT}/places.json", "w"), ensure_ascii=False, indent=1)
 json.dump(meta, open(f"{OUT}/meta.json", "w"), ensure_ascii=False, indent=1)

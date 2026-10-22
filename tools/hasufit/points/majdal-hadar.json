@@ -35,5 +35,12 @@
   "ABC News, 22.10.2026: five-metre-wide trench begun in August 2024, moved past the Alpha Line into the buffer zone",
   "Middle East Eye, 2026: Israeli base on a hilltop north of Hader village",
   "Arab News / SANA, 4.10.2026: excavation line from the outskirts of Hadar southward"
- ]
+ ],
+ "zoom": {
+  "offset_m": [
+   -367,
+   1567
+  ],
+  "half_m": 750
+ }
 }

@@ -59,14 +59,17 @@ def north_and_scale(img):
     x0, y0, x1, y1 = 16, PANEL - 92, 16 + 250, PANEL - 16
     d.rounded_rectangle((x0, y0, x1, y1), 8, fill=(255, 255, 255, 225))
     # scale bar: 1 kilometre
-    km = round(1000 / M_PER_PX)
+    # the longest round length that fits in the plate
+    metres = next(m for m in (1000, 500, 400, 300, 200, 100, 50) if m / M_PER_PX <= 170)
+    km = round(metres / M_PER_PX)
     bx, by = x0 + 16, y1 - 26
     d.rectangle((bx, by, bx + km // 2, by + 8), fill=INK)
     d.rectangle((bx + km // 2, by, bx + km, by + 8), fill=PAPER, outline=INK)
     f = font(17)
+    unit = lambda m: "1 ק״מ" if m == 1000 else f"{m:g} מ׳"
     d.text((bx, by - 6), "0", font=f, fill=INK, anchor="mb")
-    d.text((bx + km // 2, by - 6), "500 מ׳", font=f, fill=INK, anchor="mb", direction="rtl", language="he")
-    d.text((bx + km, by - 6), "1 ק״מ", font=f, fill=INK, anchor="mb", direction="rtl", language="he")
+    d.text((bx + km // 2, by - 6), unit(metres / 2), font=f, fill=INK, anchor="mb", direction="rtl", language="he")
+    d.text((bx + km, by - 6), unit(metres), font=f, fill=INK, anchor="mb", direction="rtl", language="he")
     # north arrow
     ax, ay = x1 - 34, y0 + 14
     d.polygon([(ax, ay), (ax - 13, ay + 36), (ax, ay + 28), (ax + 13, ay + 36)], fill=INK)
@@ -131,7 +134,7 @@ def caption(d, x_right, y, label, width):
 name = place["tags"].get("name:he") or place["tags"].get("name")
 ele = place["tags"].get("ele")
 lat, lon = place["lat"], place["lon"]
-km = round(2 * G["half_width_m"] / 1000)
+km = f'{2 * G["half_width_m"] / 1000:g}'.replace(".", ".")
 
 def legend(d, x_right, y, width):
     f, fb = font(21), font(21, "Bold")
