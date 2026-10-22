@@ -1,0 +1,20 @@
+OSM a node 6763960170 33.2339621 35.5162191 {'name': 'مركبا', 'name:ar': 'مركبا', 'name:en': 'Markaba', 'name:fr': 'Markaba', 'name:he': 'מרכבא', 'name:ml': 'മർക്കബ', 'place': 'village', 'wikidata': 'Q3123728'}
+OSM b node 5037435456 33.2101829 35.5187344 {'name': 'حولا', 'name:ar': 'حولا', 'name:de': 'Hula', 'name:en': 'Hula', 'name:fr': 'Hula', 'name:he': 'חולא', 'name:ml': 'ഹൂല', 'place': 'village'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-12 ['S2B_36SYB_20230912_1_L2A', 'S2B_36SYB_20230912_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.2007
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.0205
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.5344
+ try 2026-10-01 ['S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.8381
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.3986
+ try 2026-09-23 ['S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.0777
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A'] empty 0.0 cloud 0.0
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 502: Bad Gateway
+overpass did not answer, trying again https://overpass.private.coffee/api/interpreter The read operation timed out
+overpass did not answer, trying again https://maps.mail.ru/osm/tools/overpass/api/interpreter HTTP Error 504: Gateway Time-out
+centre 33.22388124346591 35.53143646439567 ITM 249938 792093 places 208
+{"before": ["2023-09-12T08:31:02.908000Z", ["sentinel-2b"]], "after": ["2026-09-21T08:30:59.511000Z", ["sentinel-2c"]]}
