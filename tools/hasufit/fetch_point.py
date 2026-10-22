@@ -14,6 +14,8 @@ from PIL import Image
 from pyproj import Transformer
 
 P = json.load(open(sys.argv[1])); OUT = sys.argv[2]; os.makedirs(OUT, exist_ok=True)
+CACHE = os.path.splitext(sys.argv[1])[0] + ".osm.json"     # OpenStreetMap answers saved with the point (ids kept, so anyone can check them)
+osm_cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
 PX = 10
 ES = "https://earth-search.aws.element84.com/v1"
 OVERPASS = "https://overpass-api.de/api/interpreter"
@@ -26,6 +28,12 @@ def get(url, data=None, headers=None, timeout=180):
 
 MIRRORS = [OVERPASS, "https://overpass.private.coffee/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"]
 def overpass(q):
+    if q in osm_cache: return osm_cache[q]
+    r = _overpass(q); osm_cache[q] = r
+    json.dump(osm_cache, open(f"{OUT}/osm.json", "w"), ensure_ascii=False)
+    return r
+
+def _overpass(q):
     import time
     for attempt, wait in enumerate((0, 20, 40, 60, 90, 120)):
         time.sleep(wait)

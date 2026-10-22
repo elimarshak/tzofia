@@ -65,7 +65,7 @@ def north_and_scale(img):
     d.rectangle((bx + km // 2, by, bx + km, by + 8), fill=PAPER, outline=INK)
     f = font(17)
     d.text((bx, by - 6), "0", font=f, fill=INK, anchor="mb")
-    d.text((bx + km // 2, by - 6), "500", font=f, fill=INK, anchor="mb")
+    d.text((bx + km // 2, by - 6), "500 מ׳", font=f, fill=INK, anchor="mb", direction="rtl", language="he")
     d.text((bx + km, by - 6), "1 ק״מ", font=f, fill=INK, anchor="mb", direction="rtl", language="he")
     # north arrow
     ax, ay = x1 - 34, y0 + 14
@@ -88,17 +88,19 @@ def inset(label):
         dx = (t["lon"] - lon0) * 111320 * math.cos(math.radians(lat0)); dy = (t["lat"] - lat0) * 110574
         return c + dx / G["wide_metres_per_pixel"] * s, c - dy / G["wide_metres_per_pixel"] * s
     named = [t for t in towns if t["tags"].get("name:he")]
-    named.sort(key=lambda t: (t["tags"].get("place") not in ("city", "town"), math.dist(xy(t), (c, c))))
+    key_ids = {int(a["osm"].split("/")[1]) for a in meta.get("anchors", {}).values() if a["osm"].startswith("node/")}
+    named.sort(key=lambda t: (t["id"] not in key_ids, t["tags"].get("place") not in ("city", "town"), math.dist(xy(t), (c, c))))
     shown = []
     f = font(14, "Bold")
     for t in named:
         x, y = xy(t)
-        if not (14 < x < INSET - 14 and 14 < y < INSET - 14) or math.dist((x, y), (c, c)) < half + 18: continue
+        if not (14 < x < INSET - 14 and 14 < y < INSET - 14): continue
+        if t["id"] not in key_ids and math.dist((x, y), (c, c)) < half + 18: continue
         if any(math.dist((x, y), p) < 46 for p in shown): continue
         d.ellipse((x - 3, y - 3, x + 3, y + 3), fill=PAPER, outline=INK)
         d.text((x, y - 6), t["tags"]["name:he"], font=f, fill=PAPER, anchor="mb", direction="rtl", language="he", stroke_width=3, stroke_fill=INK)
         shown.append((x, y))
-        if len(shown) == 4: break
+        if len(shown) == 5: break
     km10 = 10000 / G["wide_metres_per_pixel"] * s
     d.rectangle((8, INSET - 30, 8 + 118, INSET - 8), fill=(255, 255, 255, 215))
     d.rectangle((14, INSET - 16, 14 + km10, INSET - 12), fill=INK)
