@@ -70,6 +70,7 @@ jobs:
             p=$(basename $d)
             FORCE_KEEP="${{ github.event.inputs.force_keep }}" python tools/hasufit/weekly_change.py $p $d $d store $week || echo "[$p] failed"
           done
+          python tools/hasufit/build_index.py store tools/hasufit/points
           cd store && rm -rf .git && git init -q -b hasufit-data && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit week $week"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-data

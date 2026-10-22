@@ -32,7 +32,8 @@ else:
 
 keep = first or score >= THRESHOLD or os.environ.get("FORCE_KEEP") == "1"
 meta = json.load(open(f"{ENH}/meta.json"))
-log.setdefault(NAME, []).append({"week": WEEK, "score": score, "kept": keep, "first": first,
+import datetime as dt
+log.setdefault(NAME, []).append({"week": WEEK, "run": dt.date.today().isoformat(), "score": score, "kept": keep, "first": first,
                                  "after_days": meta["after"].get("composite_days"), "after_platforms": meta["after"].get("platforms")})
 if keep:
     os.makedirs(f"{STORE}/weeks/{WEEK}", exist_ok=True)
