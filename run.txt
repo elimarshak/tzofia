@@ -1,0 +1,83 @@
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 502: Bad Gateway
+OSM r node 529953295 33.1111363 35.309988 {'name': 'رامية', 'name:ar': 'رامية', 'name:en': 'Ramiya', 'name:fr': 'Ramiyeh', 'name:he': 'ראמיה', 'name:ml': 'റാമിയ', 'place': 'village', 'wikidata': 'Q16594924'}
+before 2023-09-01 2023-10-31 days 12
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2023-09-12 ['S2B_36SYB_20230912_1_L2A', 'S2B_36SYB_20230912_0_L2A'] empty 0.0 cloud 0.0
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+after 2026-08-23 2026-10-22 days 18
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.3489
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 0.9621
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 1.0
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.2665
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 0.9467
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.7583
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-10-01 ['S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.2619
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.3464
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-09-23 ['S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.7405
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A'] empty 0.0 cloud 0.0603
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+ try 2026-09-16 ['S2B_36SYB_20260916_0_L2A'] empty 0.0 cloud 0.0
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+/home/runner/work/tzofia/tzofia/tools/hasufit/fetch_point.py:104: DeprecationWarning: Setting the shape on a NumPy array has been deprecated in NumPy 2.5.
+As an alternative, you can create a new view using np.reshape (with copy=False if needed).
+  reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+scout done 33.1111363 35.309988
