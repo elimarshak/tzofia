@@ -1,0 +1,37 @@
+{
+ "title_he": "גבעה צפונית מערבית למעריה, מעל עמק הירמוך",
+ "anchors": {
+  "m": {
+   "name_en": "^(Ma.?ariyah|Ma.?arriyah|Maariya|Maaria|Ma.?ariya)$",
+   "name_ar": "^معرية$|^المعرية$|^معربة$",
+   "bbox": [
+    32.7,
+    35.72,
+    32.85,
+    35.9
+   ],
+   "label_he": "מעריה"
+  }
+ },
+ "offset_m": [
+  -1500,
+  0
+ ],
+ "press": [
+  "Middle East Eye: Al-Jazira barracks on a hilltop overlooking the Yarmouk and Ruqqad rivers",
+  "SANA via Liveuamap 17.6.2026: Israeli forces stationed at Al-Jazira barracks west of Ma'ariya",
+  "Wikipedia: Ma'ariya (معرية) lies at 32.764 N, 35.798 E, west of Daraa, in the Shajara subdistrict"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "zoom": {
+  "offset_m": [
+   -900,
+   900
+  ],
+  "half_m": 900
+ }
+}

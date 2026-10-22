@@ -3,12 +3,14 @@
 # Every fact printed on the picture comes from those files: the place and its coordinates (OpenStreetMap),
 # the satellites, dates and times (the Sentinel-2 catalogue entries), the scale (the 10-metre grid we warped to).
 import json, sys, os, datetime as dt
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
+import numpy as np
 
 IN, OUT = sys.argv[1], sys.argv[2]
 FONT = sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(__file__), "../../web/fonts/Heebo.ttf")
 LOGO = sys.argv[4] if len(sys.argv) > 4 else os.path.join(os.path.dirname(__file__), "civilpress-logo.webp")   # the site's current header logo
 os.makedirs(OUT, exist_ok=True)
+MARK = os.environ.get("HASUFIT_MARK") == "1"   # the automatic change outline is off: at 10 m it also marks fields and misses parts of new roads (checked 22.10.2026)
 
 meta = json.load(open(f"{IN}/meta.json"))
 place = {"lat": meta["centre"]["lat"], "lon": meta["centre"]["lon"], "itm_e": meta["centre"]["itm_e"], "itm_n": meta["centre"]["itm_n"],
@@ -117,6 +119,14 @@ def inset(label):
 
 def panel(label):
     img = Image.open(f"{IN}/{label}.png").convert("RGB").resize((PANEL, PANEL), Image.LANCZOS).convert("RGBA")
+    if label == "after" and MARK and os.path.exists(f"{IN}/change_mask.png"):
+        # the computed change areas: a thin yellow outline and a light yellow tint, so the ground under them stays visible
+        m = Image.open(f"{IN}/change_mask.png").convert("L").resize((PANEL, PANEL), Image.NEAREST)
+        edge = m.filter(ImageFilter.MaxFilter(5)).point(lambda v: 255 if v else 0)
+        edge = Image.fromarray(((np.asarray(edge) > 0) & ~(np.asarray(m.filter(ImageFilter.MinFilter(3))) > 0)).astype(np.uint8) * 255)
+        tint = Image.new("RGBA", img.size, (255, 212, 0, 0)); tint.putalpha(m.point(lambda v: 60 if v else 0))
+        line = Image.new("RGBA", img.size, (255, 212, 0, 0)); line.putalpha(edge)
+        img.alpha_composite(tint); img.alpha_composite(line)
     img.alpha_composite(logo, ((PANEL - logo.width) // 2, (PANEL - logo.height) // 2))
     north_and_scale(img)
     ins = inset(label).convert("RGBA")
@@ -152,8 +162,11 @@ def legend(d, x_right, y, width):
         ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה. בשני הצדדים הריבוע הקטן לקוח מצילום ה'לפני'.", f),
         ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות: OpenStreetMap.", f),
     ]
+    if MARK and os.path.exists(f"{IN}/change_mask.png"):
+        lines.insert(4, ("המסגרות הצהובות בתמונת ה'אחרי' מסמנות מקומות שבהם הקרקע נחשפה או נחפרה מאז תמונת ה'לפני'. הסימון מחושב ממדידות הלוויין עצמן.", fb))
+        lines.insert(5, ("הסימון אוטומטי, ולכן חלק מהמקומות המסומנים יכולים להיות גם עבודות חקלאיות או בנייה אזרחית.", f))
     for i, (t, ff) in enumerate(lines):
-        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if i < 4 else SUB)
+        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if i < 5 else SUB)
     yy = y + len(lines) * 34 + 6
     ltr(d, (x_right, yy), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. Names: © OpenStreetMap contributors.", font(16), fill=SUB)
     return yy + 26
