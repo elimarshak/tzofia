@@ -89,6 +89,7 @@ def inset(label):
         return c + dx / G["wide_metres_per_pixel"] * s, c - dy / G["wide_metres_per_pixel"] * s
     named = [t for t in towns if t["tags"].get("name:he")]
     key_ids = {int(a["osm"].split("/")[1]) for a in meta.get("anchors", {}).values() if a["osm"].startswith("node/")}
+    labels = {int(a["osm"].split("/")[1]): meta["point"]["anchors"][k].get("label_he") for k, a in meta.get("anchors", {}).items()}
     named.sort(key=lambda t: (t["id"] not in key_ids, t["tags"].get("place") not in ("city", "town"), math.dist(xy(t), (c, c))))
     shown = []
     f = font(14, "Bold")
@@ -96,9 +97,11 @@ def inset(label):
         x, y = xy(t)
         if not (14 < x < INSET - 14 and 14 < y < INSET - 14): continue
         if t["id"] not in key_ids and math.dist((x, y), (c, c)) < half + 18: continue
-        if any(math.dist((x, y), p) < 46 for p in shown): continue
+        if t["id"] not in key_ids and any(math.dist((x, y), p) < 46 for p in shown): continue
+        below = any(math.dist((x, y), p) < 46 for p in shown)
         d.ellipse((x - 3, y - 3, x + 3, y + 3), fill=PAPER, outline=INK)
-        d.text((x, y - 6), t["tags"]["name:he"], font=f, fill=PAPER, anchor="mb", direction="rtl", language="he", stroke_width=3, stroke_fill=INK)
+        d.text((x, y + 6) if below else (x, y - 6), (labels.get(t["id"]) or t["tags"]["name:he"]).replace("'", "׳"), font=f, fill=PAPER, anchor="ma" if below else "mb",
+               direction="rtl", language="he", stroke_width=3, stroke_fill=INK)
         shown.append((x, y))
         if len(shown) == 5: break
     km10 = 10000 / G["wide_metres_per_pixel"] * s
@@ -123,7 +126,7 @@ def caption(d, x_right, y, label, width):
     rtl(d, (x_right, y + 50), israel_time(m["datetime"]), f)
     rtl(d, (x_right, y + 84), "הלוויין שצילם את התמונה:" if len(m["platforms"]) == 1 else "הלוויינים שצילמו את התמונה:", f, fill=SUB)
     ltr(d, (x_right, y + 114), ", ".join(SAT_NAME.get(p, p) for p in m["platforms"]), font(21, "Bold"))
-    rtl(d, (x_right, y + 146), "של סוכנות החלל האירופית, תוכנית קופרניקוס", f_small, fill=SUB)
+    rtl(d, (x_right, y + 146), "לוויין של סוכנות החלל האירופית, במסגרת תוכנית קופרניקוס של האיחוד האירופי", f_small, fill=SUB)
 
 name = place["tags"].get("name:he") or place["tags"].get("name")
 ele = place["tags"].get("ele")
@@ -134,11 +137,11 @@ def legend(d, x_right, y, width):
     f, fb = font(21), font(21, "Bold")
     lines = [
         (f"המקום המצולם: {name}", fb),
-        (f"נ״צ של מרכז התמונה במעלות: {lat:.5f} צפון, {lon:.5f} מזרח", f),
-        (f"נ״צ של מרכז התמונה ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון", f),
-        (f"כל תמונה מראה שטח של {km} על {km} קילומטרים, מלמעלה. הצפון בראש התמונה.", f),
-        ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה בתוכו היא השטח שבתמונה הגדולה.", f),
-        ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות והנ״צ: המפה הפתוחה OpenStreetMap.", f),
+        (f"נקודת הציון של מרכז התמונה: {lat:.5f} מעלות צפון, {lon:.5f} מעלות מזרח", f),
+        (f"נקודת הציון של מרכז התמונה ברשת ישראל החדשה: {place['itm_e']} מזרח, {place['itm_n']} צפון", f),
+        (f"כל תמונה מראה שטח של {km} על {km} קילומטרים. הצפון נמצא בראש התמונה.", f),
+        ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה.", f),
+        ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות: OpenStreetMap.", f),
     ]
     for i, (t, ff) in enumerate(lines):
         rtl(d, (x_right, y + i * 34), t, ff, fill=INK if i < 4 else SUB)
@@ -153,7 +156,7 @@ H = 2000
 sheet = Image.new("RGB", (W, H), PAPER)
 d = ImageDraw.Draw(sheet)
 rtl(d, (W - PAD, PAD), name, font(40, "Bold"))
-rtl(d, (W - PAD, PAD + 62), f"צילום לוויין מלמעלה, לפני ואחרי. שטח של {km} על {km} קילומטרים.", font(24), fill=SUB)
+rtl(d, (W - PAD, PAD + 62), f"צילומי לוויין של אותו מקום, לפני ואחרי. כל תמונה מראה שטח של {km} על {km} קילומטרים.", font(24), fill=SUB)
 top = PAD + 118
 right_x = W - PAD - PANEL
 sheet.paste(panel("before"), (right_x, top))
@@ -176,15 +179,21 @@ def frame(label):
     dd.line((PAD, PAD + 64 + PANEL + 192, fw - PAD, PAD + 64 + PANEL + 192), fill=LINE, width=2)
     f, fs = font(19), font(15)
     ys = PAD + 64 + PANEL + 206
-    for i, t in enumerate([f"נ״צ של מרכז התמונה במעלות: {lat:.5f} צפון, {lon:.5f} מזרח",
-                           f"נ״צ של מרכז התמונה ברשת ישראל: {place['itm_e']} מזרח, {place['itm_n']} צפון",
-                           f"שטח של {km} על {km} קילומטרים, מלמעלה. הצפון בראש התמונה."]):
+    for i, t in enumerate([f"נקודת הציון של מרכז התמונה: {lat:.5f} מעלות צפון, {lon:.5f} מעלות מזרח",
+                           f"נקודת הציון של מרכז התמונה ברשת ישראל החדשה: {place['itm_e']} מזרח, {place['itm_n']} צפון",
+                           f"התמונה מראה שטח של {km} על {km} קילומטרים. הצפון נמצא בראש התמונה."]):
         rtl(dd, (fw - PAD, ys + i * 28), t, f)
     ltr(dd, (fw - PAD, ys + 4 * 28 + 4), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. © OpenStreetMap contributors.", fs, fill=SUB)
     return fr.crop((0, 0, fw, ys + 4 * 28 + 34))
 
 fb, fa = frame("before"), frame("after")
 fa = fa.resize(fb.size) if fa.size != fb.size else fa
-pal = [f.convert("P", palette=Image.ADAPTIVE, colors=255) for f in (fb, fa)]
+# one shared palette for both frames, with the exact red of the frame mark and the exact ink colour kept
+both = Image.new("RGB", (fb.width, fb.height * 2)); both.paste(fb, (0, 0)); both.paste(fa, (0, fb.height))
+q = both.quantize(colors=250, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+keep = [(215, 38, 61), (22, 34, 46), (255, 255, 255), (74, 88, 102), (217, 222, 226), (0, 0, 0)]
+palette = q.getpalette()[:250 * 3] + [v for c in keep for v in c]
+palimg = Image.new("P", (1, 1)); palimg.putpalette(palette)
+pal = [f.quantize(palette=palimg, dither=Image.Dither.NONE) for f in (fb, fa)]
 pal[0].save(f"{OUT}/summary.gif", save_all=True, append_images=pal[1:], duration=[1600, 1600], loop=0, optimize=True)
 print("done", sheet.size, fb.size)
