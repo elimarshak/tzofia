@@ -73,13 +73,13 @@ def best(frm, to, label, newest):
     cand.sort(key=(lambda i: i["properties"]["datetime"]) if newest else (lambda i: i["properties"].get("eo:cloud_cover", 100)), reverse=newest)
     say(label, "candidates", len(cand), [(i["id"], i["properties"]["datetime"][:16], i["properties"].get("eo:cloud_cover")) for i in cand[:8]])
     for it in cand[:10]:
-        it = same_day(allit, it)
-        a = window(it)
+        day = same_day(allit, it)
+        a = window(day)
         empty = float((a.sum(0) == 0).mean())
         bright = float((a.min(0) > 200).mean())   # white: cloud or snow
         say(" try", it["id"], "empty", round(empty, 3), "white", round(bright, 3))
         if empty < 0.01 and bright < 0.02:
-            return it, a, allit
+            return day, a, allit
     raise SystemExit(f"no clear picture for {label}")
 
 meta = {}
