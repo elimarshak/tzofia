@@ -1,0 +1,72 @@
+name: hasufit-weekly
+# 'חשופית': once a week, a fresh before/after summary for every point; a point's summary is kept on the
+# hasufit-data branch only when its ground changed since last week (tools/hasufit/weekly_change.py).
+# Everything runs on GitHub's servers from open data (Sentinel-2 on AWS, OpenStreetMap); no keys, no cost.
+on:
+  schedule:
+    - cron: '23 3 * * 0'      # Sunday 03:23 UTC
+  workflow_dispatch:
+  push:                       # trial run from the work branch; removed when merged to main
+    branches: [hasufit-probe]
+    paths: ['.github/workflows/hasufit-weekly.yml', 'tools/hasufit/weekly_change.py']
+permissions:
+  contents: write
+concurrency: hasufit-weekly
+jobs:
+  point:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        point: [majdal-hadar, jubata, quneitra, maariya, khiam-hamames, markaba-houla, aitaroun-jaldeir, ramiya, labbouneh, beaufort]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Fetch, combine and draw
+        shell: bash
+        run: |
+          set -uo pipefail
+          sudo apt-get install -y -q libfribidi0 libraqm0 > /dev/null
+          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy
+          python -c "from PIL import features; assert features.check('raqm'), 'no Hebrew text shaping'"
+          p=${{ matrix.point }}
+          for try in 1 2 3; do
+            echo "[$p] fetching, attempt $try"
+            timeout 1200 python tools/hasufit/fetch_point.py tools/hasufit/points/$p.json raw && break
+            sleep 90
+          done
+          echo "[$p] combining the clear passes"
+          timeout 1500 python tools/hasufit/enhance_point.py raw enh
+          echo "[$p] drawing"
+          python tools/hasufit/render.py enh sum web/fonts/Heebo.ttf tools/hasufit/civilpress-logo.webp
+          mkdir -p pack/$p && cp enh/after_raw.npy enh/meta.json sum/summary.png sum/summary.gif pack/$p/
+      - uses: actions/upload-artifact@v4
+        with: { name: 'point-${{ matrix.point }}', path: pack, retention-days: 3 }
+  keep:
+    needs: point
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/download-artifact@v4
+        with: { path: packs, pattern: 'point-*', merge-multiple: true }
+      - name: Keep only the weeks that changed
+        shell: bash
+        run: |
+          set -uo pipefail
+          pip install -q numpy pillow scipy
+          mkdir store
+          git fetch -q --depth 1 origin hasufit-data && git --work-tree=store checkout FETCH_HEAD -- . || true
+          week=$(date -u +%G-W%V)
+          for d in packs/*/; do
+            p=$(basename $d)
+            python tools/hasufit/weekly_change.py $p $d $d store $week || echo "[$p] failed"
+          done
+          cd store && rm -rf .git && git init -q -b hasufit-data && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit week $week"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-data
