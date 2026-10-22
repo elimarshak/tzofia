@@ -7,17 +7,21 @@ permissions:
   contents: write
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          set -uo pipefail
-          python3 -m venv /tmp/v && /tmp/v/bin/pip install -q rasterio==1.4.3 numpy pillow
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
           mkdir out
-          python3 tools/hasufit/probe.py > out/sources.txt 2>&1 || echo "probe failed" >> out/sources.txt
-          /tmp/v/bin/python tools/hasufit/fetch_example.py out > out/example-log.txt 2>&1 || echo "example failed" >> out/example-log.txt
+          pip install -q rasterio==1.4.3 numpy pillow > out/pip.txt 2>&1; echo "pip exit $?" >> out/pip.txt
+          python tools/hasufit/probe.py > out/sources.txt 2>&1; echo "probe exit $?" >> out/sources.txt
+          python tools/hasufit/fetch_example.py out > out/example-log.txt 2>&1; echo "example exit $?" >> out/example-log.txt
           cd out && git init -q -b hasufit-out && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit probe $(date -u +%FT%TZ)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-out > /tmp/push.txt 2>&1 || echo "::error::push failed: $(tr '\n' ' ' < /tmp/push.txt | cut -c1-900)"
           echo "::notice::files: $(ls -la | tr '\n' ' ' | cut -c1-900)"
           echo "::notice::example: $(tail -c 900 example-log.txt | tr '\n' ' ')"
+          exit 0
