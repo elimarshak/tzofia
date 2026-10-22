@@ -127,10 +127,15 @@ def caption(d, x_right, y, label, width):
     m = meta[label]
     f_big, f, f_small = font(34, "Bold"), font(21), font(19)
     rtl(d, (x_right, y), "לפני" if label == "before" else "אחרי", f_big)
-    rtl(d, (x_right, y + 50), israel_time(m["datetime"]), f)
+    if len(m.get("composite_days", [])) > 1:
+        ds = [dt.date.fromisoformat(x) for x in m["composite_days"]]
+        day = lambda t: f"{t.day} ב{MONTHS[t.month - 1]} {t.year}"
+        rtl(d, (x_right, y + 50), f"שילוב של {len(ds)} צילומים נקיים, מ-{day(ds[0])} עד {day(ds[-1])}", f)
+    else:
+        rtl(d, (x_right, y + 50), israel_time(m["datetime"]), f)
     rtl(d, (x_right, y + 84), "הלוויין שצילם את התמונה:" if len(m["platforms"]) == 1 else "הלוויינים שצילמו את התמונה:", f, fill=SUB)
     ltr(d, (x_right, y + 114), ", ".join(SAT_NAME.get(p, p) for p in m["platforms"]), font(21, "Bold"))
-    rtl(d, (x_right, y + 146), "לוויין של סוכנות החלל האירופית, במסגרת תוכנית קופרניקוס של האיחוד האירופי", f_small, fill=SUB)
+    rtl(d, (x_right, y + 146), ("לוויין" if len(m["platforms"]) == 1 else "לוויינים") + " של סוכנות החלל האירופית, במסגרת תוכנית קופרניקוס של האיחוד האירופי", f_small, fill=SUB)
 
 name = place["tags"].get("name:he") or place["tags"].get("name")
 ele = place["tags"].get("ele")

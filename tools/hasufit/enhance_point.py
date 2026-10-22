@@ -77,9 +77,12 @@ for label, ((frm, to), newest) in periods.items():
                    "platforms": sorted({i["properties"].get("platform") for i in passes}),
                    "passes": [i["id"] for i in passes], "datetime": used[0][0]["properties"]["datetime"]}
 
-# one stretch for both periods, per band, from the 1st and 99.5th percentiles of all valid pixels
-both = np.concatenate([raw["before"].reshape(3, -1), raw["after"].reshape(3, -1)], axis=1)
-lo = np.nanpercentile(both, 1, axis=1)[:, None, None]; hi = np.nanpercentile(both, 99.5, axis=1)[:, None, None]
+# keep the measurements themselves next to the pictures, so the stretch can be checked or redone
+for label, a in raw.items(): np.save(f"{OUT}/{label}_raw.npy", np.nan_to_num(a).astype(np.uint16))
+# one stretch for both periods and all three bands together (a per-band stretch shifts the colours),
+# from the 0.5th and 99.7th percentiles of all valid measurements
+both = np.concatenate([raw["before"].ravel(), raw["after"].ravel()])
+lo = np.nanpercentile(both, 0.5); hi = np.nanpercentile(both, 99.7)
 for label, a in raw.items():
     a = np.where(np.isnan(a), np.nanmedian(a), a)
     v = np.clip((a - lo) / (hi - lo), 0, 1) ** (1 / 1.15)
