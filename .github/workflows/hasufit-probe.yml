@@ -1,10 +1,21 @@
 name: hasufit-probe
+# Temporary: runs the open-source probe and the example fetch for 'חשופית', and puts the results on the hasufit-out branch.
 on:
   push:
     branches: [hasufit-probe]
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 tools/hasufit/probe.py
+      - run: |
+          set -uo pipefail
+          python3 -m venv /tmp/v && /tmp/v/bin/pip install -q rasterio==1.4.3 numpy pillow
+          mkdir out
+          python3 tools/hasufit/probe.py > out/sources.txt 2>&1 || echo "probe failed" >> out/sources.txt
+          /tmp/v/bin/python tools/hasufit/fetch_example.py out > out/example-log.txt 2>&1 || echo "example failed" >> out/example-log.txt
+          cd out && git init -q -b hasufit-out && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit probe $(date -u +%FT%TZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-out
