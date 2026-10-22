@@ -45,37 +45,64 @@ dst_crs = f"+proj=tmerc +lat_0={lat} +lon_0={lon} +k=1 +x_0=0 +y_0=0 +datum=WGS8
 n = 2 * HALF // PX
 dst_tr = from_origin(-HALF, HALF, PX, PX)
 
-def window(item):
+def window(items_of_day, half=HALF, px=PX, overview=None):
+    size = int(2 * half // px)
+    tr = from_origin(-half, half, px, px)
+    out = np.zeros((3, size, size), dtype=np.uint8)
     with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", AWS_NO_SIGN_REQUEST="YES"):
-        with rasterio.open(item["assets"]["visual"]["href"]) as src:
-            out = np.zeros((3, n, n), dtype=np.uint8)
-            for b in range(3):
-                reproject(rasterio.band(src, b + 1), out[b], src_transform=src.transform, src_crs=src.crs,
-                          dst_transform=dst_tr, dst_crs=dst_crs, resampling=Resampling.bilinear, src_nodata=0, dst_nodata=0)
+        for item in items_of_day:
+            kw = {"overview_level": overview} if overview is not None else {}
+            with rasterio.open(item["assets"]["visual"]["href"], **kw) as src:
+                part = np.zeros((3, size, size), dtype=np.uint8)
+                for b in range(3):
+                    reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
+                              dst_transform=tr, dst_crs=dst_crs, resampling=Resampling.bilinear, src_nodata=0, dst_nodata=0)
+                hole = out.sum(0) == 0
+                out[:, hole] = part[:, hole]
     return out
 
-def best(frm, to, label):
-    cand = sorted(items(frm, to), key=lambda i: i["properties"].get("eo:cloud_cover", 100))
+def same_day(all_items, it):
+    d = it["properties"]["datetime"][:10]
+    return sorted([i for i in all_items if i["properties"]["datetime"][:10] == d], key=lambda i: i["properties"].get("eo:cloud_cover", 100))
+
+def best(frm, to, label, newest):
+    allit = items(frm, to)
+    cand = [i for i in allit if i["properties"].get("eo:cloud_cover", 100) <= 10]
+    cand.sort(key=(lambda i: i["properties"]["datetime"]) if newest else (lambda i: i["properties"].get("eo:cloud_cover", 100)), reverse=newest)
     say(label, "candidates", len(cand), [(i["id"], i["properties"]["datetime"][:16], i["properties"].get("eo:cloud_cover")) for i in cand[:8]])
     for it in cand[:10]:
+        it = same_day(allit, it)
         a = window(it)
         empty = float((a.sum(0) == 0).mean())
         bright = float((a.min(0) > 200).mean())   # white: cloud or snow
         say(" try", it["id"], "empty", round(empty, 3), "white", round(bright, 3))
         if empty < 0.01 and bright < 0.02:
-            return it, a
+            return it, a, allit
     raise SystemExit(f"no clear picture for {label}")
 
 meta = {}
-for label, frm, to in [("before", "2024-10-01", "2024-12-07"), ("after", (dt.date.today() - dt.timedelta(days=45)).isoformat(), dt.date.today().isoformat())]:
-    it, a = best(frm, to, label)
+OV_HALF, OV_PX = 20000, 40   # the wide view for the corner square: 40 x 40 km, 40 metres per pixel
+for label, frm, to, newest in [("before", "2024-10-01", "2024-12-07", False), ("after", (dt.date.today() - dt.timedelta(days=45)).isoformat(), dt.date.today().isoformat(), True)]:
+    day, a, allit = best(frm, to, label, newest)
     Image.fromarray(np.moveaxis(a, 0, -1)).save(f"{OUT}/{label}.png")
+    wide = window(day, OV_HALF, OV_PX, overview=1)
+    Image.fromarray(np.moveaxis(wide, 0, -1)).save(f"{OUT}/{label}_wide.png")
+    it = day[0]
     p = it["properties"]
-    meta[label] = {"id": it["id"], "datetime": p["datetime"], "platform": p.get("platform"), "constellation": p.get("constellation"),
+    meta[label] = {"passes_used": [i["id"] for i in day], "platforms": sorted({i["properties"].get("platform") for i in day}), "id": it["id"], "datetime": p["datetime"], "platform": p.get("platform"), "constellation": p.get("constellation"),
                    "instruments": p.get("instruments"), "cloud_cover_tile": p.get("eo:cloud_cover"), "mgrs_tile": p.get("s2:mgrs_tile") or p.get("grid:code"),
                    "processing_baseline": p.get("s2:processing_baseline"), "gsd": p.get("gsd"), "visual_href": it["assets"]["visual"]["href"],
                    "self": next((l["href"] for l in it["links"] if l["rel"] == "self"), None)}
-meta["grid"] = {"crs": dst_crs, "metres_per_pixel": PX, "half_width_m": HALF}
+meta["grid"] = {"crs": dst_crs, "metres_per_pixel": PX, "half_width_m": HALF, "wide_half_width_m": OV_HALF, "wide_metres_per_pixel": OV_PX}
+
+# towns and villages inside the wide view, from OpenStreetMap, to name the area in the corner square
+dlat, dlon = OV_HALF / 111320, OV_HALF / (111320 * np.cos(np.radians(lat)))
+q = f"""[out:json][timeout:60];
+node["place"~"^(city|town|village)$"]({lat-dlat},{lon-dlon},{lat+dlat},{lon+dlon});
+out;"""
+pl = json.loads(get("https://overpass-api.de/api/interpreter", urllib.parse.urlencode({"data": q}).encode()))["elements"]
+json.dump([{"id": e["id"], "lat": e["lat"], "lon": e["lon"], "tags": {k: v for k, v in e["tags"].items() if k.startswith("name") or k in ("place", "population", "wikidata")}} for e in pl], open(f"{OUT}/places.json", "w"), ensure_ascii=False, indent=1)
+say("places in wide view", len(pl))
 json.dump(meta, open(f"{OUT}/meta.json", "w"), indent=1)
 say(json.dumps(meta, indent=1))
 
@@ -91,7 +118,7 @@ for c in cands:
     if m: srcs.append(m.group(1))
     m = re.search(r'srcset="([^"]+)"', c)
     if m: srcs += [s.strip().split(" ")[0] for s in m.group(1).split(",")]
-for i, s in enumerate(dict.fromkeys(srcs + icons)):
+for i, s in enumerate(dict.fromkeys(["https://civilpress.co.il/wp-content/uploads/2020/06/logo_itonut.png"] + srcs + icons)):
     try:
         b = get(s if s.startswith("http") else "https://civilpress.co.il" + s)
         ext = os.path.splitext(urllib.parse.urlparse(s).path)[1] or ".bin"
