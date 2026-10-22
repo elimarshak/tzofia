@@ -21,9 +21,8 @@ jobs:
           curl -fsSL -A "openeye.co.il" -o out/logo.png https://civilpress.co.il/wp-content/uploads/2020/06/logo_itonut.png
           for p in tools/hasufit/points/*.json; do
             n=$(basename "$p" .json); mkdir -p "out/$n"
-            python tools/hasufit/fetch_point.py "$p" "out/$n" > "out/$n/run.txt" 2>&1 &
+            python tools/hasufit/fetch_point.py "$p" "out/$n" > "out/$n/run.txt" 2>&1
           done
-          wait
           cd out && git init -q -b hasufit-out && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit $(date -u +%FT%TZ)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-out > /tmp/push.txt 2>&1 || echo "::error::push failed: $(tr '\n' ' ' < /tmp/push.txt | cut -c1-900)"

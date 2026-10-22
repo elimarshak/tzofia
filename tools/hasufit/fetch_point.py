@@ -25,15 +25,26 @@ def get(url, data=None, headers=None, timeout=180):
     return urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=timeout).read()
 
 def overpass(q):
-    return json.loads(get(OVERPASS, urllib.parse.urlencode({"data": "[out:json][timeout:90];" + q}).encode()))["elements"]
+    import time
+    for wait in (0, 30, 60, 120):
+        time.sleep(wait)
+        try: return json.loads(get(OVERPASS, urllib.parse.urlencode({"data": "[out:json][timeout:90];" + q}).encode()))["elements"]
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 504): raise
+            say("overpass busy, waiting", e.code)
+    raise SystemExit("overpass kept refusing")
 
 # 1. anchors from OpenStreetMap
 anchors = {}
 for key, a in P["anchors"].items():
     s, w, n, e = a["bbox"]
-    els = overpass(f'nwr["place"]["name:en"~"{a["name_en"]}",i]({s},{w},{n},{e});out center;')
-    els += overpass(f'nwr["place"]["name"~"{a["name_en"]}",i]({s},{w},{n},{e});out center;')
-    els = list({x["id"]: x for x in els}.values())
+    els = overpass(f'(nwr["place"]["name:en"~"{a["name_en"]}",i]({s},{w},{n},{e});nwr["place"]["name"~"{a["name_en"]}",i]({s},{w},{n},{e}););out center;')
+    els = list({(x["type"], x["id"]): x for x in els}.values())
+    # one place mapped twice (a node and an area with the same wikidata): keep the node
+    by = {}
+    for x in sorted(els, key=lambda x: x["type"] != "node"):
+        by.setdefault(x["tags"].get("wikidata") or f'{x["type"]}{x["id"]}', x)
+    els = list(by.values())
     for x in els:
         say("OSM", key, x["type"], x["id"], x.get("lat") or x["center"]["lat"], x.get("lon") or x["center"]["lon"],
             {k: v for k, v in x["tags"].items() if k.startswith("name") or k in ("place", "wikidata")})
