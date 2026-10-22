@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://raw.githubusercontent.com; font-src 'self'; connect-src https://raw.githubusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>חשופית</title>
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:Heebo;src:url(../fonts/Heebo.woff2) format("woff2"),url(../fonts/Heebo.ttf) format("truetype");font-weight:100 900;font-display:swap}
+:root{--bg:#EEF0EA;--panel:#FFFFFF;--ink:#16222E;--sub:#4A5866;--line:#D9DEE2;--accent:#0B4F8A}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1822;--panel:#15212C;--ink:#EDF2F6;--sub:#A9B6C2;--line:#2A3946;--accent:#7FB8F0}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Heebo,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:30px;margin:4px 0 2px}
+.lead{color:var(--sub);margin:0 0 6px;font-size:16px}
+.updated{color:var(--sub);font-size:14px;margin:0 0 18px}
+article{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 20px}
+article h2{font-size:21px;margin:0 0 4px}
+article .when{color:var(--sub);font-size:14px;margin:0 0 12px}
+article img{display:block;width:100%;height:auto;border-radius:6px;background:var(--bg)}
+article .links{margin:12px 0 0;font-size:15px}
+article a{color:var(--accent)}
+article details{margin-top:8px;font-size:15px}
+article details ul{margin:6px 0 0;padding-inline-start:20px}
+.empty{color:var(--sub)}
+</style>
+</head>
+<body>
+<main>
+<h1>חשופית</h1>
+<p class="lead">סיכום שבועי בצילומי לוויין של העבודות בשטח סוריה ובשטח לבנון, לאורך הגבול הצפוני. בכל נקודה מופיעה תמונת ה'לפני' בצד ימין ותמונת ה'אחרי' בצד שמאל.</p>
+<p class="updated" id="updated">הסיכומים נטענים.</p>
+<div id="list"></div>
+</main>
+<script>
+const RAW = 'https://raw.githubusercontent.com/elimarshak/tzofia/hasufit-data/';
+const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const day = (iso) => { if (!iso) return ''; const [y, m, d] = iso.slice(0, 10).split('-').map(Number); return `${d} ב${MONTHS[m - 1]} ${y}`; };
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+
+fetch(RAW + 'index.json', { cache: 'no-store' }).then(r => r.json()).then(ix => {
+  document.getElementById('updated').textContent = `העדכון האחרון של הסיכומים: ${day(ix.updated)}.`;
+  const list = document.getElementById('list');
+  for (const p of ix.points) {
+    const a = el('article');
+    a.append(el('h2', { textContent: p.title }));
+    if (!p.weeks.length) { a.append(el('p', { className: 'empty', textContent: 'עוד אין סיכום שנשמר לנקודה הזו.' })); list.append(a); continue; }
+    const w = p.weeks[0];
+    const range = w.after_days && w.after_days.length ? ` תמונת ה'אחרי' משלבת צילומים מ-${day(w.after_days[0])} עד ${day(w.after_days[w.after_days.length - 1])}.` : '';
+    a.append(el('p', { className: 'when', textContent: `הסיכום מיום ${day(w.run)}.${range}` }));
+    const base = `${RAW}weeks/${w.week}/${p.id}`;
+    a.append(el('img', { src: base + '.jpg', alt: `${p.title}: צילום לוויין לפני ואחרי`, loading: 'lazy' }));
+    a.append(el('p', { className: 'links' }, el('a', { href: base + '.gif', target: '_blank', rel: 'noopener', textContent: 'לתמונה המונפשת שמתחלפת בין לפני לאחרי' })));
+    if (p.weeks.length > 1) {
+      const ul = el('ul');
+      for (const o of p.weeks.slice(1)) ul.append(el('li', {}, el('a', { href: `${RAW}weeks/${o.week}/${p.id}.jpg`, target: '_blank', rel: 'noopener', textContent: `הסיכום מיום ${day(o.run)}` })));
+      a.append(el('details', {}, el('summary', { textContent: 'סיכומים משבועות קודמים' }), ul));
+    }
+    list.append(a);
+  }
+}).catch(() => { document.getElementById('updated').textContent = 'לא הצלחתי לטעון את הסיכומים. כדאי לנסות שוב בעוד כמה דקות.'; });
+</script>
+</body>
+</html>

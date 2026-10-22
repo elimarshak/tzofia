@@ -1,0 +1,35 @@
+{
+ "title_he": "לבונה, דרומית מערבית לעלמא א-שעב",
+ "anchors": {
+  "a": {
+   "name_en": "^(Alma ash Shab|Alma al-Shaab|Alma Ech Chaab|Alma ash-Sha.?b)$",
+   "name_ar": "^علما الشعب$",
+   "bbox": [
+    33.05,
+    35.12,
+    33.15,
+    35.25
+   ]
+  }
+ },
+ "offset_m": [
+  -1500,
+  0
+ ],
+ "press": [
+  "The Beiruter: Labbouneh / Alma al-Shaab post overlooking Naqoura",
+  "Middle East Eye: Labbouneh post, Israel's most western position in Lebanon"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "zoom": {
+  "offset_m": [
+   -500,
+   -1100
+  ],
+  "half_m": 900
+ }
+}

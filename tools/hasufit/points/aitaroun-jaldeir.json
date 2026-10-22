@@ -1,0 +1,35 @@
+{
+ "title_he": "ג'ל אל-דיר, דרומית מזרחית לעייתרון",
+ "anchors": {
+  "t": {
+   "name_en": "^(Aitaroun|Aytaroun|Ayta?r[uo]n|Aitaroun)$",
+   "name_ar": "^عيترون$",
+   "bbox": [
+    33.06,
+    35.42,
+    33.17,
+    35.53
+   ]
+  }
+ },
+ "offset_m": [
+  0,
+  -1500
+ ],
+ "press": [
+  "The Beiruter: Jal al-Deir south of Aitaroun, overlooking Avivim and Malkiya",
+  "Al Jazeera 17.2.2025: five locations"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "zoom": {
+  "offset_m": [
+   1500,
+   -600
+  ],
+  "half_m": 900
+ }
+}

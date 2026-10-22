@@ -1,0 +1,35 @@
+{
+ "title_he": "דרומית מזרחית לראמיה, בכיוון הגבול",
+ "anchors": {
+  "r": {
+   "name_en": "^(Ramiya|Ramyah|Ramieh|Ramiyeh|Ramiyah)$",
+   "name_ar": "^رامية$",
+   "bbox": [
+    33.05,
+    35.24,
+    33.15,
+    35.37
+   ]
+  }
+ },
+ "press": [
+  "The Beiruter: Jabal Blat near Ramieh",
+  "Al Jazeera 17.2.2025: five locations"
+ ],
+ "half_m": 3000,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "offset_m": [
+  0,
+  0
+ ],
+ "zoom": {
+  "offset_m": [
+   1600,
+   -1500
+  ],
+  "half_m": 900
+ }
+}

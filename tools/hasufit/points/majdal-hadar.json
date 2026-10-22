@@ -1,0 +1,46 @@
+{
+ "title_he": "קו ההפרדה בין רמת הגולן לסוריה, בין מג'דל שמס לחאדר",
+ "anchors": {
+  "majdal": {
+   "name_en": "^Majdal Shams$",
+   "bbox": [
+    33.2,
+    35.7,
+    33.35,
+    35.85
+   ]
+  },
+  "hadar": {
+   "name_en": "^(Hadar|Hader|Hadr)$",
+   "bbox": [
+    33.22,
+    35.78,
+    33.36,
+    35.95
+   ],
+   "label_he": "חאדר"
+  }
+ },
+ "offset_m": [
+  500,
+  -2100
+ ],
+ "half_m": 3500,
+ "before": [
+  "2023-09-01",
+  "2023-10-31"
+ ],
+ "press": [
+  "AP / Times of Israel, 7.11.2024: trench of over 7.5 km from about 3 km south-east of Majdal Shams, along the Alpha Line (Planet Labs imagery)",
+  "ABC News, 22.10.2026: five-metre-wide trench begun in August 2024, moved past the Alpha Line into the buffer zone",
+  "Middle East Eye, 2026: Israeli base on a hilltop north of Hader village",
+  "Arab News / SANA, 4.10.2026: excavation line from the outskirts of Hadar southward"
+ ],
+ "zoom": {
+  "offset_m": [
+   -367,
+   1567
+  ],
+  "half_m": 900
+ }
+}
