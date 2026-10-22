@@ -1,0 +1,131 @@
+{
+ "point": {
+  "title_he": "גבעה צפונית מערבית למעריה, מעל עמק הירמוך",
+  "anchors": {
+   "m": {
+    "name_en": "^(Ma.?ariyah|Ma.?arriyah|Maariya|Maaria|Ma.?ariya)$",
+    "name_ar": "^معرية$|^المعرية$|^معربة$",
+    "bbox": [
+     32.7,
+     35.72,
+     32.85,
+     35.9
+    ],
+    "label_he": "מעריה"
+   }
+  },
+  "offset_m": [
+   -1500,
+   0
+  ],
+  "press": [
+   "Middle East Eye: Al-Jazira barracks on a hilltop overlooking the Yarmouk and Ruqqad rivers",
+   "SANA via Liveuamap 17.6.2026: Israeli forces stationed at Al-Jazira barracks west of Ma'ariya",
+   "Wikipedia: Ma'ariya (معرية) lies at 32.764 N, 35.798 E, west of Daraa, in the Shajara subdistrict"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "zoom": {
+   "offset_m": [
+    -900,
+    900
+   ],
+   "half_m": 900
+  }
+ },
+ "centre": {
+  "lat": 32.77276284559661,
+  "lon": 35.773762264174195,
+  "itm_e": 272798,
+  "itm_n": 742157
+ },
+ "anchors": {
+  "m": {
+   "osm": "node/573513591",
+   "lat": 32.7646235,
+   "lon": 35.7994008,
+   "tags": {
+    "alt_name": "Maarbe;Maariya;Ma‘arriyah;Ma'arriyah",
+    "name": "معريّة",
+    "name:ar": "معريّة",
+    "name:de": "Maarija",
+    "name:en": "Ma'ariya",
+    "name:fr": "Maaria",
+    "name:ru": "Маарийя",
+    "place": "village",
+    "population": "1083",
+    "population:date": "2004",
+    "source:population": "المكتب المركزي للإحصاء"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   {
+    "id": "S2B_36SYB_20230912_1_L2A",
+    "datetime": "2023-09-12T08:31:02.908000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 0.064741,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20230912_1_L2A"
+   },
+   {
+    "id": "S2B_36SYB_20230912_0_L2A",
+    "datetime": "2023-09-12T08:31:02.910000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 0.108809,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20230912_0_L2A"
+   }
+  ],
+  "datetime": "2023-09-12T08:31:02.908000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2B_37SBR_20230912_0_L2A",
+   "S2B_37SBR_20230912_1_L2A",
+   "S2B_37SBS_20230912_1_L2A",
+   "S2B_36SYB_20230912_1_L2A",
+   "S2B_37SBS_20230912_0_L2A",
+   "S2B_36SYA_20230912_1_L2A",
+   "S2B_36SYB_20230912_0_L2A",
+   "S2B_36SYA_20230912_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2b"
+  ]
+ },
+ "after": {
+  "passes": [
+   {
+    "id": "S2C_36SYB_20261021_0_L2A",
+    "datetime": "2026-10-21T08:30:58.680000Z",
+    "platform": "sentinel-2c",
+    "cloud_cover_tile": 16.380653,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_36SYB_20261021_0_L2A"
+   }
+  ],
+  "datetime": "2026-10-21T08:30:58.680000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [
+   "S2C_36SYA_20261021_0_L2A",
+   "S2C_37SBR_20261021_1_L2A",
+   "S2C_37SBR_20261021_0_L2A",
+   "S2C_37SBS_20261021_1_L2A",
+   "S2C_36SYB_20261021_1_L2A",
+   "S2C_36SYA_20261021_1_L2A",
+   "S2C_37SBS_20261021_0_L2A",
+   "S2C_36SYB_20261021_0_L2A"
+  ],
+  "platforms": [
+   "sentinel-2c"
+  ]
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=32.77276284559661 +lon_0=35.773762264174195 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 10,
+  "half_width_m": 900,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ }
+}
