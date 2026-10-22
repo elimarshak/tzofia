@@ -1,0 +1,32 @@
+name: hasufit-enhance
+# Temporary: the clearer (median composite) version of points already fetched, each to hasufit-enh-<name>.
+on:
+  push:
+    branches: [hasufit-probe]
+    paths: ['tools/hasufit/enhance_point.py', '.github/workflows/hasufit-enhance.yml']
+permissions:
+  contents: write
+jobs:
+  enh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        point: [aitaroun-jaldeir]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
+          pip install -q rasterio==1.4.3 numpy pillow
+          git clone -q --depth 1 -b hasufit-point-${{ matrix.point }} "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" src
+          rm -rf src/.git
+          timeout 1500 python tools/hasufit/enhance_point.py src out > run.txt 2>&1; echo "exit $?" >> run.txt
+          mkdir -p out; cp run.txt out/
+          cd out && git init -q -b s && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "enhanced ${{ matrix.point }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" s:hasufit-enh-${{ matrix.point }}
+          echo "::notice::$(tail -c 700 run.txt | tr '\n' ' ')"
