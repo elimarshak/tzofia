@@ -1,0 +1,14 @@
+OSM jubata node 728630392 33.2257594 35.8341343 {'name': 'جباتا الخشب', 'name:ar': 'جباتا الخشب', 'name:de': 'Dschibata al-Chaschab', 'name:en': 'Jubata al-Khashab', 'name:fr': 'Djobata al-Khachab', 'name:he': "ג'בתא אל-ח'שב", 'name:ru': 'Джубата-аль-Хашаб', 'place': 'village'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-22 ['S2B_37SBS_20230922_0_L2A', 'S2B_36SYB_20230922_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_37SBS_20261021_0_L2A', 'S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.2068
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A', 'S2B_37SBS_20261016_0_L2A'] empty 0.0 cloud 0.9939
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A', 'S2A_37SBS_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A', 'S2C_37SBS_20261011_0_L2A'] empty 0.0 cloud 0.2437
+ try 2026-10-06 ['S2B_37SBS_20261006_0_L2A', 'S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 0.0199
+ try 2026-10-03 ['S2A_37SBS_20261003_1_L2A', 'S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.4336
+ try 2026-10-01 ['S2C_37SBS_20261001_0_L2A', 'S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.0357
+ try 2026-09-26 ['S2B_37SBS_20260926_0_L2A', 'S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.0603
+ try 2026-09-23 ['S2A_37SBS_20260923_1_L2A', 'S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.0
+scout done 33.2257594 35.8341343
