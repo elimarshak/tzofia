@@ -1,0 +1,6 @@
+OSM m node 573513591 32.7646235 35.7994008 {'name': 'معريّة', 'name:ar': 'معريّة', 'name:de': 'Maarija', 'name:en': "Ma'ariya", 'name:fr': 'Maaria', 'name:ru': 'Маарийя', 'place': 'village'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-22 ['S2B_37SBS_20230922_0_L2A', 'S2B_36SYB_20230922_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_37SBS_20261021_0_L2A', 'S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.0
+scout done 32.7646235 35.78337671510887
