@@ -19,7 +19,8 @@ jobs:
           mkdir out
           pip install -q rasterio==1.4.3 numpy pillow pyproj > out/pip.txt 2>&1
           curl -fsSL -A "openeye.co.il" -o out/logo.png https://civilpress.co.il/wp-content/uploads/2020/06/logo_itonut.png
-          bash tools/hasufit/probe_vhr.sh > out/vhr.txt 2>&1
+          for u in 2023/03/Civilpress.webp 2023/03/civilpress_placeholder.webp 2023/05/civilpress-2023-placeholder.webp 2023/03/cropped-civilpress_placeholder.webp; do curl -fsSL -A "openeye.co.il" -o "out/logo-$(basename $u)" "https://civilpress.co.il/wp-content/uploads/$u"; done
+          [ -f tools/hasufit/run-vhr ] && bash tools/hasufit/probe_vhr.sh > out/vhr.txt 2>&1
           [ -f tools/hasufit/run-points ] && for p in tools/hasufit/points/[!.]*[!m].json; do
             n=$(basename "$p" .json); mkdir -p "out/$n"
             for try in 1 2 3; do
