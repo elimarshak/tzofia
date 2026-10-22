@@ -9,11 +9,12 @@ permissions:
 jobs:
   scout:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       max-parallel: 3
       matrix:
-        point: [yarmouk-jazira]
+        point: [yarmouk-jazira, ramieh-blat]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,7 +25,7 @@ jobs:
           pip install -q rasterio==1.4.3 numpy pillow pyproj
           mkdir -p out
           for try in 1 2 3; do
-            python tools/hasufit/fetch_point.py tools/hasufit/scout/${{ matrix.point }}.json out >> out/run.txt 2>&1 && break
+            timeout 900 python tools/hasufit/fetch_point.py tools/hasufit/scout/${{ matrix.point }}.json out >> out/run.txt 2>&1 && break
             echo "attempt $try failed" >> out/run.txt; sleep 90
           done
           cd out && git init -q -b s && git add -A
