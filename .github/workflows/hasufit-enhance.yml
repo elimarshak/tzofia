@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        point: [aitaroun-jaldeir]
+        point: [majdal-hadar]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
