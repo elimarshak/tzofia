@@ -1,0 +1,16 @@
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 502: Bad Gateway
+OSM a node 6592006820 33.3293581 35.5254346 {'name': 'أرنون', 'name:ar': 'أرنون', 'name:de': 'Arnoun', 'name:en': 'Arnoun', 'name:fr': 'Arnoun', 'name:he': 'ארנון', 'name:ml': 'അർനൂൺ', 'place': 'village', 'wikidata': 'Q2903572'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-17 ['S2A_36SYC_20230917_0_L2A', 'S2A_36SYB_20230917_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A', 'S2C_36SYC_20261021_0_L2A'] empty 0.0 cloud 0.404
+ try 2026-10-16 ['S2B_36SYC_20261016_0_L2A', 'S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 0.911
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A', 'S2A_36SYC_20261013_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYC_20261011_0_L2A', 'S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.1737
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A', 'S2B_36SYC_20261006_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A', 'S2A_36SYC_20261003_0_L2A'] empty 0.0 cloud 0.9999
+ try 2026-10-01 ['S2C_36SYC_20261001_0_L2A', 'S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.9559
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A', 'S2B_36SYC_20260926_0_L2A'] empty 0.0 cloud 0.5839
+ try 2026-09-23 ['S2A_36SYC_20260923_0_L2A', 'S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.3405
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A', 'S2C_36SYC_20260921_0_L2A'] empty 0.0 cloud 0.0
+scout done 33.3293581 35.5254346
