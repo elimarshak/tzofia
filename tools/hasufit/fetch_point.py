@@ -64,23 +64,25 @@ HALF = P["half_m"]
 dst_crs = f"+proj=tmerc +lat_0={lat} +lon_0={lon} +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 
 # 2. pictures
-def items(frm, to):
-    poly = [[lon + dx, lat + dy] for dx, dy in ((-.02, -.02), (.02, -.02), (.02, .02), (-.02, .02), (-.02, -.02))]
+def items(frm, to, r=.02):
+    poly = [[lon + dx, lat + dy] for dx, dy in ((-r, -r), (r, -r), (r, r), (-r, r), (-r, -r))]
     body = {"collections": ["sentinel-2-l2a"], "intersects": {"type": "Polygon", "coordinates": [poly]},
             "datetime": f"{frm}T00:00:00Z/{to}T23:59:59Z", "limit": 300}
     return json.loads(get(ES + "/search", json.dumps(body).encode(), {"Content-Type": "application/json"}))["features"]
 
-def window(day, half, px, overview=None):
+def window(day, half, px, overview=None, asset="visual"):
     size = int(round(2 * half / px)); tr = from_origin(-half, half, px, px)
-    out = np.zeros((3, size, size), dtype=np.uint8)
+    nb = 3 if asset == "visual" else 1
+    out = np.zeros((nb, size, size), dtype=np.uint8)
     with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", AWS_NO_SIGN_REQUEST="YES"):
         for item in day:
             kw = {"overview_level": overview} if overview is not None else {}
-            with rasterio.open(item["assets"]["visual"]["href"], **kw) as src:
-                part = np.zeros((3, size, size), dtype=np.uint8)
-                for b in range(3):
+            with rasterio.open(item["assets"][asset]["href"], **kw) as src:
+                part = np.zeros((nb, size, size), dtype=np.uint8)
+                for b in range(nb):
                     reproject(src.read(b + 1), part[b], src_transform=src.transform, src_crs=src.crs,
-                              dst_transform=tr, dst_crs=dst_crs, resampling=Resampling.bilinear, src_nodata=0, dst_nodata=0)
+                              dst_transform=tr, dst_crs=dst_crs, resampling=Resampling.bilinear if asset == "visual" else Resampling.nearest,
+                              src_nodata=0, dst_nodata=0)
                 hole = out.sum(0) == 0
                 out[:, hole] = part[:, hole]
     return out
@@ -93,24 +95,29 @@ def best(frm, to, label, newest):
     say(label, frm, to, "days", len(days))
     for d in order[:25]:
         day = sorted(days[d], key=lambda i: i["properties"].get("eo:cloud_cover", 100))
-        a = window(day, HALF, PX)
-        empty = float((a.sum(0) == 0).mean()); white = float((a.min(0) > 200).mean())
-        say(" try", d, [i["id"] for i in day], "empty", round(empty, 3), "white", round(white, 3))
-        if empty < 0.005 and white < P.get("max_white", 0.01):
-            return day, a
+        scl = window(day, HALF, 20, asset="scl")[0]
+        cloud = float(np.isin(scl, (3, 8, 9, 10)).mean()); empty = float((scl == 0).mean())
+        say(" try", d, [i["id"] for i in day], "empty", round(empty, 4), "cloud", round(cloud, 4))
+        if empty < 0.005 and cloud < P.get("max_cloud", 0.003):
+            return day, window(day, HALF, PX), cloud
     raise SystemExit(f"no clear picture for {label}")
 
 today = dt.date.today()
 meta = {"point": P, "centre": {"lat": lat, "lon": lon, "itm_e": round(itm[0]), "itm_n": round(itm[1])}, "anchors": anchors}
 OV_HALF, OV_PX = P.get("wide_half_m", 20000), 40
 for label, (frm, to), newest in [("before", P["before"], False), ("after", P.get("after", [(today - dt.timedelta(days=60)).isoformat(), today.isoformat()]), True)]:
-    day, a = best(frm, to, label, newest)
+    day, a, cloud = best(frm, to, label, newest)
     Image.fromarray(np.moveaxis(a, 0, -1)).save(f"{OUT}/{label}.png")
-    Image.fromarray(np.moveaxis(window(day, OV_HALF, OV_PX, overview=1), 0, -1)).save(f"{OUT}/{label}_wide.png")
+    d0 = day[0]["properties"]["datetime"][:10]
+    wide_day = sorted([i for i in items(d0, d0, r=.3) if i["properties"].get("platform") == day[0]["properties"].get("platform")],
+                      key=lambda i: i["properties"].get("eo:cloud_cover", 100))
+    Image.fromarray(np.moveaxis(window(wide_day, OV_HALF, OV_PX, overview=1), 0, -1)).save(f"{OUT}/{label}_wide.png")
     meta[label] = {"passes": [{"id": i["id"], "datetime": i["properties"]["datetime"], "platform": i["properties"].get("platform"),
                                "cloud_cover_tile": i["properties"].get("eo:cloud_cover"),
                                "self": next((l["href"] for l in i["links"] if l["rel"] == "self"), None)} for i in day]}
     meta[label]["datetime"] = day[0]["properties"]["datetime"]
+    meta[label]["cloud_in_window"] = cloud
+    meta[label]["wide_passes"] = [i["id"] for i in wide_day]
     meta[label]["platforms"] = sorted({i["properties"].get("platform") for i in day})
 meta["grid"] = {"crs": dst_crs, "metres_per_pixel": PX, "half_width_m": HALF, "wide_half_width_m": OV_HALF, "wide_metres_per_pixel": OV_PX}
 
