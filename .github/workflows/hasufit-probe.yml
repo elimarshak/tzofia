@@ -18,4 +18,6 @@ jobs:
           /tmp/v/bin/python tools/hasufit/fetch_example.py out > out/example-log.txt 2>&1 || echo "example failed" >> out/example-log.txt
           cd out && git init -q -b hasufit-out && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit probe $(date -u +%FT%TZ)"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-out
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" hasufit-out > /tmp/push.txt 2>&1 || echo "::error::push failed: $(tr '\n' ' ' < /tmp/push.txt | cut -c1-900)"
+          echo "::notice::files: $(ls -la | tr '\n' ' ' | cut -c1-900)"
+          echo "::notice::example: $(tail -c 900 example-log.txt | tr '\n' ' ')"
