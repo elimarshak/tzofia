@@ -30,7 +30,7 @@ if os.path.exists(prev_path):
 else:
     score, first = None, True
 
-keep = first or score >= THRESHOLD
+keep = first or score >= THRESHOLD or os.environ.get("FORCE_KEEP") == "1"
 meta = json.load(open(f"{ENH}/meta.json"))
 log.setdefault(NAME, []).append({"week": WEEK, "score": score, "kept": keep, "first": first,
                                  "after_days": meta["after"].get("composite_days"), "after_platforms": meta["after"].get("platforms")})

@@ -93,7 +93,8 @@ def inset(label):
     def xy(t):
         dx = (t["lon"] - lon0) * 111320 * math.cos(math.radians(lat0)); dy = (t["lat"] - lat0) * 110574
         return c + dx / G["wide_metres_per_pixel"] * s, c - dy / G["wide_metres_per_pixel"] * s
-    named = [t for t in towns if t["tags"].get("name:he")]
+    labels0 = {int(a["osm"].split("/")[1]): meta["point"]["anchors"][k].get("label_he") for k, a in meta.get("anchors", {}).items()}
+    named = [t for t in towns if t["tags"].get("name:he") or labels0.get(t["id"])]
     key_ids = {int(a["osm"].split("/")[1]) for a in meta.get("anchors", {}).values() if a["osm"].startswith("node/")}
     labels = {int(a["osm"].split("/")[1]): meta["point"]["anchors"][k].get("label_he") for k, a in meta.get("anchors", {}).items()}
     named.sort(key=lambda t: (t["id"] not in key_ids, t["tags"].get("place") not in ("city", "town"), math.dist(xy(t), (c, c))))

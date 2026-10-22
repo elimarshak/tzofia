@@ -6,9 +6,9 @@ on:
   schedule:
     - cron: '23 3 * * 0'      # Sunday 03:23 UTC
   workflow_dispatch:
-  push:                       # trial run from the work branch; removed when merged to main
-    branches: [hasufit-probe]
-    paths: ['.github/workflows/hasufit-weekly.yml', 'tools/hasufit/weekly_change.py']
+    inputs:
+      points: { description: 'points to run, comma-separated (empty = all)', default: '' }
+      force_keep: { description: 'keep this run even without change (1 = yes)', default: '0' }
 permissions:
   contents: write
 concurrency: hasufit-weekly
@@ -29,6 +29,8 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
+          only="${{ github.event.inputs.points }}"
+          if [ -n "$only" ] && [[ ",$only," != *",${{ matrix.point }},"* ]]; then echo "skipped"; mkdir -p pack; touch pack/.skip; exit 0; fi
           sudo apt-get install -y -q libfribidi0 libraqm0 > /dev/null
           pip install -q rasterio==1.4.3 numpy pillow pyproj scipy
           python -c "from PIL import features; assert features.check('raqm'), 'no Hebrew text shaping'"
@@ -64,8 +66,9 @@ jobs:
           git fetch -q --depth 1 origin hasufit-data && git --work-tree=store checkout FETCH_HEAD -- . || true
           week=$(date -u +%G-W%V)
           for d in packs/*/; do
+            [ -f "$d/after_raw.npy" ] || continue
             p=$(basename $d)
-            python tools/hasufit/weekly_change.py $p $d $d store $week || echo "[$p] failed"
+            FORCE_KEEP="${{ github.event.inputs.force_keep }}" python tools/hasufit/weekly_change.py $p $d $d store $week || echo "[$p] failed"
           done
           cd store && rm -rf .git && git init -q -b hasufit-data && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "hasufit week $week"
