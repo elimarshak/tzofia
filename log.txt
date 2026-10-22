@@ -1,0 +1,13 @@
+OSM majdal node 2866107524 33.2684288 35.769371 {'name': 'مجدل شمس', 'name:ar': 'مجدل شمس', 'name:azb': 'مجدل شمس', 'name:ca': 'Majdal Shams', 'name:cs': 'Madždal Šams', 'name:de': 'Madschdal Schams', 'name:en': 'Majdal Shams', 'name:es': 'Majdal Shams', 'name:fa': 'مجدل شمس', 'name:fi': 'Majdal Shams', 'name:fr': 'Majdal Shams', 'name:he': "מג'דל שמס", 'name:id': 'Majdal Shams', 'name:ks': 'مجدل شمس', 'name:ml': 'മജ്ദൽ ഷംസ്', 'name:nn': 'Majdal Shams', 'name:pl': 'Madżdal Szams', 'name:ru': 'Мадждаль-Шамс', 'name:ur': 'مجدل شمس', 'place': 'village', 'wikidata': 'Q670612'}
+OSM hadar node 270915064 33.2802293 35.8299348 {'name': 'حضر', 'name:ar': 'حضر', 'name:de': 'Hadar', 'name:en': 'Hadar', 'name:fr': 'Hadar', 'name:he': 'חדר', 'name:ru': 'Хадар', 'place': 'village'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-22 ['S2B_37SBS_20230922_0_L2A', 'S2B_36SYB_20230922_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_37SBS_20261021_0_L2A', 'S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.2346
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A', 'S2B_37SBS_20261016_0_L2A'] empty 0.0 cloud 0.4002
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A', 'S2A_37SBS_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A', 'S2C_37SBS_20261011_0_L2A'] empty 0.0 cloud 0.7511
+ try 2026-10-06 ['S2B_37SBS_20261006_0_L2A', 'S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 0.0296
+ try 2026-10-03 ['S2A_37SBS_20261003_1_L2A', 'S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.0
+centre 33.26950874866334 35.80108279771869 ITM 275045 797265 places 129
+{"before": ["2023-09-22T08:31:00.537000Z", ["sentinel-2b"]], "after": ["2026-10-03T08:31:10.060000Z", ["sentinel-2a"]]}
