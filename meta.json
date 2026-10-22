@@ -1,0 +1,113 @@
+{
+ "point": {
+  "title_he": "לבונה ליד הנקורה",
+  "anchors": {
+   "a": {
+    "name_en": "^(Alma ash Shab|Alma al-Shaab|Alma Ech Chaab|Alma ash-Sha.?b)$",
+    "name_ar": "^علما الشعب$",
+    "bbox": [
+     33.05,
+     35.12,
+     33.15,
+     35.25
+    ]
+   }
+  },
+  "offset_m": [
+   -1500,
+   0
+  ],
+  "press": [
+   "The Beiruter: Labbouneh / Alma al-Shaab post overlooking Naqoura",
+   "Middle East Eye: Labbouneh post, Israel's most western position in Lebanon"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "scout": true
+ },
+ "centre": {
+  "lat": 33.1040468,
+  "lon": 35.16245370460456,
+  "itm_e": 215537,
+  "itm_n": 778756
+ },
+ "anchors": {
+  "a": {
+   "osm": "node/6326284509",
+   "lat": 33.1040468,
+   "lon": 35.1785394,
+   "tags": {
+    "alt_name:en": "Aalma Ech Chaab",
+    "alt_name:fr": "Alma El-Chaab",
+    "name": "علما الشعب",
+    "name:ar": "علما الشعب",
+    "name:de": "Alma ash Shab",
+    "name:en": "Alma ash Shab",
+    "name:fr": "Alma ach Chab",
+    "name:he": "עלמא א-שעב",
+    "name:ml": "അൽമ അഷ്-ഷാബ്",
+    "place": "village",
+    "wikidata": "Q11708082",
+    "wikipedia": "ar:علما الشعب"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   {
+    "id": "S2A_36SXB_20230907_0_L2A",
+    "datetime": "2023-09-07T08:31:07.870000Z",
+    "platform": "sentinel-2a",
+    "cloud_cover_tile": 0.004804,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_36SXB_20230907_0_L2A"
+   },
+   {
+    "id": "S2A_36SYB_20230907_0_L2A",
+    "datetime": "2023-09-07T08:31:04.784000Z",
+    "platform": "sentinel-2a",
+    "cloud_cover_tile": 0.659152,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_36SYB_20230907_0_L2A"
+   }
+  ],
+  "datetime": "2023-09-07T08:31:07.870000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [],
+  "platforms": [
+   "sentinel-2a"
+  ]
+ },
+ "after": {
+  "passes": [
+   {
+    "id": "S2B_36SYB_20260916_0_L2A",
+    "datetime": "2026-09-16T08:30:57.660000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 0.001858,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SYB_20260916_0_L2A"
+   },
+   {
+    "id": "S2B_36SXB_20260916_0_L2A",
+    "datetime": "2026-09-16T08:31:00.735000Z",
+    "platform": "sentinel-2b",
+    "cloud_cover_tile": 0.004897,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_36SXB_20260916_0_L2A"
+   }
+  ],
+  "datetime": "2026-09-16T08:30:57.660000Z",
+  "cloud_in_window": 0.00017777777777777779,
+  "wide_passes": [],
+  "platforms": [
+   "sentinel-2b"
+  ]
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=33.1040468 +lon_0=35.16245370460456 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 10,
+  "half_width_m": 3000,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ }
+}

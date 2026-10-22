@@ -1,0 +1,18 @@
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 502: Bad Gateway
+overpass did not answer, trying again https://overpass.private.coffee/api/interpreter The read operation timed out
+OSM a node 6326284509 33.1040468 35.1785394 {'name': 'علما الشعب', 'name:ar': 'علما الشعب', 'name:de': 'Alma ash Shab', 'name:en': 'Alma ash Shab', 'name:fr': 'Alma ach Chab', 'name:he': 'עלמא א-שעב', 'name:ml': 'അൽമ അഷ്-ഷാബ്', 'place': 'village', 'wikidata': 'Q11708082'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-07 ['S2A_36SXB_20230907_0_L2A', 'S2A_36SYB_20230907_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SXB_20261021_0_L2A', 'S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.0931
+ try 2026-10-16 ['S2B_36SXB_20261016_0_L2A', 'S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-13 ['S2A_36SXB_20261013_0_L2A', 'S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 0.9998
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A', 'S2C_36SXB_20261011_0_L2A'] empty 0.0 cloud 0.5566
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A', 'S2B_36SXB_20261006_0_L2A'] empty 0.0 cloud 0.9985
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A', 'S2A_36SXB_20261003_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-01 ['S2C_36SXB_20261001_0_L2A', 'S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.369
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A', 'S2B_36SXB_20260926_0_L2A'] empty 0.0 cloud 0.1279
+ try 2026-09-23 ['S2A_36SXB_20260923_0_L2A', 'S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.6643
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A', 'S2C_36SXB_20260921_0_L2A'] empty 0.0 cloud 0.1816
+ try 2026-09-16 ['S2B_36SYB_20260916_0_L2A', 'S2B_36SXB_20260916_0_L2A'] empty 0.0 cloud 0.0002
+scout done 33.1040468 35.16245370460456
