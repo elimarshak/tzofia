@@ -1,0 +1,15 @@
+OSM t node 6764556006 33.1163867 35.4715009 {'name': 'عيترون', 'name:ar': 'عيترون', 'name:en': 'Aitaroun', 'name:fr': 'Aitaroun', 'name:he': 'עייתרון', 'name:ml': 'ഐത്തറൂൺ', 'place': 'village', 'wikidata': 'Q410330'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-12 ['S2B_36SYB_20230912_1_L2A', 'S2B_36SYB_20230912_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.0742
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.2711
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.8753
+ try 2026-10-01 ['S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.845
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.183
+ try 2026-09-23 ['S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.0647
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A'] empty 0.0 cloud 0.0
+scout done 33.102821124005644 35.4715009
