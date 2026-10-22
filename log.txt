@@ -1,0 +1,14 @@
+overpass did not answer, trying again https://overpass-api.de/api/interpreter HTTP Error 502: Bad Gateway
+overpass did not answer, trying again https://overpass.private.coffee/api/interpreter The read operation timed out
+OSM hadar node 270915064 33.2802293 35.8299348 {'name': 'حضر', 'name:ar': 'حضر', 'name:de': 'Hadar', 'name:en': 'Hadar', 'name:fr': 'Hadar', 'name:he': 'חדר', 'name:ru': 'Хадар', 'place': 'village'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-22 ['S2B_37SBS_20230922_0_L2A', 'S2B_37SBT_20230922_0_L2A', 'S2B_36SYB_20230922_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_37SBT_20261021_0_L2A', 'S2C_37SBS_20261021_0_L2A', 'S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.4291
+ try 2026-10-16 ['S2B_37SBT_20261016_0_L2A', 'S2B_36SYB_20261016_0_L2A', 'S2B_37SBS_20261016_0_L2A'] empty 0.0 cloud 0.7768
+ try 2026-10-13 ['S2A_37SBT_20261013_1_L2A', 'S2A_36SYB_20261013_1_L2A', 'S2A_37SBS_20261013_1_L2A'] empty 0.0 cloud 0.9684
+ try 2026-10-11 ['S2C_37SBT_20261011_0_L2A', 'S2C_36SYB_20261011_0_L2A', 'S2C_37SBS_20261011_0_L2A'] empty 0.0 cloud 0.8902
+ try 2026-10-06 ['S2B_37SBS_20261006_0_L2A', 'S2B_37SBT_20261006_0_L2A', 'S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 0.0302
+ try 2026-10-03 ['S2A_37SBS_20261003_1_L2A', 'S2A_36SYB_20261003_1_L2A', 'S2A_37SBT_20261003_1_L2A'] empty 0.0 cloud 0.1442
+ try 2026-10-01 ['S2C_37SBT_20261001_0_L2A', 'S2C_37SBS_20261001_0_L2A', 'S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.0006
+scout done 33.29379487599436 35.8299348
