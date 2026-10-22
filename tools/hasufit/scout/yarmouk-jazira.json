@@ -5,10 +5,10 @@
    "name_en": "^(Ma.?ariyah|Ma.?arriyah|Maariya|Maaria|Ma.?ariya)$",
    "name_ar": "^معرية$|^المعرية$|^معربة$",
    "bbox": [
-    32.68,
-    35.8,
-    32.86,
-    36.02
+    32.7,
+    35.72,
+    32.85,
+    35.9
    ]
   }
  },
@@ -18,7 +18,8 @@
  ],
  "press": [
   "Middle East Eye: Al-Jazira barracks on a hilltop overlooking the Yarmouk and Ruqqad rivers",
-  "SANA via Liveuamap 17.6.2026: Israeli forces stationed at Al-Jazira barracks west of Ma'ariya"
+  "SANA via Liveuamap 17.6.2026: Israeli forces stationed at Al-Jazira barracks west of Ma'ariya",
+  "Wikipedia: Ma'ariya (معرية) lies at 32.764 N, 35.798 E, west of Daraa, in the Shajara subdistrict"
  ],
  "half_m": 3000,
  "before": [

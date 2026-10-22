@@ -2,7 +2,7 @@
  "title_he": "ג'בל בלאט ליד רמיה",
  "anchors": {
   "r": {
-   "name_en": "^(Ramyah|Ramieh|Ramiyeh|Ramiyah|Rmeish)$",
+   "name_en": "^(Ramiya|Ramyah|Ramieh|Ramiyeh|Ramiyah)$",
    "name_ar": "^رامية$",
    "bbox": [
     33.05,
