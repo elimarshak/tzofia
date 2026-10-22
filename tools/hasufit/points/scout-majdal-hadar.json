@@ -1,0 +1,4 @@
+{"title_he": "סריקה: בין מג'דל שמס לחאדר",
+ "anchors": {"majdal": {"name_en": "^Majdal Shams$", "bbox": [33.20, 35.70, 33.35, 35.85]},
+             "hadar": {"name_en": "^(Hadar|Hader|Hadr|Hader \\(Syria\\))$", "bbox": [33.22, 35.78, 33.36, 35.95]}},
+ "half_m": 7000, "before": ["2023-09-01", "2023-10-31"]}
