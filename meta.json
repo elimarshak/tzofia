@@ -1,0 +1,111 @@
+{
+ "point": {
+  "title_he": "גבעת חמאמיס ליד אל-ח'יאם",
+  "anchors": {
+   "k": {
+    "name_en": "^(Khiam|El Khiam|Al-Khiam|Al Khiyam|Khiyam|El Khiyam)$",
+    "name_ar": "^الخيام$",
+    "bbox": [
+     33.25,
+     35.55,
+     33.4,
+     35.7
+    ]
+   }
+  },
+  "press": [
+   "The Beiruter: Hamames hill near Khiam, one of the five posts",
+   "Al Jazeera 17.2.2025: Israel to stay in five locations in south Lebanon"
+  ],
+  "half_m": 3000,
+  "before": [
+   "2023-09-01",
+   "2023-10-31"
+  ],
+  "scout": true,
+  "offset_m": [
+   0,
+   0
+  ]
+ },
+ "centre": {
+  "lat": 33.3272226,
+  "lon": 35.6089702,
+  "itm_e": 257121,
+  "itm_n": 803580
+ },
+ "anchors": {
+  "k": {
+   "osm": "node/5992248085",
+   "lat": 33.3272226,
+   "lon": 35.6089702,
+   "tags": {
+    "alt_name:en": "Khiyam",
+    "name": "الخيام",
+    "name:ar": "الخيام",
+    "name:en": "Khiam",
+    "name:fr": "Khiam",
+    "name:he": "אל-ח'יאם",
+    "name:ml": "ഖിയാം",
+    "place": "village",
+    "wikidata": "Q1075081",
+    "wikipedia": "fr:Khiam"
+   }
+  }
+ },
+ "before": {
+  "passes": [
+   {
+    "id": "S2A_36SYC_20230917_0_L2A",
+    "datetime": "2023-09-17T08:30:48.495000Z",
+    "platform": "sentinel-2a",
+    "cloud_cover_tile": 0.000883,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_36SYC_20230917_0_L2A"
+   },
+   {
+    "id": "S2A_36SYB_20230917_0_L2A",
+    "datetime": "2023-09-17T08:31:02.849000Z",
+    "platform": "sentinel-2a",
+    "cloud_cover_tile": 0.574477,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_36SYB_20230917_0_L2A"
+   }
+  ],
+  "datetime": "2023-09-17T08:30:48.495000Z",
+  "cloud_in_window": 7.777777777777778e-05,
+  "wide_passes": [],
+  "platforms": [
+   "sentinel-2a"
+  ]
+ },
+ "after": {
+  "passes": [
+   {
+    "id": "S2C_36SYB_20260921_0_L2A",
+    "datetime": "2026-09-21T08:30:59.511000Z",
+    "platform": "sentinel-2c",
+    "cloud_cover_tile": 2.564039,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_36SYB_20260921_0_L2A"
+   },
+   {
+    "id": "S2C_36SYC_20260921_0_L2A",
+    "datetime": "2026-09-21T08:30:45.151000Z",
+    "platform": "sentinel-2c",
+    "cloud_cover_tile": 5.786278,
+    "self": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2C_36SYC_20260921_0_L2A"
+   }
+  ],
+  "datetime": "2026-09-21T08:30:59.511000Z",
+  "cloud_in_window": 0.0,
+  "wide_passes": [],
+  "platforms": [
+   "sentinel-2c"
+  ]
+ },
+ "grid": {
+  "crs": "+proj=tmerc +lat_0=33.3272226 +lon_0=35.6089702 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+  "metres_per_pixel": 10,
+  "half_width_m": 3000,
+  "wide_half_width_m": 20000,
+  "wide_metres_per_pixel": 40
+ }
+}
