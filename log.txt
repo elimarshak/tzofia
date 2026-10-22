@@ -1,0 +1,17 @@
+OSM r node 529953295 33.1111363 35.309988 {'name': 'رامية', 'name:ar': 'رامية', 'name:en': 'Ramiya', 'name:fr': 'Ramiyeh', 'name:he': 'ראמיה', 'name:ml': 'റാമിയ', 'place': 'village', 'wikidata': 'Q16594924'}
+before 2023-09-01 2023-10-31 days 12
+ try 2023-09-12 ['S2B_36SYB_20230912_1_L2A', 'S2B_36SYB_20230912_0_L2A'] empty 0.0 cloud 0.0
+after 2026-08-23 2026-10-22 days 18
+ try 2026-10-21 ['S2C_36SYB_20261021_0_L2A'] empty 0.0 cloud 0.1851
+ try 2026-10-16 ['S2B_36SYB_20261016_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-13 ['S2A_36SYB_20261013_1_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-11 ['S2C_36SYB_20261011_0_L2A'] empty 0.0 cloud 0.2328
+ try 2026-10-06 ['S2B_36SYB_20261006_0_L2A'] empty 0.0 cloud 1.0
+ try 2026-10-03 ['S2A_36SYB_20261003_1_L2A'] empty 0.0 cloud 0.5473
+ try 2026-10-01 ['S2C_36SYB_20261001_0_L2A'] empty 0.0 cloud 0.4036
+ try 2026-09-26 ['S2B_36SYB_20260926_0_L2A'] empty 0.0 cloud 0.2319
+ try 2026-09-23 ['S2A_36SYB_20260923_1_L2A'] empty 0.0 cloud 0.6552
+ try 2026-09-21 ['S2C_36SYB_20260921_0_L2A'] empty 0.0 cloud 0.0531
+ try 2026-09-16 ['S2B_36SYB_20260916_0_L2A'] empty 0.0 cloud 0.0
+centre 33.09757072400564 35.32714745954827 ITM 230911 778043 places 230
+{"before": ["2023-09-12T08:31:02.908000Z", ["sentinel-2b"]], "after": ["2026-09-16T08:30:57.660000Z", ["sentinel-2b"]]}
