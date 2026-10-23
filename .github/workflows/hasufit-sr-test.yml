@@ -20,7 +20,7 @@ jobs:
           set +e
           mkdir -p out
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu > out/pip.txt 2>&1
-          pip install -q sen2sr mlstac git+https://github.com/ESDS-Leipzig/cubo.git >> out/pip.txt 2>&1
+          pip install -q sen2sr mlstac matplotlib git+https://github.com/ESDS-Leipzig/cubo.git >> out/pip.txt 2>&1
           git clone -q --depth 1 -b hasufit-enh-majdal-hadar "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" src
           timeout 2400 python tools/hasufit/sr_test.py src/meta.json out > out/run.txt 2>&1; echo "exit $?" >> out/run.txt
           cd out && git init -q -b s && git add -A
