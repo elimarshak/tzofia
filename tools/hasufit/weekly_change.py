@@ -2,7 +2,7 @@
 # only what is needed.  python weekly_change.py NAME ENH_DIR SUMMARY_DIR STORE_DIR WEEK
 #   ENH_DIR      this week's enhanced point (before/after pictures and *_raw.npy from enhance_point.py)
 #   SUMMARY_DIR  this week's rendered summary.png and summary.gif
-#   STORE_DIR    the kept data: points/NAME/last_after_raw.npy, weeks/WEEK/NAME.jpg|.gif, log.json
+#   STORE_DIR    the kept data: points/NAME/last_after_raw.npy, weeks/WEEK/NAME.jpg (every kept week), the newest NAME.gif, log.json
 # A week's summary is kept only when the change against last week passes the threshold (or on the first run of a point).
 # The score is the share of the picture where the colour changed by more than 4 robust standard deviations,
 # after dropping isolated specks; it is logged every week so the threshold can be checked against what is seen.
@@ -43,6 +43,12 @@ if keep:
     Image.open(f"{SUM}/summary.png").convert("RGB").save(f"{STORE}/weeks/{WEEK}/{NAME}.jpg", quality=88, optimize=True)
     # the moving picture is the reveal (a line moving right to left uncovers 'after'), chosen by Ilya on 23.10.2026
     shutil.copy(f"{SUM}/summary_wipe.gif" if os.path.exists(f"{SUM}/summary_wipe.gif") else f"{SUM}/summary.gif", f"{STORE}/weeks/{WEEK}/{NAME}.gif")
+    # the moving picture is kept only for the newest kept week, to save space (approved by Ilya, 23.10.2026);
+    # the still picture of every kept week stays in the archive
+    for w in os.listdir(f"{STORE}/weeks"):
+        g = f"{STORE}/weeks/{w}/{NAME}.gif"
+        if w != WEEK and os.path.exists(g):
+            os.remove(g)
 np.save(prev_path, np.load(f"{ENH}/after_raw.npy"))
 json.dump(log, open(log_path, "w"), ensure_ascii=False, indent=1)
 print(NAME, "score", score, "kept", keep)

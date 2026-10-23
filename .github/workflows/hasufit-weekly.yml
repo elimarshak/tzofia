@@ -45,7 +45,7 @@ jobs:
           timeout 1500 python tools/hasufit/sr_point.py raw enh
           echo "[$p] drawing"
           python tools/hasufit/render.py enh sum web/fonts/Heebo.ttf tools/hasufit/civilpress-logo.webp
-          mkdir -p pack/$p && cp enh/after_raw.npy enh/meta.json sum/summary.png sum/summary.gif pack/$p/
+          mkdir -p pack/$p && cp enh/after_raw.npy enh/meta.json sum/summary.png sum/summary.gif sum/summary_wipe.gif pack/$p/
       - uses: actions/upload-artifact@v4
         with: { name: 'point-${{ matrix.point }}', path: pack, retention-days: 3 }
   keep:
