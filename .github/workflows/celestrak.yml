@@ -4,6 +4,7 @@ name: satellites-catalogue
 # CelesTrak asks for at most one download per update (they update every 2 hours) and no retries on errors.
 # The schedule wakes every hour but downloads only when our copy is close to 3 hours old, so a failed
 # download is tried again on its own an hour later (Ilya asked on 15.10.2026), never in a quick loop.
+# An error answer from CelesTrak stops the scheduled runs until a manual run (their usage policy; Ilya, 23.10.2026).
 on:
   schedule:
     - cron: '17 * * * *'
@@ -28,8 +29,16 @@ jobs:
             age=$(( $(date -u +%s) - last ))
             if [ "$age" -lt 10200 ]; then echo "our copy is $((age / 60)) minutes old; nothing to download"; exit 0; fi
           fi
-          python3 tools/fetch_space.py out
+          # after an error CelesTrak asks us to stop until a person looks (https://celestrak.org/usage-policy.php)
+          if [ -f out/celestrak_stopped.txt ]; then
+            if [ "${{ github.event_name }}" = schedule ]; then echo "stopped since: $(cat out/celestrak_stopped.txt)"; echo "a manual run starts again"; exit 0; fi
+            rm -f out/celestrak_stopped.txt
+          fi
+          rc=0; python3 tools/fetch_space.py out || rc=$?
+          if [ "$rc" = 1 ]; then exit 1; fi
           ls -l out
           cd out && rm -rf .git && git init -q -b data && git add -A
           git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "space data $(cat fetched_at.txt)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data
+          # an error from CelesTrak shows as a failed run, so a person sees it
+          exit $rc

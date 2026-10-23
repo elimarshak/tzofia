@@ -10,8 +10,9 @@ Files written into <data dir> (a file whose download failed keeps its previous c
                         opt (camera) from the 'resource' and 'planet' groups
   fetched_at.txt        time of this run
 
-CelesTrak asks for at most one download of the same data per update and no retries after an error,
-so every address is requested once per run and an error only skips that file."""
+CelesTrak asks for at most one download of the same data per update, and asks that a program stop asking after
+any answer other than 200 and tell a person. So every address is requested once per run, and the first error
+ends the run and writes celestrak_stopped.txt (exit code 2); the scheduled runs then wait for a manual run."""
 import csv, io, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -30,9 +31,13 @@ def get(url):
             body = r.read().decode('utf-8', 'replace')
             print(f'{r.status} {len(body):>9} bytes  {url}')
             return body
-    except Exception as e:   # no retry, by CelesTrak's request
+    except Exception as e:
+        # CelesTrak's usage policy: after any answer other than 200, stop asking and tell a person
+        # (https://celestrak.org/usage-policy.php). The stop file keeps the scheduled runs from asking again
+        # until a person starts a manual run; files already saved in this run are kept.
         print(f'ERR {e}  {url}')
-        return None
+        save('celestrak_stopped.txt', datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ') + f' {e} {url}\n')
+        print('stopped after an error, by CelesTrak\'s usage policy'); sys.exit(2)
 
 def gp_ok(text):
     return bool(text) and text.lstrip('﻿').startswith('OBJECT_NAME')

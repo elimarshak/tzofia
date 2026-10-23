@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # pyproj 3.7.0 has ready-made packages only up to Python 3.13; the runner's own Python is newer (23.10.2026)
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
       - name: Download once, publish to the data branch
         run: |
           set -euo pipefail
