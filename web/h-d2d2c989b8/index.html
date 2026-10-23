@@ -60,7 +60,10 @@ fetch(RAW + 'index.json', { cache: 'no-store' }).then(r => r.json()).then(ix => 
     a.append(el('p', { className: 'links' }, el('a', { href: base + '.gif', target: '_blank', rel: 'noopener', textContent: "לתמונה המונפשת שחושפת את ה'אחרי' מתחת ל'לפני'" })));
     if (p.weeks.length > 1) {
       const ul = el('ul');
-      for (const o of p.weeks.slice(1)) ul.append(el('li', {}, el('a', { href: `${RAW}weeks/${o.week}/${p.id}.jpg`, target: '_blank', rel: 'noopener', textContent: `הסיכום מיום ${day(o.run)}` })));
+      for (const o of p.weeks.slice(1)) ul.append(el('li', {},
+        el('a', { href: `${RAW}weeks/${o.week}/${p.id}.jpg`, target: '_blank', rel: 'noopener', textContent: `הסיכום מיום ${day(o.run)}` }),
+        ', ',
+        el('a', { href: `${RAW}weeks/${o.week}/${p.id}.gif`, target: '_blank', rel: 'noopener', textContent: 'והתמונה המונפשת שלו' })));
       a.append(el('details', {}, el('summary', { textContent: 'סיכומים משבועות קודמים' }), ul));
     }
     list.append(a);
