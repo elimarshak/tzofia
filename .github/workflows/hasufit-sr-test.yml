@@ -1,0 +1,29 @@
+name: hasufit-sr-test
+# Test only (Ilya, 23.10.2026): AI super-resolution of Majdal Shams for comparison. Writes only to its own
+# branch hasufit-sr-test; touches nothing else.
+on:
+  push:
+    branches: [hasufit-probe]
+    paths: ['tools/hasufit/sr_test.py', '.github/workflows/hasufit-sr-test.yml']
+permissions:
+  contents: write
+jobs:
+  sr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
+          mkdir -p out
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu > out/pip.txt 2>&1
+          pip install -q sen2sr mlstac git+https://github.com/ESDS-Leipzig/cubo.git >> out/pip.txt 2>&1
+          git clone -q --depth 1 -b hasufit-enh-majdal-hadar "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" src
+          timeout 2400 python tools/hasufit/sr_test.py src/meta.json out > out/run.txt 2>&1; echo "exit $?" >> out/run.txt
+          cd out && git init -q -b s && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "sr test"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" s:hasufit-sr-test
+          echo "::notice::$(tail -c 900 run.txt | tr '\n' ' ')"
