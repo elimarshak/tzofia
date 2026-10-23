@@ -233,6 +233,16 @@ def period(label):
     return when, ", ".join(SAT_NAME.get(p, p) for p in m["platforms"])
 
 pb, pa = panel("before"), panel("after")
+# the words stay fixed on each picture (top-right corner, the corner the small square does not use): the line
+# uncovers 'after' together with its own word, so 'אחרי' appears where 'לפני' was
+def stamp(img, word):
+    img = img.copy(); d = ImageDraw.Draw(img, "RGBA"); fl = font(44, "Bold")
+    x, y = PANEL - 20, 20
+    bx = d.textbbox((x, y), word, font=fl, anchor="ra", direction="rtl", language="he")
+    d.rounded_rectangle((bx[0] - 16, bx[1] - 10, bx[2] + 16, bx[3] + 12), 10, fill=(255, 255, 255, 235))
+    d.text((x, y), word, font=fl, fill=INK, anchor="ra", direction="rtl", language="he")
+    return img
+pb, pa = stamp(pb, "לפני"), stamp(pa, "אחרי")
 fw = PANEL + PAD * 2
 head = PAD + 64
 base = Image.new("RGB", (fw, 2000), PAPER)
@@ -263,12 +273,6 @@ def wipe_frame(x):
         d = ImageDraw.Draw(img, "RGBA")
         d.line((x, 0, x, PANEL), fill=(0, 0, 0, 90), width=6)
         d.line((x, 0, x, PANEL), fill=(255, 255, 255, 255), width=3)
-        fl = font(22, "Bold")
-        for txt, xx, anc in (("אחרי", x + 10, "la"), ("לפני", x - 10, "ra")):
-            bx = d.textbbox((xx, PANEL // 2), txt, font=fl, anchor=anc, direction="rtl", language="he")
-            if bx[0] > 4 and bx[2] < PANEL - 4:
-                d.rounded_rectangle((bx[0] - 8, bx[1] - 6, bx[2] + 8, bx[3] + 6), 6, fill=(255, 255, 255, 225))
-                d.text((xx, PANEL // 2), txt, font=fl, fill=INK, anchor=anc, direction="rtl", language="he")
     fr.paste(img, (PAD, head))
     return fr
 
