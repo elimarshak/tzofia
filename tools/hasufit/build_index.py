@@ -14,7 +14,8 @@ for n in names:
     weeks = []
     for r in reversed(runs):
         if r.get("kept") and os.path.exists(f"{STORE}/weeks/{r['week']}/{n}.jpg") and r["week"] not in [w["week"] for w in weeks]:
-            weeks.append({"week": r["week"], "run": r.get("run"), "after_days": r.get("after_days")})
+            weeks.append({"week": r["week"], "run": r.get("run"), "after_days": r.get("after_days"),
+                          "before_date": r.get("before_date"), "after_date": r.get("after_date")})
     out["points"].append({"id": n, "title": P["title_he"], "weeks": weeks, "last_run": runs[-1].get("run") if runs else None})
 json.dump(out, open(f"{STORE}/index.json", "w"), ensure_ascii=False, indent=1)
 print("index:", [(p["id"], len(p["weeks"])) for p in out["points"]])

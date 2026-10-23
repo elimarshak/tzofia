@@ -118,8 +118,15 @@ def inset(label):
     framed = ImageOps.expand(sq, border=3, fill=PAPER)
     return framed
 
+SHARPENED = meta.get("method") == "sen2sr"
 def panel(label):
     img = Image.open(f"{IN}/{label}.png").convert("RGB").resize((PANEL, PANEL), Image.LANCZOS).convert("RGBA")
+    if SHARPENED:
+        # every sharpened picture says so on the picture itself, bottom-right
+        d = ImageDraw.Draw(img, "RGBA"); fl = font(20, "Bold"); x, y = PANEL - 16, PANEL - 16
+        bx = d.textbbox((x, y), "חודד בבינה מלאכותית", font=fl, anchor="rd", direction="rtl", language="he")
+        d.rounded_rectangle((bx[0] - 10, bx[1] - 8, bx[2] + 10, bx[3] + 8), 8, fill=(255, 255, 255, 225))
+        d.text((x, y), "חודד בבינה מלאכותית", font=fl, fill=INK, anchor="rd", direction="rtl", language="he")
     if label == "after" and SHOW_CHANGE and os.path.exists(f"{IN}/change_mask.png"):
         # the computed change areas: a thin yellow outline and a light yellow tint, so the ground under them stays visible
         m = Image.open(f"{IN}/change_mask.png").convert("L").resize((PANEL, PANEL), Image.NEAREST)
@@ -163,11 +170,14 @@ def legend(d, x_right, y, width):
         ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה. בשני הצדדים הריבוע הקטן לקוח מצילום ה'לפני'.", f),
         ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות: OpenStreetMap.", f),
     ]
+    if SHARPENED:
+        lines.insert(4, ("התמונות חודדו בבינה מלאכותית מחדות של 10 מטרים לחדות של 2.5 מטרים, בתוכנה SEN2SR שפותחה במסגרת פרויקט של סוכנות החלל האירופית.", fb))
+        lines.insert(5, ("פרטים קטנים מ-10 מטרים בתמונה יכולים להיות השלמה של התוכנה, ולא משהו שהלוויין צילם.", f))
     if SHOW_CHANGE and os.path.exists(f"{IN}/change_mask.png"):
         lines.insert(4, ("המסגרות הצהובות בתמונת ה'אחרי' מסמנות מקומות שבהם הקרקע נחשפה או נחפרה מאז תמונת ה'לפני'. הסימון מחושב ממדידות הלוויין עצמן.", fb))
         lines.insert(5, ("הסימון אוטומטי, ולכן חלק מהמקומות המסומנים יכולים להיות גם עבודות חקלאיות או בנייה אזרחית.", f))
     for i, (t, ff) in enumerate(lines):
-        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if i < 5 else SUB)
+        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if (i < 4 or ff is fb) else SUB)
     yy = y + len(lines) * 34 + 6
     ltr(d, (x_right, yy), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. Names: © OpenStreetMap contributors.", font(16), fill=SUB)
     return yy + 26
@@ -220,3 +230,70 @@ palimg = Image.new("P", (1, 1)); palimg.putpalette(palette)
 pal = [f.quantize(palette=palimg, dither=Image.Dither.NONE) for f in (fb, fa)]
 pal[0].save(f"{OUT}/summary.gif", save_all=True, append_images=pal[1:], duration=[1600, 1600], loop=0, optimize=True)
 print("done", sheet.size, fb.size)
+
+# 3. the reveal: 'before' first, then a vertical line moves from right to left and uncovers 'after' behind it
+#    (right of the line is already 'after', left of it still 'before'), then 'after' in full; it loops.
+def period(label):
+    m = meta[label]
+    if len(m.get("composite_days", [])) > 1:
+        ds = [dt.date.fromisoformat(x) for x in m["composite_days"]]
+        when = f"מ-{ds[0].day} ב{MONTHS[ds[0].month - 1]} {ds[0].year} עד {ds[-1].day} ב{MONTHS[ds[-1].month - 1]} {ds[-1].year}"
+    else:
+        when = israel_time(m["datetime"])
+    return when, ", ".join(SAT_NAME.get(p, p) for p in m["platforms"])
+
+pb, pa = panel("before"), panel("after")
+# the words stay fixed on each picture (top-right corner, the corner the small square does not use): the line
+# uncovers 'after' together with its own word, so 'אחרי' appears where 'לפני' was
+def stamp(img, word):
+    img = img.copy(); d = ImageDraw.Draw(img, "RGBA"); fl = font(44, "Bold")
+    x, y = PANEL - 20, 20
+    bx = d.textbbox((x, y), word, font=fl, anchor="ra", direction="rtl", language="he")
+    d.rounded_rectangle((bx[0] - 16, bx[1] - 10, bx[2] + 16, bx[3] + 12), 10, fill=(255, 255, 255, 235))
+    d.text((x, y), word, font=fl, fill=INK, anchor="ra", direction="rtl", language="he")
+    return img
+pb, pa = stamp(pb, "לפני"), stamp(pa, "אחרי")
+fw = PANEL + PAD * 2
+head = PAD + 64
+base = Image.new("RGB", (fw, 2000), PAPER)
+db = ImageDraw.Draw(base)
+rtl(db, (fw - PAD, PAD), name, font(30, "Bold"))
+y = head + PANEL + 16
+fb20, f19, f15 = font(21, "Bold"), font(19), font(15)
+for lab, word in (("before", "לפני"), ("after", "אחרי")):
+    when, sats = period(lab)
+    rtl(db, (fw - PAD, y), f"{word}: {when}", fb20)
+    db.text((fw - PAD, y + 30), sats, font=f19, fill=SUB, anchor="ra", direction="ltr", language="en")
+    y += 66
+rtl(db, (fw - PAD, y), "הקו שזז מימין לשמאל חושף את תמונת ה'אחרי' מתחת לתמונת ה'לפני'.", f19, fill=SUB)
+y += 34
+for t in (f"נקודת הציון של מרכז התמונה: {lat:.5f} מעלות צפון, {lon:.5f} מעלות מזרח",
+          f"נקודת הציון של מרכז התמונה ברשת ישראל החדשה: {place['itm_e']} מזרח, {place['itm_n']} צפון",
+          f"התמונה מראה שטח של {km} על {km} קילומטרים. הצפון נמצא בראש התמונה."):
+    rtl(db, (fw - PAD, y), t, f19); y += 28
+ltr(db, (fw - PAD, y + 4), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. © OpenStreetMap contributors.", f15, fill=SUB)
+base = base.crop((0, 0, fw, y + 34))
+
+def wipe_frame(x):
+    """x: position of the line inside the panel, from PANEL (all 'before') down to 0 (all 'after')."""
+    fr = base.copy()
+    img = pb.copy()
+    if x < PANEL: img.paste(pa.crop((x, 0, PANEL, PANEL)), (x, 0))
+    if 0 < x < PANEL:
+        d = ImageDraw.Draw(img, "RGBA")
+        d.line((x, 0, x, PANEL), fill=(0, 0, 0, 90), width=6)
+        d.line((x, 0, x, PANEL), fill=(255, 255, 255, 255), width=3)
+    fr.paste(img, (PAD, head))
+    return fr
+
+STEPS = 24
+xs = [PANEL] + [round(PANEL * (1 - i / STEPS)) for i in range(1, STEPS)] + [0]
+frames = [wipe_frame(x) for x in xs]
+durs = [1200] + [125] * (STEPS - 1) + [1600]
+allf = Image.new("RGB", (fw, frames[0].height * 2)); allf.paste(frames[0], (0, 0)); allf.paste(frames[-1], (0, frames[0].height))
+q = allf.quantize(colors=250, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+palette = q.getpalette()[:250 * 3] + [v for c in [(215, 38, 61), (22, 34, 46), (255, 255, 255), (74, 88, 102), (217, 222, 226), (0, 0, 0)] for v in c]
+palimg = Image.new("P", (1, 1)); palimg.putpalette(palette)
+pf = [f.quantize(palette=palimg, dither=Image.Dither.NONE) for f in frames]
+pf[0].save(f"{OUT}/summary_wipe.gif", save_all=True, append_images=pf[1:], duration=durs, loop=0, optimize=True)
+print("wipe", base.size, os.path.getsize(f"{OUT}/summary_wipe.gif"))
