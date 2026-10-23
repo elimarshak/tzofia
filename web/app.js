@@ -368,6 +368,9 @@ function drawQuakes() {
     { type: 'Feature', properties: { id: e.id, mag: e.mag }, geometry: { type: 'Point', coordinates: [e.lon, e.lat] } })) });
 }
 
+// Aircraft that broadcast their altitude but no position, and report position accuracy 0: their GPS is not working.
+const noPos = () => (S.gnss && S.gnss.nopos) || 0;
+
 // Share of aircraft with low position accuracy per map cell, last hour (gpsjam.org formula).
 function gnssZones() {
   const g = S.gnss; if (!g) return [];
@@ -975,7 +978,7 @@ function viewHome() {
   const L = t(), c = T();
   const low = S.near.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
   return [header(L.title),
-    row(low || zones ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
+    row(low || zones || noPos() ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone, noPos() ? L.gnssNoPos(noPos()) : null].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
     row(em ? c.warn : c.alt[2], L.emerg,
       em === 1 ? [L.emergOne, ' ', h('b', { class: 'cs', style: 'color:var(--accent)' }, emName(S.em[0]))] : em ? L.emergSome(em) : L.emergNone,
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
@@ -995,7 +998,8 @@ function viewGnss() {
   return [header(L.gnss, { name: 'home' }),
     h('p', { class: 'note' }, S.gnss ? (zones ? L.gnssZones(zones) : L.gnssZonesNone) : L.gnssZonesNoData),
     key(0.42, L.gnssKeyHigh), key(0.17, L.gnssKeyMid),
-    h('p', { class: 'note' }, L.gnssMethod),
+    noPos() ? h('p', { class: 'note' }, L.gnssNoPos(noPos())) : null,
+    h('p', { class: 'note' }, L.gnssMethod + ' ' + L.gnssNoPosMethod),
     h('p', { class: 'note' }, (list.length ? L.gnssSome(list.length) : L.gnssNone) + ' ' + L.gnssNote), list.map(acRow)];
 }
 function viewEmerg() {

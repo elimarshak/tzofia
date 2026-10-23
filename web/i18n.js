@@ -27,6 +27,8 @@ export const STR = {
     gnssKeyMid: 'צבע בהיר: בין 2 ל-10 אחוזים.',
     gnssMethod: 'החישוב נעשה אצלנו, לפי הנוסחה של האתר gpsjam.org. מטוס שדיווח רק על דיוק נמוך בשש השעות האחרונות לא נספר, כי סביר שהמכשיר שלו תקול. אזור שלא נצבע הוא אזור בלי סימנים לשיבוש, או אזור שכמעט לא עברו בו מטוסים בשעה האחרונה.',
     gnssNone: 'אף מטוס באזור לא מדווח על דיוק מיקום נמוך.',
+    gnssNoPos: (c) => c === 1 ? 'מטוס אחד מעל האזור משדר עכשיו בלי מיקום, ומדווח שאין לו מיקום ג\'יפיאס אמין.' : `${c} מטוסים מעל האזור משדרים עכשיו בלי מיקום, ומדווחים שאין להם מיקום ג'יפיאס אמין.`,
+    gnssNoPosMethod: 'מטוס שהג\'יפיאס שלו משובש לגמרי ממשיך לשדר את הגובה שלו, אבל מפסיק לשדר את המיקום. אם המיקום האחרון שלו ידוע מעשר הדקות האחרונות, הוא נספר באזור של המיקום הזה.',
     gnssSome: (c) => c === 1 ? 'מטוס אחד באזור מדווח על דיוק מיקום נמוך. הוא מסומן במפה בעיגול מקווקו.'
       : `${c} מטוסים באזור מדווחים על דיוק מיקום נמוך. הם מסומנים במפה בעיגול מקווקו.`,
     gnssNote: 'מטוס משדר יחד עם המיקום שלו גם עד כמה המיקום מדויק. דיוק נמוך אצל כמה מטוסים באותו אזור מעיד בדרך כלל על שיבוש של אותות הניווט. אצל מטוס בודד זו יכולה להיות גם תקלה במכשיר.',
@@ -198,6 +200,8 @@ export const STR = {
     gnssKeyMid: 'Light shading: between 2 and 10 percent.',
     gnssMethod: 'We run the calculation ourselves, using the formula published by gpsjam.org. An aircraft that reported only low accuracy over the past six hours is not counted, because its equipment is probably faulty. An unshaded area either shows no signs of interference or had almost no aircraft crossing it in the past hour.',
     gnssNone: 'No aircraft in the area is reporting low position accuracy.',
+    gnssNoPos: (c) => c === 1 ? 'One aircraft over the area is broadcasting without a position and reports no reliable GPS fix.' : `${c} aircraft over the area are broadcasting without a position and report no reliable GPS fix.`,
+    gnssNoPosMethod: 'An aircraft whose GPS is fully jammed keeps broadcasting its altitude but stops sending a position. If its last position is known from the past ten minutes, it is counted in that area.',
     gnssSome: (c) => c === 1 ? 'One aircraft in the area is reporting low position accuracy. It is marked with a dashed ring.'
       : `${c} aircraft in the area are reporting low position accuracy. They are marked with a dashed ring.`,
     gnssNote: 'Along with its position, an aircraft broadcasts how accurate that position is. Low accuracy on several aircraft in the same area is a common sign of interference with navigation signals. On a single aircraft it can also be an equipment fault.',
