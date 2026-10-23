@@ -1,0 +1,743 @@
+{
+ "aitaroun-jaldeir": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-23",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-23",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.02111304012345679,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  }
+ ],
+ "beaufort": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-08-27",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-08-27",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-11"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-11"
+  }
+ ],
+ "jubata": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-23",
+    "2026-10-01",
+    "2026-10-06"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-23",
+    "2026-10-01",
+    "2026-10-06"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2b"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-06"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.01744212962962963,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2b"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-06"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2b"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-06"
+  }
+ ],
+ "khiam-hamames": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-26"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-26"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  }
+ ],
+ "labbouneh": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-01",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-01",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2b"
+   ],
+   "before_date": "2023-09-07",
+   "after_date": "2026-09-16"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.10169367283950617,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2b"
+   ],
+   "before_date": "2023-09-07",
+   "after_date": "2026-09-16"
+  }
+ ],
+ "maariya": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-26",
+    "2026-10-03",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-16",
+    "2026-09-21",
+    "2026-09-26",
+    "2026-10-03",
+    "2026-10-21"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.04958719135802469,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-21"
+  }
+ ],
+ "majdal-hadar": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-23",
+    "2026-09-26",
+    "2026-10-01",
+    "2026-10-03",
+    "2026-10-06"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-23",
+    "2026-09-26",
+    "2026-10-01",
+    "2026-10-03",
+    "2026-10-06"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-03"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-03"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-03"
+  }
+ ],
+ "markaba-houla": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-10-11"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16",
+    "2026-09-21",
+    "2026-10-11"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.03152970679012346,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-09-21"
+  }
+ ],
+ "quneitra": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-09-23",
+    "2026-09-26",
+    "2026-10-03",
+    "2026-10-06",
+    "2026-10-11"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-09-23",
+    "2026-09-26",
+    "2026-10-03",
+    "2026-10-06",
+    "2026-10-11"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-11"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.028346836419753087,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2c"
+   ],
+   "before_date": "2023-09-02",
+   "after_date": "2026-10-11"
+  }
+ ],
+ "ramiya": [
+  {
+   "week": "2026-W43",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": [
+    "2026-08-27",
+    "2026-09-06",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-22",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": [
+    "2026-08-27",
+    "2026-09-06",
+    "2026-09-11",
+    "2026-09-13",
+    "2026-09-16"
+   ],
+   "after_platforms": [
+    "sentinel-2a",
+    "sentinel-2b",
+    "sentinel-2c"
+   ]
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": null,
+   "kept": true,
+   "first": true,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-07",
+   "after_date": "2026-09-13"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.06089313271604938,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-07",
+   "after_date": "2026-09-13"
+  },
+  {
+   "week": "2026-W43",
+   "run": "2026-10-23",
+   "score": 0.0,
+   "kept": true,
+   "first": false,
+   "after_days": null,
+   "after_platforms": [
+    "sentinel-2a"
+   ],
+   "before_date": "2023-09-07",
+   "after_date": "2026-09-13"
+  }
+ ]
+}
