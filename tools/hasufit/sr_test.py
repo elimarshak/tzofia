@@ -31,8 +31,10 @@ out = {}
 for label in ("before", "after"):
     x, t, bad = clearest(label)
     X = torch.nan_to_num(torch.from_numpy(x).float().to(device), nan=0.0, posinf=0.0, neginf=0.0)
+    # the model takes 128 x 128 pixels at a time; for a larger window the package's own predict_large tiles it with an overlap
     with torch.no_grad():
-        sup = model(X[None]).squeeze(0).cpu().numpy()
+        sup = sen2sr.predict_large(model=model, X=X, overlap=32)
+    sup = sup.cpu().numpy() if hasattr(sup, "cpu") else np.asarray(sup)
     np.save(f"{OUT}/{label}_orig10.npy", x)
     np.save(f"{OUT}/{label}_sr25.npy", sup)
     out[label] = {"date": t, "cloud_share": bad, "orig_shape": list(x.shape), "sr_shape": list(sup.shape)}
