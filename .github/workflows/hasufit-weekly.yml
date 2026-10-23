@@ -32,7 +32,8 @@ jobs:
           only="${{ github.event.inputs.points }}"
           if [ -n "$only" ] && [[ ",$only," != *",${{ matrix.point }},"* ]]; then echo "skipped"; mkdir -p pack; touch pack/.skip; exit 0; fi
           sudo apt-get install -y -q libfribidi0 libraqm0 > /dev/null
-          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy sen2sr mlstac matplotlib git+https://github.com/ESDS-Leipzig/cubo.git
           python -c "from PIL import features; assert features.check('raqm'), 'no Hebrew text shaping'"
           p=${{ matrix.point }}
           for try in 1 2 3; do
@@ -40,8 +41,8 @@ jobs:
             timeout 1200 python tools/hasufit/fetch_point.py tools/hasufit/points/$p.json raw && break
             sleep 90
           done
-          echo "[$p] combining the clear passes"
-          timeout 1500 python tools/hasufit/enhance_point.py raw enh
+          echo "[$p] sharpening the clearest pass of each period (SEN2SR)"
+          timeout 1500 python tools/hasufit/sr_point.py raw enh
           echo "[$p] drawing"
           python tools/hasufit/render.py enh sum web/fonts/Heebo.ttf tools/hasufit/civilpress-logo.webp
           mkdir -p pack/$p && cp enh/after_raw.npy enh/meta.json sum/summary.png sum/summary.gif pack/$p/

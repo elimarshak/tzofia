@@ -50,11 +50,14 @@ fetch(RAW + 'index.json', { cache: 'no-store' }).then(r => r.json()).then(ix => 
     // the point's name is printed inside the summary picture itself, so the card shows it only when there is no picture yet
     if (!p.weeks.length) { a.append(el('h2', { textContent: p.title }), el('p', { className: 'empty', textContent: 'עוד אין סיכום שנשמר לנקודה הזו.' })); list.append(a); continue; }
     const w = p.weeks[0];
-    const range = w.after_days && w.after_days.length ? ` תמונת ה'אחרי' משלבת צילומים מ-${day(w.after_days[0])} עד ${day(w.after_days[w.after_days.length - 1])}.` : '';
-    a.append(el('p', { className: 'when', textContent: `הסיכום מיום ${day(w.run)}.${range}` }));
+    // both periods, so the reader sees the gap between the pictures and not only the dates of 'after'
+    let periods = '';
+    if (w.before_date && w.after_date) periods = ` לפני: ${day(w.before_date)}. אחרי: ${day(w.after_date)}.`;
+    else if (w.after_days && w.after_days.length) periods = ` תמונת ה'אחרי' משלבת צילומים מ-${day(w.after_days[0])} עד ${day(w.after_days[w.after_days.length - 1])}.`;
+    a.append(el('p', { className: 'when', textContent: `הסיכום מיום ${day(w.run)}.${periods}` }));
     const base = `${RAW}weeks/${w.week}/${p.id}`;
     a.append(el('img', { src: base + '.jpg', alt: `${p.title}: צילום לוויין לפני ואחרי`, loading: 'eager', decoding: 'async' }));
-    a.append(el('p', { className: 'links' }, el('a', { href: base + '.gif', target: '_blank', rel: 'noopener', textContent: 'לתמונה המונפשת שמתחלפת בין לפני לאחרי' })));
+    a.append(el('p', { className: 'links' }, el('a', { href: base + '.gif', target: '_blank', rel: 'noopener', textContent: "לתמונה המונפשת שחושפת את ה'אחרי' מתחת ל'לפני'" })));
     if (p.weeks.length > 1) {
       const ul = el('ul');
       for (const o of p.weeks.slice(1)) ul.append(el('li', {}, el('a', { href: `${RAW}weeks/${o.week}/${p.id}.jpg`, target: '_blank', rel: 'noopener', textContent: `הסיכום מיום ${day(o.run)}` })));

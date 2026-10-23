@@ -64,7 +64,8 @@ for label, ((frm, to), newest) in periods.items():
     sharp[label] = out
     if not plat:
         raise SystemExit(f"{label}: the catalogue did not name the satellite of {t}")
-    meta[label] = {"datetime": t if "T" in t else t + "T00:00:00Z", "platforms": [plat.lower()], "cloud_in_window": bad,
+    # the catalogue gives UTC time
+    meta[label] = {"datetime": t[:23] + "Z", "platforms": [plat.lower()], "cloud_in_window": bad,
                    "method": "sen2sr", "passes": [t]}
     say(label, t, plat, "cloud", bad)
 

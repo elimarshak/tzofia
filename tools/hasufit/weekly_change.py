@@ -21,8 +21,10 @@ now = np.load(f"{ENH}/after_raw.npy").astype(float)[:3]
 prev_path = f"{STORE}/points/{NAME}/last_after_raw.npy"
 
 def norm(x): return (x - np.median(x, axis=(1, 2), keepdims=True)) / (np.std(x, axis=(1, 2), keepdims=True) + 1e-6)
-if os.path.exists(prev_path):
-    prev = np.load(prev_path).astype(float)[:3]
+prev = np.load(prev_path).astype(float)[:3] if os.path.exists(prev_path) else None
+if prev is not None and prev.shape != now.shape:
+    prev = None          # last week's picture was made another way (another grid); this week starts a new series
+if prev is not None:
     d = np.sqrt(((norm(now) - norm(prev)) ** 2).sum(0))
     m = np.median(d); s = 1.4826 * np.median(np.abs(d - m)) + 1e-9
     mask = ndimage.binary_opening((d - m) / s > 4, iterations=1)
@@ -34,11 +36,13 @@ keep = first or score >= THRESHOLD or os.environ.get("FORCE_KEEP") == "1"
 meta = json.load(open(f"{ENH}/meta.json"))
 import datetime as dt
 log.setdefault(NAME, []).append({"week": WEEK, "run": dt.date.today().isoformat(), "score": score, "kept": keep, "first": first,
-                                 "after_days": meta["after"].get("composite_days"), "after_platforms": meta["after"].get("platforms")})
+                                 "after_days": meta["after"].get("composite_days"), "after_platforms": meta["after"].get("platforms"),
+                                 "before_date": meta["before"]["datetime"][:10], "after_date": meta["after"]["datetime"][:10]})
 if keep:
     os.makedirs(f"{STORE}/weeks/{WEEK}", exist_ok=True)
     Image.open(f"{SUM}/summary.png").convert("RGB").save(f"{STORE}/weeks/{WEEK}/{NAME}.jpg", quality=88, optimize=True)
-    shutil.copy(f"{SUM}/summary.gif", f"{STORE}/weeks/{WEEK}/{NAME}.gif")
+    # the moving picture is the reveal (a line moving right to left uncovers 'after'), chosen by Ilya on 23.10.2026
+    shutil.copy(f"{SUM}/summary_wipe.gif" if os.path.exists(f"{SUM}/summary_wipe.gif") else f"{SUM}/summary.gif", f"{STORE}/weeks/{WEEK}/{NAME}.gif")
 np.save(prev_path, np.load(f"{ENH}/after_raw.npy"))
 json.dump(log, open(log_path, "w"), ensure_ascii=False, indent=1)
 print(NAME, "score", score, "kept", keep)
