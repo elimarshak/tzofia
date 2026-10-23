@@ -118,8 +118,15 @@ def inset(label):
     framed = ImageOps.expand(sq, border=3, fill=PAPER)
     return framed
 
+SHARPENED = meta.get("method") == "sen2sr"
 def panel(label):
     img = Image.open(f"{IN}/{label}.png").convert("RGB").resize((PANEL, PANEL), Image.LANCZOS).convert("RGBA")
+    if SHARPENED:
+        # every sharpened picture says so on the picture itself, bottom-right
+        d = ImageDraw.Draw(img, "RGBA"); fl = font(20, "Bold"); x, y = PANEL - 16, PANEL - 16
+        bx = d.textbbox((x, y), "חודד בבינה מלאכותית", font=fl, anchor="rd", direction="rtl", language="he")
+        d.rounded_rectangle((bx[0] - 10, bx[1] - 8, bx[2] + 10, bx[3] + 8), 8, fill=(255, 255, 255, 225))
+        d.text((x, y), "חודד בבינה מלאכותית", font=fl, fill=INK, anchor="rd", direction="rtl", language="he")
     if label == "after" and SHOW_CHANGE and os.path.exists(f"{IN}/change_mask.png"):
         # the computed change areas: a thin yellow outline and a light yellow tint, so the ground under them stays visible
         m = Image.open(f"{IN}/change_mask.png").convert("L").resize((PANEL, PANEL), Image.NEAREST)
@@ -163,11 +170,14 @@ def legend(d, x_right, y, width):
         ("הריבוע הקטן מראה שטח של 40 על 40 קילומטרים, והמסגרת האדומה שבתוכו מסמנת את השטח שבתמונה הגדולה. בשני הצדדים הריבוע הקטן לקוח מצילום ה'לפני'.", f),
         ("מקור התמונות: הארכיון הפתוח של לווייני Sentinel-2. מקור השמות: OpenStreetMap.", f),
     ]
+    if SHARPENED:
+        lines.insert(4, ("התמונות חודדו בבינה מלאכותית מחדות של 10 מטרים לחדות של 2.5 מטרים, בתוכנה SEN2SR שפותחה במסגרת פרויקט של סוכנות החלל האירופית.", fb))
+        lines.insert(5, ("פרטים קטנים מ-10 מטרים בתמונה יכולים להיות השלמה של התוכנה, ולא משהו שהלוויין צילם.", f))
     if SHOW_CHANGE and os.path.exists(f"{IN}/change_mask.png"):
         lines.insert(4, ("המסגרות הצהובות בתמונת ה'אחרי' מסמנות מקומות שבהם הקרקע נחשפה או נחפרה מאז תמונת ה'לפני'. הסימון מחושב ממדידות הלוויין עצמן.", fb))
         lines.insert(5, ("הסימון אוטומטי, ולכן חלק מהמקומות המסומנים יכולים להיות גם עבודות חקלאיות או בנייה אזרחית.", f))
     for i, (t, ff) in enumerate(lines):
-        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if i < 5 else SUB)
+        rtl(d, (x_right, y + i * 34), t, ff, fill=INK if (i < 4 or ff is fb) else SUB)
     yy = y + len(lines) * 34 + 6
     ltr(d, (x_right, yy), f"Contains modified Copernicus Sentinel data {meta['before']['datetime'][:4]}, {meta['after']['datetime'][:4]}. Names: © OpenStreetMap contributors.", font(16), fill=SUB)
     return yy + 26

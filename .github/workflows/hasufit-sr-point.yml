@@ -1,0 +1,31 @@
+name: hasufit-sr-point
+# Test on one point before the weekly run changes: fetched point -> AI sharpening -> drawing. Own branch only.
+on:
+  push:
+    branches: [hasufit-probe]
+    paths: ['tools/hasufit/sr_point.py', '.github/workflows/hasufit-sr-point.yml']
+permissions:
+  contents: write
+jobs:
+  sr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - shell: bash
+        run: |
+          set +e
+          mkdir -p out
+          sudo apt-get install -y -q libfribidi0 libraqm0 > /dev/null
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu > out/pip.txt 2>&1
+          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy sen2sr mlstac matplotlib git+https://github.com/ESDS-Leipzig/cubo.git >> out/pip.txt 2>&1
+          git clone -q --depth 1 -b hasufit-point-majdal-hadar "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" src && rm -rf src/.git
+          /usr/bin/time -v timeout 2400 python tools/hasufit/sr_point.py src sr > out/run.txt 2> out/time.txt; echo "exit $?" >> out/run.txt
+          python tools/hasufit/render.py sr out web/fonts/Heebo.ttf tools/hasufit/civilpress-logo.webp >> out/run.txt 2>&1
+          cp sr/meta.json out/
+          cd out && git init -q -b s && git add -A
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "sr point test"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" s:hasufit-sr-point-test
+          echo "::notice::$(tail -c 600 run.txt | tr '\n' ' ') MEM: $(grep -E 'Maximum resident|Elapsed' time.txt | tr '\n' ' ')"
