@@ -1,10 +1,12 @@
 name: satellites-catalogue
-# Keeps our own copy of public space data from CelesTrak on the data branch (see tools/fetch_space.py):
-# active satellites, debris of the big breakups, and the closest predicted approaches (SOCRATES).
-# CelesTrak asks for at most one download per update (they update every 2 hours) and no retries on errors.
-# The schedule wakes every hour but downloads only when our copy is close to 3 hours old, so a failed
-# download is tried again on its own an hour later (Ilya asked on 15.10.2026), never in a quick loop.
-# An error answer from CelesTrak stops the scheduled runs until a manual run (their usage policy; Ilya, 23.10.2026).
+# Keeps our own copy of public space data from CelesTrak on the data branch: active satellites, debris of the big
+# breakups, and the closest predicted approaches (SOCRATES). Since 22.10.2026 CelesTrak refuses GitHub's servers
+# (HTTP 403), so the home server openeye downloads the data (tools/fetch_space.py, at most once every 3 hours,
+# stopping after any error answer as CelesTrak asks) and publishes it to the repository elimarshak/tzofia-space,
+# which holds only this data (Ilya, 23.10.2026). This workflow never asks CelesTrak: every hour it copies the
+# home server's copy onto the data branch when it is newer than ours.
+# A home copy older than 12 hours fails the run, at most twice a day (Ilya wants alerts only on a problem, at most
+# twice a day), so a person sees it.
 on:
   schedule:
     - cron: '17 * * * *'
@@ -17,28 +19,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download once, publish to the data branch
+      - name: Copy the home server's copy to the data branch
         run: |
           set -euo pipefail
-          mkdir out
-          # start from the previous copy, so a file whose download fails keeps its last version
+          SRC=https://raw.githubusercontent.com/elimarshak/tzofia-space/main
+          FILES="celestrak_active.csv celestrak_debris.csv celestrak_imaging.csv socrates.csv socrates_gp.csv fetched_at.txt"
+          mkdir out new
           git fetch -q --depth 1 origin data && git --work-tree=out checkout FETCH_HEAD -- . || true
-          # a scheduled run skips when the last successful download is under 2 h 50 min old (a manual run always downloads)
-          if [ "${{ github.event_name }}" = schedule ] && [ -f out/fetched_at.txt ]; then
-            last=$(date -u -d "$(cat out/fetched_at.txt)" +%s 2>/dev/null || echo 0)
-            age=$(( $(date -u +%s) - last ))
-            if [ "$age" -lt 10200 ]; then echo "our copy is $((age / 60)) minutes old; nothing to download"; exit 0; fi
+          stale() {   # fail only at two runs a day (05:17 and 14:17 UTC), so a long problem does not send a mail every hour
+            echo "$1"
+            h=$(date -u +%H); if [ "$h" = 05 ] || [ "$h" = 14 ]; then exit 1; fi; exit 0
+          }
+          age_of() { echo $(( $(date -u +%s) - $(date -u -d "$(cat "$1")" +%s 2>/dev/null || echo 0) )); }
+          if ! curl -fsS --retry 2 "$SRC/fetched_at.txt?t=$(date +%s)" -o new/fetched_at.txt; then
+            stale "the home server's copy cannot be read"
           fi
-          # after an error CelesTrak asks us to stop until a person looks (https://celestrak.org/usage-policy.php)
-          if [ -f out/celestrak_stopped.txt ]; then
-            if [ "${{ github.event_name }}" = schedule ]; then echo "stopped since: $(cat out/celestrak_stopped.txt)"; echo "a manual run starts again"; exit 0; fi
-            rm -f out/celestrak_stopped.txt
-          fi
-          rc=0; python3 tools/fetch_space.py out || rc=$?
-          if [ "$rc" = 1 ]; then exit 1; fi
+          if [ "$(age_of new/fetched_at.txt)" -gt 43200 ]; then stale "the home server's copy is from $(cat new/fetched_at.txt), more than 12 hours ago"; fi
+          if [ -f out/fetched_at.txt ] && [ "$(cat out/fetched_at.txt)" = "$(cat new/fetched_at.txt)" ]; then echo "nothing new (copy of $(cat out/fetched_at.txt))"; exit 0; fi
+          for f in $FILES; do curl -fsS --retry 2 "$SRC/$f?t=$(date +%s)" -o "new/$f"; done
+          head -c 11 new/celestrak_active.csv | sed 's/^\xEF\xBB\xBF//' | grep -q '^OBJECT_NAME' || { echo "the active catalogue in the home copy is not valid; keeping ours"; exit 1; }
+          cp new/* out/
           ls -l out
           cd out && rm -rf .git && git init -q -b data && git add -A
-          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "space data $(cat fetched_at.txt)"
+          git -c user.name="tzofia-build" -c user.email="noreply@github.com" commit -q -m "space data $(cat fetched_at.txt) (from the home server)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data
-          # an error from CelesTrak shows as a failed run, so a person sees it
-          exit $rc
