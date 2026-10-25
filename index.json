@@ -1,0 +1,145 @@
+{
+ "updated": "2026-10-25T08:43+00:00",
+ "points": [
+  {
+   "id": "majdal-hadar",
+   "title": "קו ההפרדה בין רמת הגולן לסוריה, בין מג'דל שמס לחאדר",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "jubata",
+   "title": "ג'בתא אל-ח'שב, ליד קו ההפרדה",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "quneitra",
+   "title": "העיר קוניטרה",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "maariya",
+   "title": "גבעה צפונית מערבית למעריה, מעל עמק הירמוך",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "khiam-hamames",
+   "title": "גבעת חמאמיס, דרומית מזרחית לאל-ח'יאם",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-23",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-21"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "markaba-houla",
+   "title": "הדרך בין מרכבא לחולא",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "aitaroun-jaldeir",
+   "title": "ג'ל אל-דיר, דרומית מזרחית לעייתרון",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "ramiya",
+   "title": "דרומית מזרחית לראמיה, בכיוון הגבול",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-07",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "labbouneh",
+   "title": "לבונה, דרומית מערבית לעלמא א-שעב",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-07",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  },
+  {
+   "id": "beaufort",
+   "title": "רכס הבופור, דרומית מזרחית לארנון",
+   "weeks": [
+    {
+     "week": "2026-W43",
+     "run": "2026-10-25",
+     "after_days": null,
+     "before_date": "2023-09-02",
+     "after_date": "2026-10-23"
+    }
+   ],
+   "last_run": "2026-10-25"
+  }
+ ]
+}
