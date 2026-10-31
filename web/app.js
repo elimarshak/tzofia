@@ -382,6 +382,9 @@ function gnssZones() {
   return out;
 }
 
+// Cells over the Gulf states and Iran where two or more aircraft showed a sign of a false position in the past hour.
+const spoofZones = () => (S.gnss && S.gnss.spoof) || [];
+
 const altOf = (a) => a.alt_baro ?? a.alt_geom;
 function band(a) {
   if (a.on_ground) return '0';
@@ -514,6 +517,10 @@ function addOverlay() {
   m.addSource('gnss', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   m.addLayer({ id: 'gnss', type: 'fill', source: 'gnss',
     paint: { 'fill-color': c.warn, 'fill-opacity': ['case', ['==', ['get', 'level'], 2], 0.42, 0.17], 'fill-outline-color': c.warn } });
+  // position spoofing over the Gulf states and Iran: a dashed frame around each cell of 1 x 1 degree
+  m.addSource('spoof', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  m.addLayer({ id: 'spoof', type: 'line', source: 'spoof',
+    paint: { 'line-color': c.warn, 'line-width': 2, 'line-dasharray': [2, 1.5] } });
   const empty = { type: 'FeatureCollection', features: [] };
   m.addSource('airst', { type: 'geojson', data: empty });
   m.addLayer({ id: 'airst-sel', type: 'circle', source: 'airst', filter: ['==', ['get', 'id'], ''],
@@ -680,7 +687,7 @@ function applyLayerOptions() {
   const m = S.map; if (!m || !m.getLayer('ac')) return;
   for (const id of ['ac', 'ac-ring', 'ac-sel']) m.setLayoutProperty(id, 'visibility', S.showAc ? 'visible' : 'none');
   m.setLayoutProperty('ac', 'text-field', S.showLabels ? ['get', 'label'] : '');
-  m.setLayoutProperty('gnss', 'visibility', S.showGnss ? 'visible' : 'none');
+  for (const id of ['gnss', 'spoof']) m.setLayoutProperty(id, 'visibility', S.showGnss ? 'visible' : 'none');
   m.setFilter('ac-sel', ['==', ['get', 'hex'], S.view.name === 'ac' ? S.view.hex : '']);
   for (const id of ['sats', 'sat-sel']) m.setLayoutProperty(id, 'visibility', S.showSats ? 'visible' : 'none');
   for (const id of ['quakes', 'quake-sel']) m.setLayoutProperty(id, 'visibility', S.showQuakes ? 'visible' : 'none');
@@ -806,6 +813,12 @@ function drawGnss() {
       geometry: { type: 'Polygon', coordinates: [[[x, y], [x + dx, y], [x + dx, y + dy], [x, y + dy], [x, y]]] } };
   });
   m.getSource('gnss').setData({ type: 'FeatureCollection', features: feats });
+  const sd = (g && g.spoof_d) || 1;
+  m.getSource('spoof').setData({ type: 'FeatureCollection', features: spoofZones().map(([gy, gx]) => {
+    const y = gy * sd, x = gx * sd;
+    return { type: 'Feature', properties: {},
+      geometry: { type: 'LineString', coordinates: [[x, y], [x + sd, y], [x + sd, y + sd], [x, y + sd], [x, y]] } };
+  }) });
 }
 
 const DETAIL_VIEWS = ['ac', 'sat', 'quake', 'ship', 'fire', 'outage', 'conj', 'skyc', 'airst', 'airlv'];
@@ -976,9 +989,9 @@ function header(title, backTo) {
 
 function viewHome() {
   const L = t(), c = T();
-  const low = S.near.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length;
+  const low = S.near.filter(lowAcc).length, em = S.em.length, sky = airborne().length, zones = gnssZones().length, spoofs = spoofZones().length;
   return [header(L.title),
-    row(low || zones || noPos() ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, low ? L.gnssSome(low) : L.gnssNone, noPos() ? L.gnssNoPos(noPos()) : null].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
+    row(low || zones || spoofs || noPos() ? c.warn : c.alt[2], L.gnss, [zones ? L.gnssZones(zones) : null, spoofs ? L.spoofZones(spoofs) : null, low ? L.gnssSome(low) : L.gnssNone, noPos() ? L.gnssNoPos(noPos()) : null].filter(Boolean).join(' '), () => go({ name: 'gnss' })),
     row(em ? c.warn : c.alt[2], L.emerg,
       em === 1 ? [L.emergOne, ' ', h('b', { class: 'cs', style: 'color:var(--accent)' }, emName(S.em[0]))] : em ? L.emergSome(em) : L.emergNone,
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
@@ -993,11 +1006,14 @@ function viewHome() {
 }
 function viewGnss() {
   const L = t(); const list = S.near.filter(lowAcc);
-  const zones = gnssZones().length, c = T();
+  const zones = gnssZones().length, spoofs = spoofZones().length, c = T();
   const key = (op, text) => h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:${c.warn};opacity:${op}` }), text);
   return [header(L.gnss, { name: 'home' }),
     h('p', { class: 'note' }, S.gnss ? (zones ? L.gnssZones(zones) : L.gnssZonesNone) : L.gnssZonesNoData),
     key(0.42, L.gnssKeyHigh), key(0.17, L.gnssKeyMid),
+    S.gnss ? h('p', { class: 'note' }, spoofs ? L.spoofZones(spoofs) : L.spoofNone) : null,
+    h('p', { class: 'note key' }, h('i', { class: 'swatch', style: `background:none;border:2px dashed ${c.warn}` }), L.spoofKey),
+    h('p', { class: 'note' }, L.spoofMethod),
     noPos() ? h('p', { class: 'note' }, L.gnssNoPos(noPos())) : null,
     h('p', { class: 'note' }, L.gnssMethod + ' ' + L.gnssNoPosMethod),
     h('p', { class: 'note' }, (list.length ? L.gnssSome(list.length) : L.gnssNone) + ' ' + L.gnssNote), list.map(acRow)];
@@ -1559,6 +1575,7 @@ function drawLegend() {
   const items = [
     S.showAc ? sym(`border:2px dashed ${c.warn};border-radius:50%;background:none`, L.tagLow) : null,
     S.showGnss ? sym(`background:${c.warn};opacity:.5`, L.gnss) : null,
+    S.showGnss ? sym(`border:2px dashed ${c.warn};background:none`, L.spoof) : null,
     S.showSkies ? sym(`border:2px solid ${c.warn};border-radius:50%;background:none`, L.skies) : null,
     S.showShips ? sym(`background:${c.ship};clip-path:polygon(50% 0,100% 100%,50% 75%,0 100%)`, L.ships) : null,
     S.showQuakes ? sym(`border:1.6px solid ${c.accent};border-radius:50%;background:none`, L.quakes) : null,
