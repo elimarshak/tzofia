@@ -607,8 +607,15 @@ function addOverlay() {
       'text-optional': true, 'text-allow-overlap': false,
     },
     paint: { 'text-color': c.ink, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
+  // Saudi Arabia, the Red Sea, Sudan and Yemen have almost no volunteer receivers, so the map says so there
+  // (Ilya, 1.11.2026): plain text, no frame, shown together with the aircraft
+  m.addSource('nocov', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  m.addLayer({ id: 'nocov', type: 'symbol', source: 'nocov', maxzoom: 7,
+    layout: { 'text-field': ['get', 'text'], 'text-font': ['Noto Sans Medium'], 'text-size': 13, 'text-max-width': 11,
+      'text-allow-overlap': true, 'text-ignore-placement': true },
+    paint: { 'text-color': c.sub, 'text-halo-color': c.halo, 'text-halo-width': 1.6 } });
   applyLayerOptions();
-  drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); drawAirSt(); drawAirLive(); tickSats(); drawTrail();
+  drawNoCov(); drawAircraft(); drawGnss(); drawQuakes(); drawFires(); drawOutages(); drawSkies(); drawShips(); drawConj(); drawAirSt(); drawAirLive(); tickSats(); drawTrail();
 }
 
 /* ---------- the selected aircraft: its path, following it, and a link to it ---------- */
@@ -685,7 +692,7 @@ function closeCard() {
 
 function applyLayerOptions() {
   const m = S.map; if (!m || !m.getLayer('ac')) return;
-  for (const id of ['ac', 'ac-ring', 'ac-sel']) m.setLayoutProperty(id, 'visibility', S.showAc ? 'visible' : 'none');
+  for (const id of ['ac', 'ac-ring', 'ac-sel', 'nocov']) m.setLayoutProperty(id, 'visibility', S.showAc ? 'visible' : 'none');
   m.setLayoutProperty('ac', 'text-field', S.showLabels ? ['get', 'label'] : '');
   for (const id of ['gnss', 'spoof']) m.setLayoutProperty(id, 'visibility', S.showGnss ? 'visible' : 'none');
   m.setFilter('ac-sel', ['==', ['get', 'hex'], S.view.name === 'ac' ? S.view.hex : '']);
@@ -803,6 +810,12 @@ function applyAirImg() {
   drawLegend();
 }
 setInterval(() => { if (S.airImg === 'pm25' && !document.hidden) applyAirImg(); }, 5 * 60 * 1000);   // the next hour of the forecast
+
+function drawNoCov() {
+  const m = S.map; if (!m || !m.getSource('nocov')) return;
+  m.getSource('nocov').setData({ type: 'FeatureCollection', features: [
+    { type: 'Feature', properties: { text: t().noCoverage }, geometry: { type: 'Point', coordinates: [42.5, 20.5] } }] });
+}
 
 function drawGnss() {
   const m = S.map; if (!m || !m.getSource('gnss')) return;
@@ -1560,6 +1573,7 @@ function applyLang() {
   document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = L[e.dataset.t]; });
   const credit = () => L.credit.map((p) => Array.isArray(p) ? h('a', { href: p[1], target: '_blank', rel: 'noopener noreferrer' }, p[0]) : p);
   $('#credit').replaceChildren(...credit());
+  drawNoCov();
   $('#sources-text').replaceChildren(...sourceLines(L.credit));
   for (const [id, key] of [['#btn-zin', 'zoomIn'], ['#btn-zout', 'zoomOut'], ['#btn-home', 'homeView'], ['#btn-info', 'sources'], ['#btn-search', 'search'], ['#btn-close', 'close']]) {
     $(id).setAttribute('aria-label', L[key]); $(id).title = L[key];
