@@ -33,12 +33,17 @@ def clearest(frm, to, newest):
     da = cubo.create(lat=lat, lon=lon, collection="sentinel-2-l2a", bands=["B04", "B03", "B02", "B08", "SCL"],
                      start_date=frm, end_date=to, edge_size=EDGE, resolution=10)
     scl = da.sel(band="SCL").compute().to_numpy()
-    bad = np.isin(scl, (0, 3, 8, 9, 10, 11)).mean(axis=(1, 2))
+    # a place with no value at all counts as bad: near the edge between two Sentinel-2 tiles the catalogue also
+    # returns a tile that covers only a part of the window, and that part alone must not pass as a clear picture
+    bad = (np.isin(scl, (0, 3, 8, 9, 10, 11)) | np.isnan(scl)).mean(axis=(1, 2))
     times = [str(t) for t in da.time.values]
+    tiles = np.atleast_1d(da.coords["s2:mgrs_tile"].values) if "s2:mgrs_tile" in da.coords else np.array([""])
+    if tiles.size == 1: tiles = np.repeat(tiles, len(times))
     ok = [i for i in range(len(times)) if bad[i] <= 0.003]
-    say(" passes", len(times), "clear", [times[i][:10] for i in ok])
+    say(" passes", len(times), "clear", [f"{times[i][:10]} {tiles[i]}" for i in ok])
     if not ok: raise SystemExit(f"no clear pass {frm}..{to}")
-    i = max(ok, key=lambda k: times[k]) if newest else min(ok, key=lambda k: bad[k])
+    # one satellite pass can appear under two tiles; the choice between them is fixed, so that weeks stay comparable
+    i = max(ok, key=lambda k: (times[k], -bad[k], [-ord(c) for c in str(tiles[k])])) if newest else min(ok, key=lambda k: (bad[k], times[k], str(tiles[k])))
     plat = str(da.coords["platform"].values[i]) if "platform" in da.coords else None
     x = (da.sel(band=["B04", "B03", "B02", "B08"])[i].compute().to_numpy() / 10_000).astype("float32")
     xs, ys = da.x.values, da.y.values

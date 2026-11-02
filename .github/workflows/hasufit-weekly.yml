@@ -9,6 +9,7 @@ on:
     inputs:
       points: { description: 'points to run, comma-separated (empty = all)', default: '' }
       force_keep: { description: 'keep this run even without change (1 = yes)', default: '0' }
+      week: { description: 'store the run under this week, to replace a kept week (empty = the current week)', default: '' }
 permissions:
   contents: write
 concurrency: hasufit-weekly
@@ -65,7 +66,8 @@ jobs:
           pip install -q numpy pillow scipy
           mkdir store
           git fetch -q --depth 1 origin hasufit-data && git --work-tree=store checkout FETCH_HEAD -- . || true
-          week=$(date -u +%G-W%V)
+          week="${{ github.event.inputs.week }}"
+          [ -n "$week" ] || week=$(date -u +%G-W%V)
           for d in packs/*/; do
             [ -f "$d/after_raw.npy" ] || continue
             p=$(basename $d)
