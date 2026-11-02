@@ -1048,6 +1048,8 @@ function viewSky() {
   const list = airborne().slice().sort((a, b) => (callsign(a) || '~').localeCompare(callsign(b) || '~'));
   return [header(L.sky, { name: 'home' }), h('p', { class: 'note' }, L.skyCount(list.length) + ' ' + L.skyNote + (S.satNow.length ? ' ' + L.satCount(S.satInView - (S.debInView || 0), S.debInView || 0, S.satNow.length) : '')), list.map(acRow)];
 }
+// The ground distance from the fixed point in CFG.distFrom to an item, rounded to a whole kilometre.
+const distLine = (o) => t().km(Math.round(km(CFG.distFrom[0], CFG.distFrom[1], o.lat, o.lon)));
 function viewAircraft(hex) {
   const L = t();
   const a = findAc(hex);
@@ -1070,6 +1072,7 @@ function viewAircraft(hex) {
   }
   add(L.fAlt, a.on_ground ? L.ground : altOf(a) != null ? L.alt(altOf(a)) : null);
   add(L.fPos, a.lat != null && a.lon != null ? ltr(`${a.lat.toFixed(3)}, ${a.lon.toFixed(3)}`) : null);
+  add(L.fDist, a.lat != null && a.lon != null ? distLine(a) : null);
   if ('gs' in a) {
     add(L.fSpeed, badFix(a) ? L.notPossible : a.gs != null ? L.speed(a.gs) : null);
     add(L.fTrack, badFix(a) ? L.notPossible : a.track != null ? L.deg(a.track) : null);
@@ -1123,6 +1126,7 @@ function viewQuake(id) {
   add(L.qDepth, e.depth != null ? L.km(Math.round(e.depth)) : null);
   add(L.qRegion, regionNode(e.region));
   add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(3)}, ${e.lon.toFixed(3)}`));
+  add(L.fDist, distLine(e));
   return [head(L.quakeTitle(e.mag.toFixed(1))), h('dl', { class: 'facts' }, facts)];
 }
 function countryName(code) {
@@ -1297,6 +1301,7 @@ function viewAirLv(id) {
   }
   add(L.fSeen, x.t ? L.ago(secAgo(x.t)) : null);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  add(L.fDist, distLine(x));
   return [detailHead(airLvName(x), x.kind === 'w' ? L.airLvOfficial : null), h('dl', { class: 'facts' }, facts),
     h('p', { class: 'note' }, x.kind === 'w' ? L.airLvNoteW : L.airLvNoteS), h('p', { class: 'note' }, L.aqiNote)];
 }
@@ -1316,6 +1321,7 @@ function viewAirSt(id) {
   add(L.asRemark, x.remark);
   add(L.asWeather, x.weather.length ? x.weather.map((w) => L.airWx[w] || w).join(', ') : null);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}`));
+  add(L.fDist, distLine(x));
   return [detailHead(x.name, L.airSt), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.airStNote)];
 }
 function imgSummary() {
@@ -1352,6 +1358,7 @@ function satFacts(id) {
     add(L.fSpeed, o.kms != null ? L.kmh(Math.round(o.kms * 3600)) : null);
     add(L.sIncl, o.incl != null ? L.deg(o.incl) : null);
     add(L.fPos, h('span', { class: 'cs' }, `${o.lat.toFixed(2)}, ${o.lon.toFixed(2)}`));
+    add(L.fDist, distLine(o));
   }
   return h('dl', { class: 'facts' }, facts);
 }
@@ -1398,6 +1405,7 @@ function viewConj(id) {
   add(L.cProb, chance(e.prob));
   if (e.km != null) add(L.fAlt, L.km(Math.round(e.km)));
   if (e.lat != null) add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(2)}, ${e.lon.toFixed(2)}`));
+  if (e.lat != null) add(L.fDist, distLine(e));
   return [detailHead(L.conj), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.conjNote)];
 }
 
@@ -1426,6 +1434,7 @@ function viewShip(id) {
   add(L.fSpeed, x.sog != null ? L.knots(x.sog) : null);
   add(L.fTrack, x.cog != null ? L.deg(x.cog) : null);
   add(L.fPos, ltr(`${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  add(L.fDist, distLine(x));
   add(L.fSeen, L.ago(secAgo(x.t)));
   add(L.fFlight, x.callsign ? ltr(x.callsign) : null);
   add(L.shMmsi, ltr(String(x.mmsi)));
@@ -1440,6 +1449,7 @@ function viewFire(id) {
   add(L.fiPower, L.megawatt(x.frp));
   add(L.fiConf, x.conf === 'h' ? L.fiHigh : L.fiNormal);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
+  add(L.fDist, distLine(x));
   return [detailHead(L.fire), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.fireNote)];
 }
 function render() {

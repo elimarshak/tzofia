@@ -5,6 +5,7 @@ export const CFG = {
   key: 'sb_publishable_iz4Bq-MFx4C0gY38cDtGYw_PPRumPqT',
   center: [34.9, 31.7],
   zoom: 4.7,
+  distFrom: [32.08, 34.78],      // the centre of Tel Aviv-Yafo (lat, lon): what the distance line in the details measures from
   bounds: [[-180, -65], [180, 80]], // the world file in the build workflow
   pollMs: 15000,
   farPollMs: 60000,              // aircraft beyond about 460 km and up to about 4,000 km
