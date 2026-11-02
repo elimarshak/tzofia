@@ -1301,7 +1301,6 @@ function viewAirLv(id) {
   }
   add(L.fSeen, x.t ? L.ago(secAgo(x.t)) : null);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
-  add(L.fDist, distLine(x));
   return [detailHead(airLvName(x), x.kind === 'w' ? L.airLvOfficial : null), h('dl', { class: 'facts' }, facts),
     h('p', { class: 'note' }, x.kind === 'w' ? L.airLvNoteW : L.airLvNoteS), h('p', { class: 'note' }, L.aqiNote)];
 }
@@ -1321,7 +1320,6 @@ function viewAirSt(id) {
   add(L.asRemark, x.remark);
   add(L.asWeather, x.weather.length ? x.weather.map((w) => L.airWx[w] || w).join(', ') : null);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(4)}, ${x.lon.toFixed(4)}`));
-  add(L.fDist, distLine(x));
   return [detailHead(x.name, L.airSt), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.airStNote)];
 }
 function imgSummary() {
@@ -1358,7 +1356,6 @@ function satFacts(id) {
     add(L.fSpeed, o.kms != null ? L.kmh(Math.round(o.kms * 3600)) : null);
     add(L.sIncl, o.incl != null ? L.deg(o.incl) : null);
     add(L.fPos, h('span', { class: 'cs' }, `${o.lat.toFixed(2)}, ${o.lon.toFixed(2)}`));
-    add(L.fDist, distLine(o));
   }
   return h('dl', { class: 'facts' }, facts);
 }
@@ -1405,7 +1402,6 @@ function viewConj(id) {
   add(L.cProb, chance(e.prob));
   if (e.km != null) add(L.fAlt, L.km(Math.round(e.km)));
   if (e.lat != null) add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(2)}, ${e.lon.toFixed(2)}`));
-  if (e.lat != null) add(L.fDist, distLine(e));
   return [detailHead(L.conj), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.conjNote)];
 }
 
@@ -1449,7 +1445,6 @@ function viewFire(id) {
   add(L.fiPower, L.megawatt(x.frp));
   add(L.fiConf, x.conf === 'h' ? L.fiHigh : L.fiNormal);
   add(L.fPos, h('span', { class: 'cs' }, `${x.lat.toFixed(3)}, ${x.lon.toFixed(3)}`));
-  add(L.fDist, distLine(x));
   return [detailHead(L.fire), h('dl', { class: 'facts' }, facts), h('p', { class: 'note' }, L.fireNote)];
 }
 function render() {
