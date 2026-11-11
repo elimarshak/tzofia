@@ -1615,7 +1615,7 @@ function viewBrief(v) {
     if (!e) return null;
     title = [L.quakeTitle(e.mag.toFixed(1))];
     lines.push(L.ago(secAgo(e.time)) + '.');
-    if (e.region) lines.push(regionNode(e.region));
+    if (e.region) lines.push(quakeRegion(e));
   } else if (v.name === 'fire') {
     const x = S.fires.find((f) => f.id === v.id);
     if (!x) return null;
