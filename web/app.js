@@ -20,7 +20,7 @@ const S = {
   follow: null, trail: null, link: null,
   ships: [], fires: [], outages: [], outagesOk: false, countries: null, img: 'off',
   ref: { airlines: null, airports: null, routes: new Map() },
-  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [],
+  sats: [], satView: [], satInView: 0, satNow: [], satLib: null, satExtra: new Map(), conj: [], conjOk: false, imgOver: [], imgNext: null, skies: null, milw: [], quakes: [], quakesIntl: [], quakesGsi: [], oref: null, orefOk: false,
   ac: [], near: [], far: [], em: [], src: null, gnss: null, loaded: false, netErr: false,
   airSt: [], airFc: null, airLayers: null, airImg: 'off', airLive: null, airLvSt: new Map(),
   view: { name: 'home' },
@@ -102,10 +102,11 @@ async function refresh() {
 const QUAKE_MIN_MAG = 2.5;
 async function refreshSlow() {
   try {
-    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,fires,outages,skies)');
+    const rows = await api('/derived?select=key,data,computed_at&key=in.(quakes,quakes_gsi,oref,fires,outages,skies)');
     const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
     const q = rows.find((r) => r.key === 'quakes');
-    S.quakes = fresh(q, 30) ? q.data.events.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG) : [];
+    S.quakesIntl = fresh(q, 30) ? q.data.events : [];
+    useIsrael(rows);
     const f = rows.find((r) => r.key === 'fires');
     // each spot: [lat, lon, power in megawatts, confidence n|h, minutes since epoch, D|N]
     S.fires = fresh(f, 120) ? f.data.spots.map((x, i) => ({ id: 'f' + i, lat: x[0], lon: x[1], frp: x[2], conf: x[3], time: new Date(x[4] * 60000).toISOString(), dn: x[5] })) : [];
@@ -118,6 +119,80 @@ async function refreshSlow() {
     if ((S.outages.length || S.skies) && !S.countries) { try { S.countries = await refJson('countries.json'); } catch { /* list still works without map marks */ } }
   } catch { /* keep what we have */ }
   drawQuakes(); drawFires(); drawOutages(); drawSkies(); tickSats(); render();
+}
+
+/* ---------- Israel station: Home Front Command alerts and the Geological Survey of Israel (every 10 seconds) ---------- */
+// The home server reads both (they answer only inside Israel) and sends them to the database (public.il_ingest).
+const GSI_HE = { 'Elat Deep': 'מפרץ אילת', 'Elat': 'אילת', 'Gulf of Elat': 'מפרץ אילת', 'Roum': 'רום, לבנון', 'Negev': 'הנגב', 'Central Israel': 'מרכז הארץ',
+  'Jordan': 'ירדן', 'Northern Jordan': 'צפון ירדן', 'Southern Jordan': 'דרום ירדן', 'E.Mediter. Sea': 'מזרח הים התיכון', 'Red Sea': 'ים סוף', 'Judea Samaria': 'יהודה ושומרון',
+  'E.Shomron': 'מזרח השומרון', 'Dead Sea': 'ים המלח', 'Arava': 'הערבה', 'Galilee': 'הגליל', 'Kinneret': 'הכנרת', 'Hula': 'עמק החולה', 'Carmel': 'הכרמל',
+  'Cyprus': 'קפריסין', 'Lebanon': 'לבנון', 'Syria': 'סוריה', 'Sinai': 'סיני', 'Gulf of Suez': 'מפרץ סואץ', 'Jordan Valley': 'בקעת הירדן', 'Golan': 'רמת הגולן' };
+const quakeKm = (a, b) => {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(x));
+};
+// one list from both: the Geological Survey of Israel's figures come first; a report of the same earthquake by the
+// other services (less than 90 seconds and 150 km apart) only adds its name to the list of sources
+function mergeQuakes() {
+  const out = S.quakesGsi.map((e) => ({ ...e, id: String(e.id).replace(/:/g, '-'), src: ['gsi'] }));
+  for (const e of S.quakesIntl) {
+    const same = out.find((o) => Math.abs(Date.parse(o.time) - Date.parse(e.time)) < 90000 && quakeKm(o, e) < 150);
+    if (same) { for (const x of e.src || ['emsc']) if (!same.src.includes(x)) same.src.push(x); if (!same.regionIntl) same.regionIntl = e.region; }
+    else out.push({ ...e, src: e.src || ['emsc'] });
+  }
+  S.quakes = out.filter((e) => e.mag != null && e.mag >= QUAKE_MIN_MAG && Number.isFinite(e.lat) && Number.isFinite(e.lon));
+}
+function useIsrael(rows) {
+  const fresh = (r, min) => r && Date.now() - Date.parse(r.computed_at) < min * 60 * 1000;
+  const g = rows.find((r) => r.key === 'quakes_gsi');
+  S.quakesGsi = fresh(g, 15) ? g.data.events : [];
+  const o = rows.find((r) => r.key === 'oref');
+  S.orefOk = !!fresh(o, 3);
+  S.oref = o ? o.data : null;
+  mergeQuakes();
+}
+async function refreshIsrael() {
+  try { useIsrael(await api('/derived?select=key,data,computed_at&key=in.(quakes_gsi,oref)')); } catch { return; }
+  drawQuakes(); drawOrefNote();
+  if (['home', 'quakes', 'quake', 'oref'].includes(S.view.name)) render();
+}
+const orefHist = () => (S.oref && S.oref.history) || [];
+// the alert to show on top of the map: the one active right now, or the newest one if it started in the last 10 minutes
+function orefLatest() {
+  const o = S.oref; if (!o) return null;
+  if (S.orefOk && o.active) return { title: o.active.title, t: o.active_at || o.checked, areas: o.active.areas, desc: o.active.desc };
+  const top = orefHist()[0];
+  return top && Date.now() - Date.parse(top.t) < 10 * 60 * 1000 ? top : null;
+}
+function drawOrefNote() {
+  let el = $('#orefnote');
+  if (!el) {
+    el = h('button', { id: 'orefnote', class: 'orefnote', type: 'button', hidden: true, on: { click: () => go({ name: 'oref' }) } });
+    document.body.append(el);
+  }
+  const a = orefLatest();
+  el.hidden = !a;
+  if (a) el.textContent = t().orefBanner(a.title, t().ago(secAgo(a.t)));
+}
+function orefSummary() {
+  const L = t(), o = S.oref;
+  if (!o || !S.orefOk) return L.orefStale;
+  if (o.active) return L.orefNow(o.active.title);
+  const c = orefHist().length;
+  return c ? L.orefSome(c) : L.orefNone;
+}
+function viewOref() {
+  const L = t(), c = T(), o = S.oref;
+  const blocks = [];
+  const card = (title, when, areas, desc) => h('dl', { class: 'facts' },
+    h('dt', null, L.orefWhat), h('dd', null, title),
+    h('dt', null, L.orefWhen), h('dd', null, [L.ago(secAgo(when)), ', ', new Date(when).toLocaleString(S.lang === 'he' ? 'he-IL' : 'en-GB', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'medium' })]),
+    h('dt', null, L.orefAreas), h('dd', null, (areas || []).join(', ') || L.unknown),
+    desc ? [h('dt', null, L.orefDesc), h('dd', null, desc)] : null);
+  if (o && S.orefOk && o.active) blocks.push(card(o.active.title, o.active_at || o.checked, o.active.areas, o.active.desc));
+  for (const x of orefHist().slice(0, 100)) blocks.push(card(x.title, x.t, x.areas));
+  return [header(L.oref, { name: 'home' }), h('p', { class: 'note' }, orefSummary() + ' ' + L.orefNote), blocks];
 }
 
 /* ---------- air quality (every 30 minutes) ---------- */
@@ -1008,6 +1083,7 @@ function viewHome() {
     row(em ? c.warn : c.alt[2], L.emerg,
       em === 1 ? [L.emergOne, ' ', h('b', { class: 'cs', style: 'color:var(--accent)' }, emName(S.em[0]))] : em ? L.emergSome(em) : L.emergNone,
       () => { if (em === 1) { go({ name: 'ac', hex: S.em[0].hex, from: { name: 'home' } }); flyTo(S.ac.find((a) => a.hex === S.em[0].hex) || S.em[0], 7); } else go({ name: 'emerg' }); }),
+    row(orefLatest() ? c.warn : c.alt[2], L.oref, orefSummary(), () => go({ name: 'oref' })),
     row(S.quakes.length ? c.accent : c.alt[2], L.quakes, quakeSummary(), () => go({ name: 'quakes' })),
     row(S.outages.some((e) => !e.end) ? c.warn : c.alt[2], L.outages, outageSummary(), () => go({ name: 'outages' })),
     row(skiesFlagged().length ? c.warn : c.alt[2], L.skies, skiesSummary(), () => go({ name: 'skies' })),
@@ -1101,6 +1177,13 @@ function regionNode(region) {
   const he = S.lang === 'he' ? regionHe(region) : null;
   return he || h('span', { class: 'cs' }, region);
 }
+function quakeRegion(e) {
+  if (e.src && e.src[0] === 'gsi') {
+    if (S.lang === 'he' && GSI_HE[e.region]) return GSI_HE[e.region];
+    if (e.regionIntl) return regionNode(e.regionIntl);
+  }
+  return regionNode(e.region);
+}
 const secAgo = (iso) => Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
 function quakeSummary() {
   const L = t(), q = S.quakes;
@@ -1111,7 +1194,7 @@ function quakeSummary() {
 function viewQuakes() {
   const L = t(), c = T();
   const rows = S.quakes.slice().sort((a, b) => Date.parse(b.time) - Date.parse(a.time)).map((e) =>
-    row(c.accent, L.mag(e.mag.toFixed(1)), [L.ago(secAgo(e.time)), e.region ? ', ' : null, regionNode(e.region)],
+    row(c.accent, L.mag(e.mag.toFixed(1)), [L.ago(secAgo(e.time)), e.region ? ', ' : null, quakeRegion(e)],
       () => { go({ name: 'quake', id: e.id, from: S.view }); flyTo(e, 7); }));
   return [header(L.quakes, { name: 'home' }), h('p', { class: 'note' }, quakeSummary() + ' ' + L.quakesNote), rows];
 }
@@ -1124,7 +1207,8 @@ function viewQuake(id) {
   add(L.qMag, h('span', { class: 'cs' }, e.mag.toFixed(1) + (e.magtype ? ' (' + e.magtype + ')' : '')));
   add(L.qTime, L.ago(secAgo(e.time)));
   add(L.qDepth, e.depth != null ? L.km(Math.round(e.depth)) : null);
-  add(L.qRegion, regionNode(e.region));
+  add(L.qRegion, quakeRegion(e));
+  add(L.qSources, (e.src || ['emsc']).map((x) => L.srcName[x] || x).join(', '));
   add(L.fPos, h('span', { class: 'cs' }, `${e.lat.toFixed(3)}, ${e.lon.toFixed(3)}`));
   add(L.fDist, distLine(e));
   return [head(L.quakeTitle(e.mag.toFixed(1))), h('dl', { class: 'facts' }, facts)];
@@ -1456,7 +1540,7 @@ function render() {
   $('#sheet').classList.toggle('detail', DETAIL_VIEWS.includes(v.name));   // shows the close button; the sources line stays on the main panel
   $('#sheet').classList.toggle('home', v.name === 'home');
   const nodes = short ? short : v.name === 'gnss' ? viewGnss() : v.name === 'emerg' ? viewEmerg() : v.name === 'sky' ? viewSky()
-    : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'quake' ? viewQuake(v.id)
+    : v.name === 'ac' ? viewAircraft(v.hex) : v.name === 'quakes' ? viewQuakes() : v.name === 'oref' ? viewOref() : v.name === 'quake' ? viewQuake(v.id)
     : v.name === 'sat' ? viewSat(v.id) : v.name === 'ship' ? viewShip(v.id) : v.name === 'fire' ? viewFire(v.id) : v.name === 'outages' ? viewOutages() : v.name === 'outage' ? viewOutage(v.id) : v.name === 'conjs' ? viewConjs() : v.name === 'conj' ? viewConj(v.id) : v.name === 'skies' ? viewSkies() : v.name === 'skyc' ? viewSkyArea(v.id)
     : v.name === 'milw' ? viewMilw() : v.name === 'imgsats' ? viewImgSats() : v.name === 'air' ? viewAir() : v.name === 'airst' ? viewAirSt(v.id) : v.name === 'airlv' ? viewAirLv(v.id) : viewHome();
   body.replaceChildren(...nodes.flat().filter(Boolean));
@@ -1797,12 +1881,14 @@ let secondaryStarted = false;
 function startSecondary() {
   if (secondaryStarted) return;
   secondaryStarted = true;
-  refreshSlow(); loadCatalogue(); refreshShips(); refreshAir(); refreshAirLive();
+  refreshSlow(); refreshIsrael(); loadCatalogue(); refreshShips(); refreshAir(); refreshAirLive();
 }
 setTimeout(startSecondary, 8000);   // in case the aircraft data is slow to arrive
 refresh();
 { const k = setInterval(() => { if (S.link) openLink(); else clearInterval(k); }, 1500); setTimeout(() => clearInterval(k), 120000); }
 setInterval(() => { if (!document.hidden) refreshSlow(); }, 5 * 60 * 1000);
+setInterval(() => { if (!document.hidden) refreshIsrael(); }, 10 * 1000);
+setInterval(drawOrefNote, 30 * 1000);   // keeps the 'issued ... ago' line current and hides the note after 10 minutes
 setInterval(tickSats, 1000);
 setInterval(loadCatalogue, 3 * 3600 * 1000);
 setInterval(refreshShips, 60 * 1000);

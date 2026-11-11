@@ -104,3 +104,6 @@ dl.facts dd{font-weight:500}
 .srclist a{color:var(--ink)}
 .srclist bdi{white-space:nowrap}
 .warnnote{display:block;color:var(--warn);font-weight:500}
+/* Home Front Command alert, shown over the map while an alert is active and for 10 minutes after it starts */
+.orefnote{position:fixed;top:calc(64px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:6;max-width:min(92vw,560px);background:var(--panel);color:var(--ink);border:2px solid var(--warn,#c0392b);border-radius:10px;padding:9px 14px;font:inherit;font-size:14px;font-weight:600;line-height:1.4;text-align:center;box-shadow:0 4px 16px var(--shadow);cursor:pointer}
+.orefnote[hidden]{display:none}
