@@ -1,18 +1,15 @@
 name: hasufit-haze-probe
-# one-off check on the temporary branch hasufit-haze-probe (22.11.2026): haze measures of all clear passes since July,
-# and the OpenStreetMap answers of every point including the corner-square places, to save them with the points
+# one-off on the temporary branch hasufit-haze-probe (22.11.2026): save the OpenStreetMap answers of every point,
+# including the places of the corner square, so the weekly run no longer has to ask Overpass every Sunday
 on:
   push:
     branches: [hasufit-haze-probe]
+permissions:
+  contents: write
 jobs:
-  probe:
+  osm:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      max-parallel: 5
-      matrix:
-        point: [majdal-hadar, jubata, quneitra, maariya, khiam-hamames, markaba-houla, aitaroun-jaldeir, ramiya, labbouneh, beaufort]
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,17 +17,15 @@ jobs:
       - shell: bash
         run: |
           set -uo pipefail
-          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy git+https://github.com/ESDS-Leipzig/cubo.git
-          p=${{ matrix.point }}
-          mkdir -p out/$p
-          for try in 1 2 3 4; do
-            echo "[$p] fetching, attempt $try"
-            timeout 1500 python tools/hasufit/fetch_point.py tools/hasufit/points/$p.json raw/$p && break
-            sleep 120
+          pip install -q rasterio==1.4.3 numpy pillow pyproj scipy
+          for p in majdal-hadar jubata quneitra maariya khiam-hamames markaba-houla aitaroun-jaldeir ramiya labbouneh beaufort; do
+            for try in 1 2 3 4; do
+              echo "[$p] attempt $try"
+              timeout 1500 python tools/hasufit/fetch_point.py tools/hasufit/points/$p.json raw/$p > /dev/null && break
+              sleep 120
+            done
+            [ -f raw/$p/osm.json ] && cp raw/$p/osm.json tools/hasufit/points/$p.osm.json && echo "[$p] saved"
           done
-          cp raw/$p/osm.json out/$p/osm.json 2>/dev/null || true
-          cp raw/$p/meta.json out/$p/meta.json
-          python tools/hasufit/probe/haze_probe.py raw/$p/meta.json out/$p
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: 'probe-${{ matrix.point }}', path: out, retention-days: 5 }
+          git config user.name tzofia-build; git config user.email noreply@github.com
+          git add tools/hasufit/points/*.osm.json
+          git commit -q -m "hasufit: OpenStreetMap answers of the corner squares, saved with the points [skip ci]" && git push -q origin HEAD:hasufit-haze-probe
