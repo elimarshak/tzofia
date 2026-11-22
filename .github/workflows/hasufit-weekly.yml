@@ -10,6 +10,8 @@ on:
       points: { description: 'points to run, comma-separated (empty = all)', default: '' }
       force_keep: { description: 'keep this run even without change (1 = yes)', default: '0' }
       week: { description: 'store the run under this week, to replace a kept week (empty = the current week)', default: '' }
+      after_until: { description: 'take the newest clear pass up to this date (YYYY-MM-DD) instead of today', default: '' }
+      baseline_only: { description: 'only reset the picture the next weeks are compared with, store nothing else (1 = yes)', default: '0' }
 permissions:
   contents: write
 concurrency: hasufit-weekly
@@ -43,7 +45,7 @@ jobs:
             sleep 90
           done
           echo "[$p] sharpening the clearest pass of each period (SEN2SR)"
-          timeout 1500 python tools/hasufit/sr_point.py raw enh
+          AFTER_UNTIL="${{ github.event.inputs.after_until }}" timeout 1500 python tools/hasufit/sr_point.py raw enh
           echo "[$p] drawing"
           python tools/hasufit/render.py enh sum web/fonts/Heebo.ttf tools/hasufit/civilpress-logo.webp
           mkdir -p pack/$p && cp enh/after_raw.npy enh/meta.json sum/summary.png sum/summary.gif sum/summary_wipe.gif pack/$p/
@@ -71,6 +73,11 @@ jobs:
           for d in packs/*/; do
             [ -f "$d/after_raw.npy" ] || continue
             p=$(basename $d)
+            if [ "${{ github.event.inputs.baseline_only }}" = "1" ]; then
+              mkdir -p store/points/$p && cp $d/after_raw.npy store/points/$p/last_after_raw.npy
+              echo "[$p] comparison picture reset to $(python -c "import json;print(json.load(open('$d/meta.json'))['after']['datetime'])")"
+              continue
+            fi
             FORCE_KEEP="${{ github.event.inputs.force_keep }}" python tools/hasufit/weekly_change.py $p $d $d store $week || echo "[$p] failed"
           done
           python tools/hasufit/build_index.py store tools/hasufit/points
